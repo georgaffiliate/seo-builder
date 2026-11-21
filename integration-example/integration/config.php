@@ -33,13 +33,15 @@ return [
     'autologin_redirect'          => true,
     'autologin_redirect_delay_ms' => 10000,
 
-    // Which hidden-field groups to send. Default: base only — 5 fields.
-    //   base    — country, lang, funnel, domain, buyer
+    // Which hidden-field groups to render into the page. Default: [] — none.
+    //   country/lang/funnel/domain/buyer (old 'base') are NEVER rendered into HTML:
+    //   api.php attaches them server-side from this config (client can't see or spoof them).
+    //   Optional per-visitor groups, rendered only if listed:
     //   ads     — utm_*, campaign_id/adset_id/ad_id/*_name
     //   fb      — fbclid
     //   device  — user_agent, time_on_page, ttclid
     //   keitaro — subid, pixel, keitaro_*, catalog_*, bbg, os, idfa, gaid
-    'lead_fields'    => ['base'],
+    'lead_fields'    => [],
 
     'buyers' => [
         "PUMA" => [

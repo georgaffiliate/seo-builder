@@ -5,25 +5,22 @@ if (!is_array($__cfg)) {
     $__cfg = [];
 }
 
-$__allowed = ['base', 'ads', 'fb', 'device', 'keitaro'];
-$__groups = $__cfg['lead_fields'] ?? ['base'];
+$__allowed = ['ads', 'fb', 'device', 'keitaro'];
+$__groups = $__cfg['lead_fields'] ?? [];
 if (!is_array($__groups)) {
-    $__groups = ['base'];
+    $__groups = [];
 }
 $__groups = array_values(array_intersect($__groups, $__allowed));
 
-$__host = (string) ($_SERVER['HTTP_HOST'] ?? '');
-$__ua   = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+// NOTE: the 'base' group (country/lang/funnel/domain/buyer) is NOT rendered here.
+// Those are static per-offer values from config.php and are attached server-side in
+// api.php. Rendering them into the HTML would put an identical hidden-input block
+// into every farm site's view-source — an obvious same-network fingerprint — and
+// would let the client spoof them. Per-visitor groups below stay client-side.
+
+$__ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
 
 $__maps = [
-    'base' => [
-        'country' => (string) ($__cfg['country'] ?? ''),
-        'lang'    => (string) ($__cfg['lang'] ?? ''),
-        'funnel'  => (string) ($__cfg['funnel'] ?? ''),
-        // Real domain in the lead: Telegram shows it in its log; the CRM gets google.com (overridden in lib/crm.php).
-        'domain'  => ($__cfg['domain'] ?? '') !== '' ? (string) $__cfg['domain'] : $__host,
-        'buyer'   => ($__cfg['buyer'] ?? '') !== '' ? (string) $__cfg['buyer'] : (string) ($__cfg['default_buyer'] ?? ''),
-    ],
     'ads' => [
         'utm_source'    => '{utm_source}',   'utm_medium'    => '{utm_medium}',   'utm_campaign'  => '{utm_campaign}',
         'utm_content'   => '{utm_content}',  'utm_term'      => '{utm_term}',     'utm_placement' => '{utm_placement}',
@@ -61,8 +58,7 @@ foreach ($__groups as $__g) {
         if ($__val === '') {
             continue;
         }
-        $__cls = $__name === 'country' ? ' class="js-lead-country"' : '';
         echo '<input type="hidden" name="' . htmlspecialchars($__name, ENT_QUOTES)
-            . '" value="' . htmlspecialchars($__val, ENT_QUOTES) . '"' . $__cls . '>';
+            . '" value="' . htmlspecialchars($__val, ENT_QUOTES) . '">';
     }
 }

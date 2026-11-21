@@ -39,6 +39,20 @@ if (!$lead) {
     exit;
 }
 
+// --- Base identity: server-side only ---
+// country/lang/funnel/domain/buyer are static per-offer values that already live in
+// config.php next to this file — they are never rendered into the page HTML (hidden.php
+// renders only per-visitor groups: ads/fb/device/keitaro). Same farm sites must not be
+// recognizable by an identical block of hidden inputs in view-source, and the client
+// has no business overriding these values anyway. Server config wins.
+$lead['country'] = trim((string) ($config['country'] ?? '')) ?: (string) ($lead['country'] ?? '');
+$lead['lang']    = trim((string) ($config['lang'] ?? ''))    ?: (string) ($lead['lang'] ?? '');
+$lead['funnel']  = trim((string) ($config['funnel'] ?? ''))  ?: (string) ($lead['funnel'] ?? '');
+$lead['buyer']   = trim((string) ($config['buyer'] ?? ''))   ?: (string) ($lead['buyer'] ?? '');
+$lead['domain']  = trim((string) ($config['domain'] ?? '')) !== ''
+    ? (string) $config['domain']
+    : (string) ($_SERVER['HTTP_HOST'] ?? ($lead['domain'] ?? ''));
+
 ignore_user_abort(true);
 @set_time_limit(60);
 
