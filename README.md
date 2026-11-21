@@ -185,32 +185,39 @@ DEPLOY=1 WAIT=1 ./client/example.sh                       # збірка + де�
 
 ---
 
-## Сервер і автодеплой (deploy key — без SSH-секретів у GitHub)
+## Сервер і автодеплой (SSH-ключ у GitHub Secrets)
 
-Разова підготовка сервера — **один скрипт** (напр. на `84.200.80.37`):
+Напрямок доступу один: **GitHub Actions → сервер** (rsync + rebuild).
+Сервер нічого не тягне з GitHub, ключ не треба класти в `authorized_keys` вручну.
+
+Разово на сервері:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/georgaffiliate/seo-builder/main/scripts/bootstrap_server.sh | sh
+# 1. конфіг (до першого деплою!)
+mkdir -p /opt/seo-builder/app
+nano /opt/seo-builder/app/.env        # вміст — з .env.example, вписати свої ключі
+
+# 2. файрвол
+ufw allow OpenSSH && ufw allow 8443/tcp && ufw enable
+
+# 3. ключ для GitHub Actions
+ssh-keygen -t ed25519 -N "" -f ~/.ssh/gha_deploy
+cat ~/.ssh/gha_deploy.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/gha_deploy                 # вміст → секрет SSH_PRIVATE_KEY
 ```
 
-(або так само, але з уже склонованого репо: `bash scripts/bootstrap_server.sh`).
+У **GitHub → repo → Settings → Secrets and variables → Actions** додати:
 
-Скрипт зробить: docker → згенерує read-only deploy key і **надрукує публічний
-ключ** → склонує репо в `/opt/seo-builder/app` → поставить cron (кожні 5 хв).
+| Secret | Значення |
+|--------|----------|
+| `SSH_HOST` | IP сервера, напр. `84.200.80.37` |
+| `SSH_USER` | користувач сервера (з права на docker, напр. `root`) |
+| `SSH_PRIVATE_KEY` | повний вміст `~/.ssh/gha_deploy` (разом з BEGIN/END рядками) |
+| `SSH_PORT` | опційно, якщо SSH не на 22 |
 
-Далі руками два кроки:
-
-1. Скопіюй надрукований публічний ключ у **GitHub → repo → Settings →
-   Deploy keys → Add deploy key** (read-only, без write-прав).
-2. `nano /opt/seo-builder/app/.env` (секрети) і
-   `cd /opt/seo-builder/app && docker compose up -d --build`.
-
-Як це працює: cron кожні 5 хвилин виконує `scripts/poll_deploy.sh` — якщо
-`origin/main` зсунувся, робить `git reset --hard` → `docker compose up -d
---build` → health check. Лог: `/var/log/seo-builder-deploy.log`. Приватний
-ключ не покидає сервер, GitHub не має доступу до сервера (ні SSH, ні webhook).
-Швидкість автодеплою = інтервал cron (5 хв); хочеш швидше — зменш інтервал
-у crontab.
+Автодеплой: push у `main` → Actions робить `rsync` коду в `/opt/seo-builder/app`
+(`.env` не чіпає) → `docker compose up -d --build` → health check.
+Ручний запуск: **Actions → deploy → Run workflow**.
 
 ---
 

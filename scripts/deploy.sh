@@ -1,17 +1,14 @@
 #!/bin/sh
-# Idempotent deploy step, executed on the server (by hand or by CI on push to main).
+# Rebuild step on the server. Called by GitHub Actions (after rsync) or by hand.
+# Code is already in APP_DIR (rsync or manual clone); this only rebuilds the stack.
 set -eu
-
 APP_DIR="${APP_DIR:-/opt/seo-builder/app}"
 cd "$APP_DIR"
-
-echo ">> git pull"
-git pull --ff-only origin main
 
 echo ">> docker compose up -d --build"
 docker compose up -d --build
 
-echo ">> cleanup dangling images"
+echo ">> prune dangling images"
 docker image prune -f >/dev/null
 
 echo ">> health check"
