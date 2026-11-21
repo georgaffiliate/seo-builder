@@ -66,8 +66,9 @@ networks:
 
 **З хост-машини** сервіс доступний на `https://localhost:8443`.
 
-TLS — self-signed (Caddy `tls internal`), тому клієнтські запити йдуть з
-`curl -k` / `verify=False`, або підключіть власний CA.
+TLS — self-signed сертифікат, який `scripts/deploy.sh` генерує разово на
+сервері (SAN: `localhost`, `seo-builder-tls`, IP сервера), тому клієнтські
+запити йдуть з `curl -k` / `verify=False`, або підключіть власний CA.
 
 ---
 

@@ -3,6 +3,7 @@
 *.llm_env
 .env
 secrets/
+certs/
 .panel_api_key
 
 # build artifacts (kept in runtime volumes, not in git)
