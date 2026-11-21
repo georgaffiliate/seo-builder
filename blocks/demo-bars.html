@@ -1,0 +1,45 @@
+<section class="section demo-section" id="demo">
+<div class="demo-head">
+<div class="eyebrow" style="justify-content:center"><span></span> PROVA DI DIREZIONE</div>
+<h2>Un tocco, una direzione.<br>Guardate i colpi.</h2>
+<p>Non è una previsione. Impostate importo e orizzonte, scegliete su o giù e osservate come reagisce la simulazione, colpo dopo colpo.</p>
+</div>
+<div class="demo-grid">
+<div class="demo-chart">
+<div class="demo-chart-top"><span class="term-sym">BTC/EUR</span><span class="term-live"><b>●</b> LIVE</span></div>
+<svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="Demo a colonne della direzione di mercato">
+<defs>
+<linearGradient id="dfill" x2="0" y2="1">
+<stop stop-color="#2ee6a8" stop-opacity=".22"/>
+<stop offset="1" stop-color="#2ee6a8" stop-opacity="0"/>
+</linearGradient>
+</defs>
+<g id="demo-bars"></g>
+<path id="demo-area" fill="url(#dfill)"/>
+<path id="demo-line" fill="none" stroke="#2ee6a8" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>
+<div class="ticker-row">
+<span>DAX 40 <em>€ 18.940</em></span>
+<span>Brent <em>€ 90,83</em></span>
+<span>BTC/USD <em>€ 57.462,40</em></span>
+<span>ETH/USD <em>€ 1.622,40</em></span>
+</div>
+</div>
+<div class="demo-controls">
+<label for="demo-amount">Importo <output id="demo-amount-out">€500</output></label>
+<input id="demo-amount" type="range" min="50" max="5000" step="50" value="500">
+<label>Orizzonte</label>
+<div class="seg" role="group" aria-label="Orizzonte">
+<button type="button" data-horizon="1" class="seg-btn">1 min</button>
+<button type="button" data-horizon="5" class="seg-btn is-on">5 min</button>
+<button type="button" data-horizon="15" class="seg-btn">15 min</button>
+</div>
+<div class="updown">
+<button type="button" class="up-btn" data-dir="up">▲ Su</button>
+<button type="button" class="down-btn" data-dir="down">▼ Giù</button>
+</div>
+<div class="runs"><span>Questa sessione: <b id="demo-runs">0</b> colpi</span><button type="button" id="demo-reset">Azzera</button></div>
+</div>
+</div>
+<p class="fine" style="text-align:center">Semplice simulazione — nessuna promessa di guadagno. Operare comporta rischio di perdita.</p>
+</section>

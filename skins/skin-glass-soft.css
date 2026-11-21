@@ -1,0 +1,9 @@
+/* SKIN: glass-soft — glass, glow, gradient accent (premium/tech-light) */
+:root{--r-card:20px;--r-btn:16px;--r-input:14px;--r-img:16px;
+  --pad-card:28px;--pad-sec:94px;--gap-grid:24px;
+  --bw:1px;--shadow-card:0 20px 60px -20px rgb(0 0 0/.22);--shadow-btn:0 12px 34px -12px var(--acc);
+  --h-tracking:-.02em;--eyebrow-transform:none}
+.blk-card,.blk-formcard{background:color-mix(in srgb,var(--panel) 72%,transparent);
+  backdrop-filter:blur(10px);border:var(--bw) solid rgb(255 255 255/.14)}
+.cta-strip{background-image:var(--grad);background-color:var(--acc-deep)}
+.eyebrow{letter-spacing:.2em}

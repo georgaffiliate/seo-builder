@@ -1,0 +1,43 @@
+  <section class="signup-band" id="iscrizione">
+    <div class="wrap signup-grid">
+      <div>
+        <div class="eyebrow"><i></i> ISCRIZIONE GRATUITA</div>
+        <h2>Apri l'accesso in quattro campi.</h2>
+        <p>Dei dati giusti arrivano chiamate utili. Compila il modulo: la verifica dura pochi minuti e il resto lo facciamo noi.</p>
+        <ul class="perks">
+          <li><span class="tick" aria-hidden="true">✓</span><div><b>Richiamati entro 30 minuti</b><p>Dalle 9 alle 19 nei giorni lavorativi, da un consulente in italiano.</p></div></li>
+          <li><span class="tick" aria-hidden="true">✓</span><div><b>Programma scritto su misura</b><p>Obiettivi, orizzonte e limiti massimi per posizione, spiegati con calma.</p></div></li>
+          <li><span class="tick" aria-hidden="true">✓</span><div><b>120+ mercati sotto controllo</b><p>Da Bitcoin a FTSE Mib: quotazioni e sentiment sempre sulla stessa pagina.</p></div></li>
+          <li><span class="tick" aria-hidden="true">✓</span><div><b>Voto medio 4,8/5</b><p>1.108 recensioni raccolte dagli utenti registrati dal 2023.</p></div></li>
+        </ul>
+      </div>
+      <form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+        <h3>Iscriviti al servizio</h3>
+        <p class="form-sub">Tre campi e il numero di telefono: poi ci pensiamo noi.</p>
+        <div class="form-group">
+          <label for="lead-nome">Nome</label>
+          <input id="lead-nome" type="text" required autocomplete="given-name" name="first_name" placeholder="Mario">
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="lead-cognome">Cognome</label>
+          <input id="lead-cognome" type="text" required autocomplete="family-name" name="last_name" placeholder="Rossi">
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="lead-email">Email</label>
+          <input id="lead-email" type="email" required autocomplete="email" name="email" placeholder="nome@esempio.it">
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="lead-telefono">Telefono</label>
+          <input id="lead-telefono" type="tel" required autocomplete="tel" class="js-lead-phone" placeholder="348 123 4567">
+          <div class="form-error" role="alert"></div>
+        </div>
+        <?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+        <button class="button form-submit" type="submit">Registrati gratis</button>
+        <small>Presentandosi accetta la <a href="privacy.php">privacy</a> e i <a href="terms.php">termini</a>. Dopo la verifica: deposito iniziale 250 €, modificabile in qualsiasi momento.</small>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>

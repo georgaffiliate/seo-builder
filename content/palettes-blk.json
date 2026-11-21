@@ -1,0 +1,494 @@
+{
+ "_doc": "Palettes for static-create-sites (blk-token format). Keys map 1:1 to blocks.css vars: --bg --bg-soft --panel --ink --muted --line --acc --acc-deep --acc-2 --up --down --grad. theme defines dark/light for contrast fixes. font_pairs picks from FONTS registry index.",
+ "fonts": {
+  "bitter-work": {
+   "head": "Bitter",
+   "body": "Work Sans",
+   "import": "https://fonts.googleapis.com/css2?family=Bitter:wght@600;700;800&family=Work+Sans:wght@400;500;600;700&display=swap"
+  },
+  "manrope": {
+   "head": "Manrope",
+   "body": "Manrope",
+   "import": "https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap"
+  },
+  "sora-plex": {
+   "head": "Sora",
+   "body": "IBM Plex Sans",
+   "import": "https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+  },
+  "jakarta": {
+   "head": "Plus Jakarta Sans",
+   "body": "Inter",
+   "import": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+  },
+  "outfit-public": {
+   "head": "Outfit",
+   "body": "Public Sans",
+   "import": "https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap"
+  },
+  "grotesk-man": {
+   "head": "Space Grotesk",
+   "body": "Manrope",
+   "import": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+  },
+  "fraunces-nun": {
+   "head": "Fraunces",
+   "body": "Nunito Sans",
+   "import": "https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap"
+  },
+  "franklin-lora": {
+   "head": "Libre Franklin",
+   "body": "Lora",
+   "import": "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700;800&family=Lora:wght@400;500;600&display=swap"
+  },
+  "rubik-opensans": {
+   "head": "Rubik",
+   "body": "Open Sans",
+   "import": "https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap"
+  },
+  "archivo": {
+   "head": "Archivo",
+   "body": "Archivo",
+   "import": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap"
+  },
+  "chakra-inter": {
+   "head": "Chakra Petch",
+   "body": "Inter",
+   "import": "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+  },
+  "cormorant-jost": {
+   "head": "Cormorant Garamond",
+   "body": "Jost",
+   "import": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Jost:wght@300;400;500;600&display=swap"
+  }
+ },
+ "palettes": [
+  {
+   "id": "p-navy-gold",
+   "theme": "light",
+   "vars": {
+    "bg": "#f8f9fc",
+    "bg_soft": "#eef1f8",
+    "panel": "#ffffff",
+    "ink": "#111827",
+    "muted": "#5b6472",
+    "line": "#e2e6ef",
+    "acc": "#1d3a8a",
+    "acc_deep": "#142a66",
+    "acc_2": "#c9a227",
+    "up": "#0f9d6b",
+    "down": "#d64545",
+    "grad": "linear-gradient(120deg,#1d3a8a,#3b6fe0)",
+    "acc_text": "#142a66",
+    "btn_ink": "#ffffff",
+    "up_text": "#0f7356",
+    "down_text": "#a93b3e"
+   },
+   "good_skins": [
+    "classic-border",
+    "sharp-flat",
+    "rounded-air"
+   ],
+   "default_fonts": "franklin-lora"
+  },
+  {
+   "id": "p-terracotta",
+   "theme": "light",
+   "vars": {
+    "bg": "#fdf6f0",
+    "bg_soft": "#f9ead9",
+    "panel": "#ffffff",
+    "ink": "#33231b",
+    "muted": "#7d6353",
+    "line": "#eeddcc",
+    "acc": "#b8502f",
+    "acc_deep": "#96401f",
+    "acc_2": "#2a7f8e",
+    "up": "#2a7f8e",
+    "down": "#b8502f",
+    "grad": "linear-gradient(120deg,#b8502f,#e08a5a)",
+    "acc_text": "#96401f",
+    "btn_ink": "#ffffff",
+    "up_text": "#2c6a74",
+    "down_text": "#a84b2d"
+   },
+   "good_skins": [
+    "rounded-air",
+    "classic-border",
+    "glass-soft"
+   ],
+   "default_fonts": "bitter-work"
+  },
+  {
+   "id": "p-eco-forest",
+   "theme": "light",
+   "vars": {
+    "bg": "#fbfdf8",
+    "bg_soft": "#f0f6e9",
+    "panel": "#ffffff",
+    "ink": "#1c2a14",
+    "muted": "#5c6b4e",
+    "line": "#dde8cf",
+    "acc": "#3f6f21",
+    "acc_deep": "#2e5518",
+    "acc_2": "#7cb342",
+    "up": "#3f6f21",
+    "down": "#b0592b",
+    "grad": "linear-gradient(120deg,#4e8a28,#7cb342)",
+    "acc_text": "#2e5518",
+    "btn_ink": "#ffffff",
+    "up_text": "#3f6f21",
+    "down_text": "#9e5328"
+   },
+   "good_skins": [
+    "rounded-air",
+    "glass-soft",
+    "classic-border"
+   ],
+   "default_fonts": "fraunces-nun"
+  },
+  {
+   "id": "p-sabbia-indigo",
+   "theme": "light",
+   "vars": {
+    "bg": "#f7f6f2",
+    "bg_soft": "#efece5",
+    "panel": "#ffffff",
+    "ink": "#1b1c26",
+    "muted": "#5c5e6c",
+    "line": "#e7e3da",
+    "acc": "#5b34d1",
+    "acc_deep": "#4a2bb0",
+    "acc_2": "#e2622a",
+    "up": "#e2622a",
+    "down": "#d64545",
+    "grad": "linear-gradient(120deg,#5b34d1,#e2622a)",
+    "acc_text": "#4a2bb0",
+    "btn_ink": "#ffffff",
+    "up_text": "#a34c2a",
+    "down_text": "#ac3c3e"
+   },
+   "good_skins": [
+    "sharp-flat",
+    "rounded-air",
+    "glass-soft"
+   ],
+   "default_fonts": "outfit-public"
+  },
+  {
+   "id": "p-medical-clear",
+   "theme": "light",
+   "vars": {
+    "bg": "#f6fafc",
+    "bg_soft": "#e8f3f8",
+    "panel": "#ffffff",
+    "ink": "#0f2630",
+    "muted": "#55707c",
+    "line": "#d3e6ee",
+    "acc": "#0e7490",
+    "acc_deep": "#0a5a70",
+    "acc_2": "#2563eb",
+    "up": "#15803d",
+    "down": "#be123c",
+    "grad": "linear-gradient(120deg,#0e7490,#38bdf8)",
+    "acc_text": "#0a5a70",
+    "btn_ink": "#ffffff",
+    "up_text": "#14753b",
+    "down_text": "#be123c"
+   },
+   "good_skins": [
+    "rounded-air",
+    "classic-border",
+    "glass-soft"
+   ],
+   "default_fonts": "rubik-opensans"
+  },
+  {
+   "id": "p-minimal-mono",
+   "theme": "light",
+   "vars": {
+    "bg": "#ffffff",
+    "bg_soft": "#f4f4f4",
+    "panel": "#fafafa",
+    "ink": "#111111",
+    "muted": "#757575",
+    "line": "#e5e5e5",
+    "acc": "#111111",
+    "acc_deep": "#000000",
+    "acc_2": "#0038ff",
+    "up": "#0a7a3d",
+    "down": "#c01818",
+    "grad": "none",
+    "acc_text": "#000000",
+    "btn_ink": "#ffffff",
+    "up_text": "#0b6d38",
+    "down_text": "#c01818"
+   },
+   "good_skins": [
+    "sharp-flat",
+    "brutalist-block",
+    "dense-terminal"
+   ],
+   "default_fonts": "archivo"
+  },
+  {
+   "id": "p-candy-playful",
+   "theme": "light",
+   "vars": {
+    "bg": "#fffdfa",
+    "bg_soft": "#fff3ec",
+    "panel": "#ffffff",
+    "ink": "#20242c",
+    "muted": "#6b7280",
+    "line": "#fbe3d6",
+    "acc": "#ff6b35",
+    "acc_deep": "#e04e1a",
+    "acc_2": "#00b3a4",
+    "up": "#00b3a4",
+    "down": "#ef4444",
+    "grad": "linear-gradient(120deg,#ff6b35,#ffb347)",
+    "acc_text": "#a34120",
+    "btn_ink": "#111111",
+    "up_text": "#0f706b",
+    "down_text": "#ad3a3c"
+   },
+   "good_skins": [
+    "rounded-air",
+    "brutalist-block",
+    "glass-soft"
+   ],
+   "default_fonts": "jakarta"
+  },
+  {
+   "id": "p-luxury-noir",
+   "theme": "dark",
+   "vars": {
+    "bg": "#101010",
+    "bg_soft": "#171512",
+    "panel": "#1d1a16",
+    "panel_soft": "#14120f",
+    "ink": "#f4efe4",
+    "muted": "#a49a86",
+    "line": "rgb(233 220 195/.16)",
+    "acc": "#c9a24b",
+    "acc_deep": "#a8842f",
+    "acc_text": "#b99c58",
+    "acc_2": "#e7dcc3",
+    "up": "#9bc07a",
+    "down": "#c96b4b",
+    "grad": "linear-gradient(120deg,#c9a24b,#e7dcc3)",
+    "btn_ink": "#111111",
+    "up_text": "#9bc07a",
+    "down_text": "#d3896d"
+   },
+   "good_skins": [
+    "classic-border",
+    "sharp-flat",
+    "glass-soft"
+   ],
+   "default_fonts": "cormorant-jost"
+  },
+  {
+   "id": "p-neon-lab",
+   "theme": "dark",
+   "vars": {
+    "bg": "#07090f",
+    "bg_soft": "#0b0f1a",
+    "panel": "#10141f",
+    "panel_soft": "#0c0f18",
+    "ink": "#e8fff6",
+    "muted": "#7d9a90",
+    "line": "rgb(0 255 163/.14)",
+    "acc": "#00ffa3",
+    "acc_deep": "#00cc82",
+    "acc_text": "#00cc82",
+    "acc_2": "#e94fd6",
+    "up": "#00ffa3",
+    "down": "#ff5470",
+    "grad": "linear-gradient(120deg,#00ffa3,#e94fd6)",
+    "btn_ink": "#111111",
+    "up_text": "#00ffa3",
+    "down_text": "#fc6980"
+   },
+   "good_skins": [
+    "dense-terminal",
+    "glass-soft",
+    "brutalist-block"
+   ],
+   "default_fonts": "grotesk-man"
+  },
+  {
+   "id": "p-neon-terminal",
+   "theme": "dark",
+   "vars": {
+    "bg": "#0a0e1a",
+    "bg_soft": "#0e1424",
+    "panel": "#111a2e",
+    "panel_soft": "#0c1220",
+    "ink": "#eef3ff",
+    "muted": "#99a6c4",
+    "line": "rgb(255 255 255/.1)",
+    "acc": "#6b4ce6",
+    "acc_deep": "#6b4ce6",
+    "acc_text": "#b9a6ff",
+    "acc_2": "#4cc9f0",
+    "up": "#5eead4",
+    "down": "#fb7185",
+    "grad": "linear-gradient(120deg,#8b6cff,#4cc9f0)",
+    "btn_ink": "#ffffff",
+    "up_text": "#5eead4",
+    "down_text": "#fb7185"
+   },
+   "good_skins": [
+    "dense-terminal",
+    "glass-soft",
+    "rounded-air"
+   ],
+   "default_fonts": "grotesk-man"
+  },
+  {
+   "id": "p-aurora-graphite",
+   "theme": "dark",
+   "vars": {
+    "bg": "#08110e",
+    "bg_soft": "#0b1714",
+    "panel": "#0f1d19",
+    "panel_soft": "#0a1512",
+    "ink": "#e9f5ef",
+    "muted": "#8fa89e",
+    "line": "rgb(255 255 255/.1)",
+    "acc": "#2ee6a8",
+    "acc_deep": "#22c08a",
+    "acc_text": "#22c08a",
+    "acc_2": "#e6c34a",
+    "up": "#34d399",
+    "down": "#fb7185",
+    "grad": "linear-gradient(118deg,#2ee6a8,#e6c34a)",
+    "btn_ink": "#111111",
+    "up_text": "#34d399",
+    "down_text": "#fb7185"
+   },
+   "good_skins": [
+    "dense-terminal",
+    "glass-soft",
+    "sharp-flat"
+   ],
+   "default_fonts": "chakra-inter"
+  },
+  {
+   "id": "p-riviera-night",
+   "theme": "dark",
+   "vars": {
+    "bg": "#051820",
+    "bg_deep": "#031015",
+    "bg_soft": "#0a222c",
+    "panel": "#0a222c",
+    "panel_soft": "#0d2a35",
+    "ink": "#e9f5f2",
+    "muted": "#8fb3ae",
+    "line": "rgb(255 255 255/.1)",
+    "acc": "#f4745e",
+    "acc_deep": "#cd6e5d",
+    "acc_text": "#d29183",
+    "acc_2": "#ffd166",
+    "up": "#3ddc97",
+    "down": "#ff7a70",
+    "grad": "none",
+    "btn_ink": "#111111",
+    "up_text": "#3ddc97",
+    "down_text": "#ff7a70"
+   },
+   "good_skins": [
+    "dense-terminal",
+    "rounded-air",
+    "glass-soft"
+   ],
+   "default_fonts": "sora-plex"
+  },
+  {
+   "id": "p-slate-steel",
+   "theme": "dark",
+   "vars": {
+    "bg": "#14171c",
+    "bg_soft": "#191d24",
+    "panel": "#1e232b",
+    "panel_soft": "#171b21",
+    "ink": "#eceff3",
+    "muted": "#98a2b3",
+    "line": "rgb(255 255 255/.09)",
+    "acc": "#5b8def",
+    "acc_deep": "#628add",
+    "acc_text": "#85a2e1",
+    "acc_2": "#8fa3bf",
+    "up": "#3fb37f",
+    "down": "#e05f5f",
+    "grad": "linear-gradient(120deg,#5b8def,#8fa3bf)",
+    "btn_ink": "#111111",
+    "up_text": "#54ba8d",
+    "down_text": "#e38c8f"
+   },
+   "good_skins": [
+    "sharp-flat",
+    "dense-terminal",
+    "classic-border"
+   ],
+   "default_fonts": "manrope"
+  },
+  {
+   "id": "p-violet-rose",
+   "theme": "light",
+   "vars": {
+    "bg": "#faf8fc",
+    "bg_soft": "#f4f0fb",
+    "panel": "#ffffff",
+    "ink": "#251a3d",
+    "muted": "#6e6390",
+    "line": "#e6e0f2",
+    "acc": "#6d28d9",
+    "acc_deep": "#5b21b6",
+    "acc_2": "#db2777",
+    "up": "#059669",
+    "down": "#dc2626",
+    "grad": "none",
+    "acc_text": "#5b21b6",
+    "btn_ink": "#ffffff",
+    "up_text": "#0f6e5b",
+    "down_text": "#c62529"
+   },
+   "good_skins": [
+    "rounded-air",
+    "glass-soft",
+    "sharp-flat"
+   ],
+   "default_fonts": "sora-plex"
+  },
+  {
+   "id": "p-warm-sand",
+   "theme": "light",
+   "vars": {
+    "bg": "#fbf7f0",
+    "bg_soft": "#f4ecdf",
+    "panel": "#ffffff",
+    "ink": "#2b2416",
+    "muted": "#7c7259",
+    "line": "#e9e0cd",
+    "acc": "#8a6d2f",
+    "acc_deep": "#6f5722",
+    "acc_2": "#b0883a",
+    "up": "#5b7a3a",
+    "down": "#b0503a",
+    "grad": "linear-gradient(120deg,#8a6d2f,#c9a24b)",
+    "acc_text": "#6f5722",
+    "btn_ink": "#ffffff",
+    "up_text": "#557036",
+    "down_text": "#a04b36"
+   },
+   "good_skins": [
+    "classic-border",
+    "rounded-air",
+    "sharp-flat"
+   ],
+   "default_fonts": "franklin-lora"
+  }
+ ]
+}

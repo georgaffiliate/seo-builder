@@ -1,0 +1,36 @@
+<section class="open-band" id="claim">
+<div>
+<h2>Apri il conto con una chiacchierata breve.</h2>
+<p>Lascia i tuoi recapiti. Un consulente ti chiama, ti mostra il pannello e il calcolatore e ti guida nel primo versamento.</p>
+<ul class="open-list">
+<li><span>✓</span> Pannello ordinato con più mercati</li>
+<li><span>✓</span> Grafici chiari, senza rumore</li>
+<li><span>✓</span> Calcolatore per importo e orizzonte</li>
+<li><span>✓</span> Supporto in italiano</li>
+</ul>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Apri il conto</h3>
+<div class="form-group">
+<label for="b-first">Nome<input id="b-first" required autocomplete="given-name" name="first_name" placeholder="Nome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-last">Cognome<input id="b-last" required autocomplete="family-name" name="last_name" placeholder="Cognome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-email">Email<input id="b-email" required type="email" autocomplete="email" name="email" placeholder="nome@esempio.it"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-phone">Telefono<input id="b-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="320 123 4567"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Invia la richiesta</button>
+<div class="pay-badges"><span>Visa</span><span>Mastercard</span><span>PayPal</span><span>SEPA</span><span>Bonifico</span></div>
+<small>Registrandoti accetti la <a href="privacy.php">Privacy</a> e i <a href="terms.php">Termini</a>. Versamento minimo 250 €.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

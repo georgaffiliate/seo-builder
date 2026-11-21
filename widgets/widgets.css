@@ -1,0 +1,242 @@
+/* ============================================================================
+   widgets.css — widget library (shared file).
+   Colors ONLY from the offer's :root tokens, with safe fallbacks.
+   Class prefix: .wk-* (to avoid clashing with the offer's style.css).
+   JS hook of each widget: [data-widget="<id>"] (see widgets.js).
+   ========================================================================== */
+
+.wk-root,
+[data-widget] {
+  --wk-up: var(--up, #22c55e);
+  --wk-down: var(--down, #ef4444);
+  --wk-acc: var(--acc, #6ee7b7);
+  --wk-acc2: var(--acc-2, #38bdf8);
+  --wk-panel: var(--panel, rgba(255, 255, 255, .05));
+  --wk-line: var(--line, rgba(255, 255, 255, .12));
+  --wk-ink: var(--ink, #eaf2ee);
+  --wk-muted: var(--muted, #93a8a0);
+}
+
+.wk-note {
+  font-size: 11px;
+  color: var(--wk-muted);
+  margin-top: 10px;
+}
+
+/* --- shared bits --- */
+.wk-up { color: var(--wk-up); }
+.wk-down { color: var(--wk-down); }
+.wk-mono { font-variant-numeric: tabular-nums; }
+
+@keyframes wk-pulse { 50% { opacity: .35; } }
+@keyframes wk-tape { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes wk-flip { from { transform: rotateX(-90deg); opacity: .2; } to { transform: rotateX(0); opacity: 1; } }
+@keyframes wk-spin { to { transform: rotate(360deg); } }
+@keyframes wk-flap { 50% { transform: rotateX(-90deg); } }
+
+/* ============================================================ G1 · live/price */
+
+/* --- ticker-static --- */
+.wk-ticker {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  border-top: 1px solid var(--wk-line); border-bottom: 1px solid var(--wk-line);
+  padding: 22px 0; color: var(--wk-muted); font-size: 13px;
+}
+.wk-ticker b { color: var(--wk-ink); }
+.wk-ticker strong { font-weight: 650; color: var(--wk-ink); }
+
+/* --- livebar-counter --- */
+.wk-livebar {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 9px 0; font-size: 10px; letter-spacing: .7px; text-transform: uppercase;
+  color: var(--wk-muted); border-bottom: 1px solid var(--wk-line);
+}
+.wk-livebar b { color: var(--wk-ink); }
+.wk-livebar .wk-live { display: inline-flex; align-items: center; gap: 7px; color: var(--wk-acc); font-weight: 800; }
+.wk-livebar .wk-live i {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--wk-acc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-acc) 20%, transparent);
+  animation: wk-pulse 1.8s infinite;
+}
+
+/* --- tape-marquee --- */
+.wk-tape {
+  flex: 1; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.wk-tape-track { display: flex; gap: 30px; white-space: nowrap; width: max-content; animation: wk-tape 30s linear infinite; }
+.wk-tape-track b { color: var(--wk-ink); }
+.wk-tape-track em { font-style: normal; color: var(--wk-acc2); }
+
+/* --- markets-strip --- */
+.wk-markets { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.wk-market {
+  background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 14px; padding: 16px;
+}
+.wk-market .wk-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+.wk-market .wk-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--wk-muted); border: 1px solid var(--wk-line); border-radius: 6px; padding: 3px 7px; }
+.wk-market .wk-val { font-size: 22px; font-weight: 800; letter-spacing: -.5px; margin: 10px 0 4px; }
+.wk-market .wk-chg { font-size: 12px; font-weight: 700; }
+
+/* --- price-board (sparklines) --- */
+.wk-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.wk-card { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 14px; padding: 16px; }
+.wk-card .wk-val { font-size: 20px; font-weight: 800; }
+.wk-card svg { width: 100%; height: 34px; margin-top: 8px; display: block; }
+
+/* --- listino-rows --- */
+.wk-listino { display: grid; gap: 10px; }
+.wk-row {
+  display: grid; grid-template-columns: 1.2fr auto 110px; align-items: center; gap: 16px;
+  background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 14px; padding: 12px 20px;
+}
+.wk-row .wk-val { font-weight: 800; }
+
+/* --- heatmap --- */
+.wk-heatmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.wk-heatmap span {
+  display: grid; place-items: center; gap: 3px; min-height: 74px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; padding: 8px; border: 1px solid var(--wk-line);
+  background: color-mix(in srgb, var(--wk-acc) 12%, var(--wk-panel));
+  transition: background .5s, color .5s;
+}
+.wk-heatmap span.is-up { background: color-mix(in srgb, var(--wk-up) var(--wk-i, 25%), var(--wk-panel)); color: var(--wk-ink); }
+.wk-heatmap span.is-down { background: color-mix(in srgb, var(--wk-down) var(--wk-i, 25%), var(--wk-panel)); color: var(--wk-ink); }
+.wk-heatmap span small { font-size: 10px; color: var(--wk-muted); }
+
+/* --- tile-flip --- */
+.wk-tiles { display: flex; gap: 12px; flex-wrap: wrap; }
+.wk-tile { perspective: 700px; flex: 1; min-width: 140px; }
+.wk-tile article {
+  background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 12px;
+  padding: 12px 14px; transform-style: preserve-3d;
+}
+.wk-tile small { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--wk-muted); }
+.wk-tile b { display: block; font-size: 20px; margin: 6px 0 2px; }
+.wk-tile b.is-flip { animation: wk-flip .45s ease; }
+.wk-tile em { font-style: normal; font-size: 12px; font-weight: 700; }
+
+/* --- odometer --- */
+.wk-odometer { display: inline-flex; align-items: baseline; gap: 8px; }
+.wk-odometer b {
+  font-size: 26px; font-weight: 800; letter-spacing: -.5px;
+  height: 1.1em; overflow: hidden; display: inline-block; vertical-align: bottom;
+}
+.wk-odometer b span { display: block; }
+.wk-odometer small { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--wk-muted); }
+
+/* ============================================================ G2 · timer */
+
+.wk-countdown { display: grid; grid-template-columns: repeat(4, minmax(58px, 1fr)); gap: 12px; max-width: 460px; }
+.wk-countdown > div { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 12px; padding: 12px; text-align: center; }
+.wk-countdown b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+.wk-countdown small { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--wk-muted); }
+
+/* --- countdown-bar --- */
+.wk-cdbar { display: flex; gap: 10px; }
+.wk-cdbar > div { flex: 1; background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 10px; padding: 10px; text-align: center; }
+.wk-cdbar b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.wk-cdbar small { display: block; font-size: 9px; text-transform: uppercase; color: var(--wk-muted); }
+
+/* --- countdown-ring --- */
+.wk-rings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; justify-items: center; }
+.wk-rings > div {
+  position: relative; width: 100%; max-width: 96px; aspect-ratio: 1; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: conic-gradient(var(--wk-acc) calc(var(--p, 0) * 1turn), color-mix(in srgb, var(--wk-acc) 12%, var(--wk-panel)) 0);
+}
+.wk-rings > div:before { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--wk-panel); }
+.wk-rings b { position: relative; z-index: 1; font-size: 24px; font-variant-numeric: tabular-nums; }
+.wk-rings small { position: relative; z-index: 1; font-size: 9px; text-transform: uppercase; color: var(--wk-muted); }
+
+/* --- flip-clock (uses the #countdown + [data-unit] hook, like the timers above) --- */
+.wk-flip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; perspective: 800px; }
+.wk-flip > div { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 12px; padding: 14px 8px; text-align: center; }
+.wk-flip b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+.wk-flip b.is-flap { animation: wk-flap .5s ease; }
+.wk-flip small { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--wk-muted); }
+
+/* --- progress-intake --- */
+.wk-progress { max-width: 460px; }
+.wk-progress .wk-bar { height: 12px; border-radius: 999px; background: var(--wk-panel); border: 1px solid var(--wk-line); overflow: hidden; }
+.wk-progress .wk-bar i { display: block; height: 100%; width: var(--fill, 0%); background: linear-gradient(90deg, var(--wk-acc), var(--wk-acc2)); transition: width .8s ease; }
+.wk-progress p { margin: 10px 0 0; font-size: 13px; color: var(--wk-muted); }
+.wk-progress b { color: var(--wk-ink); }
+
+/* ============================================================ G3 · demo */
+
+.wk-demo { display: grid; grid-template-columns: 1.3fr .7fr; gap: 18px; align-items: stretch; }
+.wk-demo-chart { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 16px; padding: 16px; }
+.wk-demo-chart svg { width: 100%; display: block; }
+.wk-demo-side { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.wk-seg { display: flex; gap: 7px; }
+.wk-seg .seg-btn { flex: 1; background: var(--wk-panel); border: 1px solid var(--wk-line); color: var(--wk-muted); border-radius: 9px; padding: 9px 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.wk-seg .seg-btn.is-on { border-color: var(--wk-acc); color: var(--wk-ink); }
+.wk-updown { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wk-updown button { border: 0; border-radius: 11px; padding: 13px; font-size: 14px; font-weight: 800; color: #fff; cursor: pointer; }
+.wk-updown .up-btn { background: color-mix(in srgb, var(--wk-up) 70%, #000); }
+.wk-updown .down-btn { background: color-mix(in srgb, var(--wk-down) 70%, #000); }
+.wk-demo-side label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--wk-muted); }
+
+/* --- book-ladder --- */
+.wk-book { display: grid; gap: 6px; }
+.wk-book-row { display: grid; grid-template-columns: 40px 80px 1fr; align-items: center; gap: 10px; font-size: 11px; color: var(--wk-muted); }
+.wk-book-row b { font-size: 11px; color: var(--wk-ink); font-variant-numeric: tabular-nums; }
+.wk-book-row i { height: 6px; border-radius: 4px; background: var(--wk-panel); position: relative; overflow: hidden; }
+.wk-book-row i:after { content: ""; position: absolute; inset: 0; width: var(--w, 50%); border-radius: 4px; }
+.wk-book-row.bid i:after { background: linear-gradient(90deg, color-mix(in srgb, var(--wk-up) 55%, #000), var(--wk-up)); }
+.wk-book-row.ask i:after { background: linear-gradient(90deg, color-mix(in srgb, var(--wk-down) 55%, #000), var(--wk-down)); }
+
+/* --- sentiment-gauge --- */
+.wk-gauge { max-width: 320px; text-align: center; }
+.wk-gauge svg { width: 100%; display: block; }
+.wk-gauge .wk-arc { fill: none; stroke: var(--wk-panel); stroke-width: 12; stroke-linecap: round; }
+.wk-gauge .wk-arc-fill { fill: none; stroke: var(--wk-acc); stroke-width: 12; stroke-linecap: round; }
+.wk-gauge .wk-needle { stroke: var(--wk-ink); stroke-width: 3; stroke-linecap: round; transform-origin: 110px 100px; transition: transform .6s cubic-bezier(.3, 1.4, .5, 1); }
+.wk-gauge b { display: block; margin-top: 6px; }
+
+/* ============================================================ G4 · faq */
+
+.wk-faq { display: grid; gap: 10px; }
+.wk-faq details { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 12px; padding: 14px 18px; }
+.wk-faq summary { cursor: pointer; font-weight: 650; }
+.wk-faq details p { margin: 10px 0 0; color: var(--wk-muted); }
+
+.wk-faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* --- faq-split --- */
+.wk-faq-split { display: grid; grid-template-columns: .9fr 1.1fr; gap: 20px; align-items: start; }
+.wk-faq-split .wk-questions { display: grid; gap: 8px; }
+.wk-faq-split .wk-q { text-align: left; background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 10px; padding: 12px 14px; color: var(--wk-muted); font-weight: 600; cursor: pointer; }
+.wk-faq-split .wk-q.is-on { border-color: var(--wk-acc); color: var(--wk-ink); }
+.wk-faq-split .wk-answer { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 14px; padding: 20px; color: var(--wk-muted); }
+
+/* ============================================================ G5 · score */
+
+.wk-quick { display: grid; gap: 12px; counter-reset: wkq; }
+.wk-quick li { list-style: none; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.wk-quick li:before { counter-increment: wkq; content: counter(wkq); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--wk-panel); border: 1px solid var(--wk-line); color: var(--wk-acc); font-weight: 800; }
+
+.wk-rating { display: grid; gap: 12px; max-width: 460px; }
+.wk-rating .wk-score { font-size: 34px; font-weight: 800; }
+.wk-rating .wk-bars { display: grid; gap: 8px; }
+.wk-rating .wk-bars div { display: grid; grid-template-columns: 120px 1fr 40px; gap: 10px; align-items: center; font-size: 12px; color: var(--wk-muted); }
+.wk-rating .wk-bars i { height: 8px; border-radius: 999px; background: var(--wk-panel); overflow: hidden; }
+.wk-rating .wk-bars i:after { content: ""; display: block; height: 100%; width: var(--v, 0%); background: var(--wk-acc); }
+
+.wk-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+.wk-stats > div { background: var(--wk-panel); border: 1px solid var(--wk-line); border-radius: 14px; padding: 18px; }
+.wk-stats strong { display: block; font-size: 28px; }
+.wk-stats span { font-size: 12px; color: var(--wk-muted); }
+
+/* ============================================================ motion / responsive */
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-tape-track, .wk-livebar .wk-live i,
+  .wk-tile b.is-flip, .wk-flip b.is-flap { animation: none; }
+}
+@media (max-width: 760px) {
+  .wk-demo, .wk-faq-grid, .wk-faq-split { grid-template-columns: 1fr; }
+  .wk-countdown, .wk-rings, .wk-flip { grid-template-columns: repeat(4, 1fr); }
+}

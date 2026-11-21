@@ -1,0 +1,39 @@
+<section class="register">
+<div>
+<div class="eyebrow"><span></span> VAŠ NASLEDNJI KORAK</div>
+<h1><span class="brand-line">Nacionalni program finančne vključenosti (NPFV)</span>Prihodnost<br>se začne<br><span>z vami.</span></h1>
+<p>Spoznavanje trgovanja v vašem tempu — z minimalnim depozitom 250 €.</p>
+<div class="register-points">
+<div><b>01</b><span>Brezplačna prijava in klic svetovalca</span></div>
+<div><b>02</b><span>Vodena verifikacija in profil tveganja</span></div>
+<div><b>03</b><span>Depozit 250 € in dostop do platforme</span></div>
+</div>
+<div class="register-art">↗</div>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<span class="badge">NACIONALNI PROGRAM FINANČNE VKLJUČENOSTI (NPFV)</span>
+<h2>Odprite račun</h2>
+<p>Pustite podatke, da vas svetovalec pokliče in uskladi naslednje korake.</p>
+<div class="form-group">
+<label for="reg-first">Ime<input id="reg-first" required autocomplete="given-name" name="first_name" placeholder="Vaše ime"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-last">Priimek<input id="reg-last" required autocomplete="family-name" name="last_name" placeholder="Vaš priimek"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-email">E-pošta<input id="reg-email" required type="email" autocomplete="email" name="email" placeholder="ime@primer.si"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-phone">Telefon<input id="reg-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="40 123 456"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<label class="check"><input required type="checkbox" name="agree" value="1"><span>Strinjam se s <a href="terms.php">pogoji uporabe</a>, <a href="privacy.php">politiko zasebnosti</a> in obdelavo podatkov za namen prijave.</span></label>
+<button class="button form-submit" type="submit">Pošlji prijavo <span>↗</span></button>
+<small>Prijava je brezplačna in še ne pomeni depozita. Minimalni depozit je 250 €.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

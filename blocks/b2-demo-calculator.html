@@ -1,0 +1,49 @@
+<section class="calculator-wrap" id="calculator">
+<div class="calc-heading">
+<div class="eyebrow">IZRAČUN SCENARIJA</div>
+<h2>Majhni koraki.<br>Daljši horizont.</h2>
+<p>Kako lahko vplačila in čas vplivajo na znesek? Prilagodite parametre in primerjajte zgledni scenarij.</p>
+</div>
+<div class="calculator">
+<div class="calc-controls">
+<label for="initial">Začetni depozit <span>€ · min. 250</span></label>
+<input id="initial" type="number" min="250" max="1000000" step="50" value="250">
+<label for="monthly">Mesečno vplačilo <span>€</span></label>
+<input id="monthly" type="number" min="0" max="10000" step="10" value="100">
+<label for="years">Obdobje <output id="years-label">5 let</output></label>
+<input id="years" type="range" min="1" max="30" value="5">
+<div class="range-ends"><span>1 leto</span><span>30 let</span></div>
+<label for="rate">Zgledni letni donos <output id="rate-label">3 %</output></label>
+<input id="rate" type="range" min="-10" max="6" value="3" step="0.5">
+<div class="range-ends"><span>−10 %</span><span>+6 %</span></div>
+<div class="rate-presets">
+<button type="button" data-rate="-3">−3 %</button>
+<button type="button" data-rate="0">0 %</button>
+<button type="button" data-rate="3">3 %</button>
+<button type="button" data-rate="5">5 %</button>
+</div>
+</div>
+<div class="calc-result">
+<small>ZGLEDNA VREDNOST ČEZ <span id="result-years">5 LET</span></small>
+<strong id="future-value" aria-live="polite">€6 748</strong>
+<div class="calc-legend">
+<span><i></i>Vaša vplačila</span>
+<span><i></i>Pri izbrani stopnji</span>
+</div>
+<svg id="calc-chart" viewBox="0 0 500 200" role="img" aria-label="Primerjava vplačil z zgledno vrednostjo portfelja">
+<path id="calc-area" fill="#287af512"/>
+<path id="contribution-line" fill="none" stroke="#aab8cc" stroke-width="2" stroke-dasharray="5 5"/>
+<path id="growth-line" fill="none" stroke="#287af5" stroke-width="3"/>
+</svg>
+<div class="chart-axis">
+<span>Danes</span>
+<span id="end-year">Čez 5 let</span>
+</div>
+<div class="calc-totals">
+<div><small>Vplačano</small><b id="contributed">€6 250</b></div>
+<div><small>Sprememba vrednosti</small><b id="gain">+€498</b></div>
+</div>
+<div id="calc-error" role="status"></div>
+</div>
+</div>
+</section>

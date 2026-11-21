@@ -1,0 +1,47 @@
+<section class="reach-grid">
+<div>
+<h2>Vicini.<br>Anche al primo passo.</h2>
+<p>Il team di Queltoñera risponde in italiano, nei giorni lavorativi e negli orari d'ufficio.</p>
+<div class="contact-item"><small>ASSISTENZA</small><b><a href="mailto:supporto@quelton-era.site">supporto@quelton-era.site</a></b><span>Risposta entro un giorno lavorativo</span></div>
+<div class="contact-item"><small>TELEFONO</small><b><a href="tel:+390289741200">+39 02 8974 1200</a></b><span>Lun–Ven, 09:00–18:00</span></div>
+<div class="contact-item"><small>UFFICIO</small><b>Via Torino 61<br>20123 Milano (MI), Italia</b><span>Visita su appuntamento</span></div>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Scriveteci</h3>
+<div class="form-group">
+<label for="c-first">Nome<input id="c-first" required autocomplete="given-name" name="first_name" placeholder="Come possiamo chiamarvi?"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-last">Cognome<input id="c-last" required autocomplete="family-name" name="last_name" placeholder="Cognome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-email">Email<input id="c-email" required type="email" name="email" autocomplete="email" placeholder="nome@esempio.it"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-phone">Telefono<input id="c-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="02 8974 1200"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-subject">Argomento
+<select id="c-subject" name="subject">
+<option>Domanda generale</option>
+<option>Aiuto con la registrazione</option>
+<option>Demo e pannello</option>
+<option>Versamento e verifica</option>
+<option>Commenti</option>
+</select>
+</label>
+</div>
+<div class="form-group">
+<label for="c-message">Messaggio<textarea id="c-message" required rows="4" name="message" placeholder="Come possiamo aiutarvi?"></textarea></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Invia il messaggio</button>
+<small>Min. deposito 250 €.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

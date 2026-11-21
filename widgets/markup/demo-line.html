@@ -1,0 +1,25 @@
+<!-- WIDGET demo-line · line chart + direction buttons. Hook #demo-svg etc. -->
+<div class="wk-demo" data-widget="demo-line">
+  <div class="wk-demo-chart">
+    <svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="{Demo kierunku rynku}">
+      <defs><linearGradient id="wk-dfill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--wk-acc)" stop-opacity=".35"/>
+        <stop offset="1" stop-color="var(--wk-acc)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path id="demo-area" fill="url(#wk-dfill)"/>
+      <path id="demo-line" fill="none" stroke="var(--wk-acc)" stroke-width="2.5"/>
+    </svg>
+  </div>
+  <div class="wk-demo-side">
+    <div class="wk-seg">
+      <button type="button" class="seg-btn is-on">{1D}</button>
+      <button type="button" class="seg-btn">{1T}</button>
+      <button type="button" class="seg-btn">{1M}</button>
+    </div>
+    <div class="wk-updown">
+      <button type="button" class="up-btn" data-dir="up">{W GÓRĘ}</button>
+      <button type="button" class="down-btn" data-dir="down">{W DÓŁ}</button>
+    </div>
+    <div class="runs"><span>{Sesja}: <b id="demo-runs">0</b></span><button type="button" id="demo-reset">{Reset}</button></div>
+  </div>
+</div>

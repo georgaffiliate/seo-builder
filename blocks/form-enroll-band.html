@@ -1,0 +1,37 @@
+<section class="enroll-band" id="accesso">
+<div class="access-info">
+<div class="eyebrow"><span></span> ATTIVATE IL PANNELLO</div>
+<h2>Registratevi e aprite<br>il pannello live.</h2>
+<p>Lasciate i dati. Un consulente vi richiama, segue con voi il pannello e il test di direzione e accompagna il versamento.</p>
+<ul class="access-list">
+<li><span>◆</span> Grafici e quote live da più mercati</li>
+<li><span>◆</span> Test di direzione con importo e orizzonte propri</li>
+<li><span>◆</span> Assistenza in italiano durante l'avvio</li>
+<li><span>◆</span> Stesso pannello su desktop e telefono</li>
+</ul>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Attivate l'accesso</h3>
+<div class="form-group">
+<label for="a-first">Nome<input id="a-first" required autocomplete="given-name" name="first_name" placeholder="Nome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-last">Cognome<input id="a-last" required autocomplete="family-name" name="last_name" placeholder="Cognome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-email">Email<input id="a-email" required type="email" autocomplete="email" name="email" placeholder="nome@esempio.it"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-phone">Telefono<input id="a-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="02 8974 1200"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Apri l'account</button>
+<div class="pay-chips"><span>Visa</span><span>Mastercard</span><span>Bonifico</span><span>SEPA</span></div>
+<small>Registrandovi accettate l'<a href="privacy.php">Informativa privacy</a> e i <a href="terms.php">Termini</a>. Min. deposito 250 €.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

@@ -1,0 +1,44 @@
+<section class="section demo-section" id="demo">
+<div class="demo-head">
+<div class="eyebrow" style="justify-content:center"><span></span> RICHTING-DEMO</div>
+<h2>Kies een richting.<br>Zie wat er gebeurt.</h2>
+<p>Dit is geen winstvoorspelling. U stelt een bedrag en een horizon in, kiest omhoog of omlaag en volgt hoe de simulatie zich gedraagt.</p>
+</div>
+<div class="demo-grid">
+<div class="demo-chart">
+<div class="demo-chart-top"><span class="term-sym">BTC/EUR</span><span class="term-live"><b>●</b> LIVE</span></div>
+<svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="Demo chart van de marktrichting">
+<defs>
+<linearGradient id="dfill" x2="0" y2="1">
+<stop stop-color="#5eead4" stop-opacity=".28"/>
+<stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+</linearGradient>
+</defs>
+<path id="demo-area" fill="url(#dfill)"/>
+<path id="demo-line" fill="none" stroke="#5eead4" stroke-width="3" stroke-linejoin="round"/>
+</svg>
+<div class="ticker-row">
+<span>DAX 40 <em>€ 91,60</em></span>
+<span>Brent <em>€ 90,83</em></span>
+<span>BTC/USD <em>€ 57.462,40</em></span>
+<span>ETH/USD <em>€ 1.622,40</em></span>
+</div>
+</div>
+<div class="demo-controls">
+<label for="demo-amount">Bedrag <output id="demo-amount-out">€500</output></label>
+<input id="demo-amount" type="range" min="50" max="5000" step="50" value="500">
+<label>Horizon</label>
+<div class="seg" role="group" aria-label="Horizon">
+<button type="button" data-horizon="1" class="seg-btn">1 min</button>
+<button type="button" data-horizon="5" class="seg-btn is-on">5 min</button>
+<button type="button" data-horizon="15" class="seg-btn">15 min</button>
+</div>
+<div class="updown">
+<button type="button" class="up-btn" data-dir="up">▲ Omhoog</button>
+<button type="button" class="down-btn" data-dir="down">▼ Omlaag</button>
+</div>
+<div class="runs"><span>Deze sessie: <b id="demo-runs">0</b> runs</span><button type="button" id="demo-reset">Reset</button></div>
+<p class="fine">Puur een simulatie — geen winstbelofte. Handelen kent verliesrisico.</p>
+</div>
+</div>
+</section>

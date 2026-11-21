@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""selftest.py — infrastructure self-check for static-create-sites.
+Verifies: fragments complete, CSS sane, palettes valid, plan generator feeds assembler,
+assembled site passes gates. Run after ANY change to blocks/skins/assemble.
+"""
+import json, pathlib, re, subprocess, sys, hashlib
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent   # static-create-sites
+REPO = ROOT.parent
+FAIL = []
+
+def chk(cond, msg):
+    print(("  ✓ " if cond else "  ✗ ") + msg)
+    if not cond: FAIL.append(msg)
+
+print("== 1. fragments")
+blks = sorted((ROOT / "blocks").glob("blk-*.html"))
+chk(len(blks) >= 20, f"canonical blk-fragments present ({len(blks)})")
+chk((ROOT / "blocks" / "blocks.css").exists(), "blocks.css present")
+need_frag = {"blk-hero", "blk-band-access", "blk-faq", "blk-reviews", "blk-scarcity",
+              "blk-cta", "blk-office", "blk-brandnote", "blk-calculator", "blk-livebar"}
+names = {b.stem for b in blks}
+chk(need_frag <= names, f"critical fragments: {sorted(need_frag - names) or 'all present'}")
+# form contract inside fragments
+fa = (ROOT / "blocks" / "blk-band-access.html").read_text()
+for token in ("lead-form", "api_local/integration/api.php", "js-lead-phone",
+               "{{HIDDEN_INC}}", "form-submit", "form-error", "form-status"):
+    chk(token in fa, f"form contract: {token}")
+
+for _of in (ROOT / "blocks").glob("blk-office*.html"):
+    chk("{{c:office.eyebrow}}" in _of.read_text(), f"{_of.name}: office eyebrow localised")
+
+chk("{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets.html").read_text()
+    and "{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets-b.html").read_text(),
+    "markets disclaimer comes from content (no English caption)")
+chk("{{c:hero.device_label}}" in (ROOT / "blocks" / "blk-hero.html").read_text(), "hero ledger label from content")
+chk("{{c:sections.stats.rating}}" in (ROOT / "blocks" / "blk-intro-stats.html").read_text(), "stats labels from content")
+
+print("== 1b. structural variant coverage")
+import re as _re
+gen_src = (ROOT / "gen_plan.py").read_text()
+vblock = gen_src.split("VARIANTS = {")[1].split("}")[0]
+CANON_HINT = {"claim-band": "band-access", "access-band": "band-access", "enroll-band": "band-access",
+              "cta-band": "cta", "brand-note": "brandnote", "intro-center": "intro"}
+pairs = _re.findall(r'"([a-z\-]+)": \[([^\]]*)\]', vblock)
+chk(len(pairs) >= 12, f"variant registry slots: {len(pairs)}")
+for slot, vs in pairs:
+    variants = _re.findall(r'"([a-z])"', vs)
+    chk(len(variants) >= 1, f"{slot}: has variants")
+    if slot in ("logo", "header"):   # rendered by assemble.logo_html / header shell, no fragment
+        chk(len(variants) >= 3, f"{slot}: several variants")
+        continue
+    for v in variants:
+        cand = [ROOT / "blocks" / f"blk-{slot}-{v}.html",
+                ROOT / "blocks" / f"blk-{CANON_HINT.get(slot, slot)}-{v}.html"]
+        chk(any(c.exists() for c in cand), f"{slot}-{v}: fragment exists")
+chk(CANON_HINT.keys() <= {s for s, _ in pairs} | set(CANON_HINT), "canon fallbacks declared")
+
+print("== 2. blocks.css sanity")
+css = (ROOT / "blocks" / "blocks.css").read_text()
+chk("@media(max-width:700px)" in css, "mobile breakpoint 700px")
+chk("@media(max-width:1000px)" in css, "tablet breakpoint 1000px")
+chk("prefers-reduced-motion" in css, "reduced-motion respected")
+chk(css.count("{") == css.count("}"), "braces balanced")
+
+print("== 2b. every section fragment declares a structure token")
+for b in blks:
+    if b.stem.startswith("blk-livebar"):
+        continue
+    head = b.read_text().split(">", 1)[0]
+    chk(" sec-" in head, f"{b.name}: sec-* token on root")
+
+print("== 2c. no later single-class rule may override a section-root layout")
+# root class sets of every section fragment (the layout contract lives on the root)
+root_sets = []
+for b in blks:
+    head = b.read_text().split(">", 1)[0]
+    m = _re.search(r'class="([^"]+)"', head)
+    if m:
+        root_sets.append(set(m.group(1).split()))
+css_rules = [(i, sel, body) for i, (sel, body) in enumerate(
+    _re.findall(r"(?m)^(\.[\w-]+)\{([^}]*)\}", css), 1)]
+layout_roots = [(i, sel[1:]) for i, sel, body in css_rules
+                if "display:" in body and any(sel[1:] in rs for rs in root_sets)]
+def _is_modifier(cls, other):
+    co = [rs for rs in root_sets if cls in rs]
+    return 0 < sum(other in rs for rs in co) < len(co)
+
+for idx, cls in layout_roots:
+    later = [(i, sel) for i, sel, body in css_rules
+             if i > idx and "display:" in body and _re.fullmatch(r"\.[\w-]+", sel)
+             and any(sel[1:] in rs and cls in rs for rs in root_sets)
+             and not _is_modifier(cls, sel[1:])]
+    chk(not later, f".{cls}: display not overridden later by {[s for _, s in later] or 'nothing'}")
+
+print("== 2d. row-item handles both authoring shapes")
+chk(".row-item>h3" in css and ".row-item>p" in css, "flat h3/p pinned to the content column")
+chk("grid-column:1/-1" in css, "labelled rows never squeeze content into the label column")
+chk(".row-item:has(>b)" in css and ".row-item:has(>img)" in css, "label column keyed to label presence")
+flat_rows = [b.name for b in blks
+             if _re.search(r'class="row-item[^"]*">(?:\s*<b>[^<]*</b>)?\s*<h3', b.read_text())]
+chk(bool(flat_rows), f"flat row-item fragments covered ({', '.join(flat_rows) or 'none'})")
+
+chk(".centered-hero{display:block" in css, "centred hero overrides the two-column grid")
+chk(".centered-hero .center-band{max-width" in css, "centred hero keeps a readable measure")
+chk(".center-band>p" in css and "margin-inline:auto" in css.split(".center-band>p,")[1][:120],
+    "centred bands centre their width-limited children")
+chk(".centered-hero{display:block" in css, "centred hero cannot inherit a two-column grid")
+
+print("== 2e. hero variants have no empty second column")
+def _top_children(frag):
+    body = frag.read_text().split(">", 1)[1]
+    return len(_re.findall(r"(?m)^  <[a-z]", body))
+
+for _hf in sorted((ROOT / "blocks").glob("blk-hero*.html")):
+    centered = "centered-hero" in _hf.read_text()
+    kids = _top_children(_hf)
+    chk(centered or kids >= 2, f"{_hf.name}: two-column hero has a second column ({kids})")
+    chk(not centered or "display:block" in css, f"{_hf.name}: centred hero is single-column")
+
+print("== 3. skins")
+skins = sorted((ROOT / "skins").glob("skin-*.css"))
+chk(len(skins) >= 6, f"six skins present ({len(skins)})")
+for s in skins:
+    t = s.read_text()
+    chk(not re.search(r"[а-яіїєґА-ЯІЇЄҐ]", t), f"{s.name}: latin-only comments")
+    chk(":root{" in t and "--r-card" in t, f"{s.name}: overrides geometry")
+
+print("== 4. palettes")
+pals = json.loads((ROOT / "content" / "palettes-blk.json").read_text())
+chk(len(pals["palettes"]) >= 12, f"{len(pals['palettes'])} palettes")
+need_keys = {"bg", "bg_soft", "panel", "ink", "muted", "line", "acc", "acc_deep", "acc_2"}
+for p in pals["palettes"]:
+    chk(need_keys <= set(p["vars"]), f"{p['id']}: token-complete")
+chk(len(pals["fonts"]) >= 8, f"{len(pals['fonts'])} font pairs")
+
+print("== 4b. persona genders fully classified")
+sys.path.insert(0, str(ROOT)); import gen_plan as _gp
+for _lg, _names in _gp.NAME_BANK.items():
+    _fem = _gp.FEMALE_FIRST.get(_lg, set())
+    _men = _gp.MALE_FIRST.get(_lg, set())
+    _firsts = {n.split()[0].split("-")[0] for n in _names}
+    chk(_firsts <= (_fem | _men), f"{_lg}: all {len(_firsts)} first names classified")
+    chk(not (_firsts & _fem & _men), f"{_lg}: no name in both gender sets")
+
+print("== 5. people bank")
+people = list((ROOT / "people").glob("p-*.jpg"))
+chk(len(people) >= 100, f"avatars: {len(people)}")
+hashes = {hashlib.md5(pathlib.Path(f).read_bytes()).hexdigest() for f in people[:20]}
+chk(len(hashes) == 20, "sampled avatars unique (full-file md5)")
+
+print("== 6. content schema")
+sch = json.loads((ROOT / "content" / "content-pack.schema.json").read_text())
+for k in ("meta", "hero", "bands", "faq", "reviews", "footer"):
+    chk(k in sch, f"schema section: {k}")
+
+print("== 6a. content language bank")
+bank = json.loads((ROOT / "resources" / "content-l10n.json").read_text())
+for lg in ("it", "cs", "en"):
+    chk(lg in bank and {"meta", "hero", "bands", "ui", "faq", "footer"} <= set(bank[lg]), f"{lg}: bank complete")
+chk("EUR" in bank.get("fx", {}) and "IT" in bank.get("capital", {}), "fx + capital maps present")
+
+print("== 6b. canonical js invoke safety (IIFE closer must actually CALL the fn)")
+for js in ("lead-form.js", "calculator.js"):
+    src = (ROOT / "blocks" / js).read_text()
+    chk(src.rstrip().endswith("})();"), f"{js}: IIFE invoked (()();) closer")
+    chk("})(();" not in src and "}());" not in src[:0], f"{js}: malformed closer absent")
+
+print("== 7. end-to-end build (smoke)")
+plan_f = ROOT / "plans" / "selftest-e2e.site.json"
+r = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "Selftest E2E",
+                     "--lang", "it", "--domain", "selftest-e2e.site", "--seed", "777"],
+                    capture_output=True, text=True, cwd=ROOT)
+chk(r.returncode == 0, f"gen_plan smoke: rc={r.returncode}")
+_p = json.loads(plan_f.read_text()) if plan_f.exists() else {}
+_lb = (_p.get("livebar") or {}).get("variant")
+chk(_lb in {"b", "c", "d", "e", "f", "g", "h", "i", "j"}, f"livebar variant chosen ({_lb})")
+chk(bool((_p.get("livebar") or {}).get("subs")), "livebar subs present in plan")
+if _p:
+    sys.path.insert(0, str(ROOT)); import assemble as _asm
+    for _lv in ("b", "c", "d", "e", "f", "g", "h"):
+        _plan = json.loads(json.dumps(_p)); _plan["layout"]["variants"]["logo"] = _lv
+        _h = _asm.logo_html(_plan)
+        chk(f'data-var="{_lv}"' in _h and "{{" not in _h, f"logo-{_lv} renders")
+    _hh = _asm.build_header_footer(_p, {"bands": {}})[1]
+    chk('href="index.php#claim"' in _hh, "header CTA reaches the home form from any page")
+    chk(_asm.fix_anchors('<a href="#come"></a><i id="demo"></i>').count('href="#demo"') == 1,
+        "dead #come anchor retargeted to the demo section")
+    chk(_asm.fix_anchors('<a href="#come"></a>').count('href="index.php#claim"') == 1,
+        "anchor without any target falls back to the home form")
+    for _hv in ("b", "c", "d", "e", "f", "g"):
+        _plan = json.loads(json.dumps(_p)); _plan["layout"]["variants"]["header"] = _hv
+        _hv_html = _asm.build_header_footer(_plan, {"bands": {}})[1]
+        chk(f'data-var="{_hv}"' in _hv_html and "blk-nav" in _hv_html and "menu-toggle" in _hv_html,
+            f"header-{_hv} renders shell")
+        if _hv == "d":
+            chk("blk-logo" not in _hv_html, "header-d drops the logo")
+        if _hv == "e":
+            chk("blk-btn" not in _hv_html, "header-e drops the CTA")
+    for _v in ("b", "c", "d", "e", "f", "g", "h", "i", "j"):
+        _plan = json.loads(json.dumps(_p)); _plan["livebar"] = {"variant": _v, "subs": _p.get("livebar", {}).get("subs", {})}
+        _plan["layout"]["variants"]["livebar"] = _v
+        _html = _asm.R("livebar", _plan, {})
+        chk("{{" not in _html and "blk-livebar" in _html, f"livebar-{_v} renders fully")
+content_f = ROOT / "content" / "selftest-e2e.site-content.json"
+r1c = subprocess.run([sys.executable, str(ROOT / "tools" / "content_gen.py"),
+                       "--plan", str(plan_f), "--out", str(content_f), "--force"],
+                      capture_output=True, text=True, cwd=ROOT)
+chk(r1c.returncode == 0, f"content_gen smoke: rc={r1c.returncode} {r1c.stdout[-120:] if r1c.returncode else ''}")
+pack = json.loads(content_f.read_text()) if content_f.exists() else {}
+blob = json.dumps(pack, ensure_ascii=False)
+chk(bool(pack) and not any(t in blob for t in ("{brand}", "{domain}", "{city}", "{deposit}", "{{c:")),
+    "content pack placeholders resolved")
+chk("<small>" in pack.get("bands", {}).get("form_consent", ""), "deposit wrapped in <small>")
+for path, n in {"faq.items": 5, "sections.features.cards": 6, "reviews.items": 3,
+                "sections.ladder.rows": 4, "hero.device_rows": 2}.items():
+    node = pack
+    for part in path.split("."):
+        node = node.get(part, {}) if isinstance(node, dict) else {}
+    chk(isinstance(node, list) and len(node) >= n, f"content array {path} >= {n}")
+r2 = subprocess.run([sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan_f),
+                     "--content", str(content_f)], capture_output=True, text=True, cwd=ROOT)
+ok_build = "ALL GREEN" in r2.stdout
+chk(ok_build, f"assemble e2e: {'GREEN' if ok_build else r2.stdout[-300:]}")
+_site = ROOT / "sites" / "selftest-e2e.site"
+for _pg in _site.glob("*.php"):
+    if _pg.name.startswith("_") or _pg.name in ("404.php", "thanks.php"):
+        continue
+    _txt = __import__("re").sub(r"<[^>]+>", " ", _pg.read_text())
+    chk(len(_txt.split()) > 120, f"{_pg.name}: has real content ({len(_txt.split())} words)")
+for _pg in _site.glob("*.php"):
+    if _pg.name.startswith("_") or _pg.name == "404.php":
+        continue
+    _t = __import__("re").search(r"<title>([^<]*)</title>", _pg.read_text()).group(1).lower()
+    chk(_t.startswith("selftest"), f"{_pg.name}: brand-first title")
+    chk('class="brand-line"' in _pg.read_text(), f"{_pg.name}: h1 brand-line")
+for _pg in _site.glob("*.php"):
+    if _pg.name in ("404.php",) or _pg.name.startswith("_"):
+        continue
+    if "lead-form" in _pg.read_text() and "js-lead-phone" not in _pg.read_text():
+        chk(False, f"{_pg.name}: lead-form without phone input")
+_idx = ROOT / "sites" / "selftest-e2e.site" / "index.php"
+if _idx.exists():
+    _html = _idx.read_text()
+    chk("{{LB" not in _html and "{{c:" not in _html, "no raw placeholders in hero/livebar")
+    chk('class="blk-livebar' in _html, "livebar rendered")
+    chk(f'data-var="{_lb}"' in _html, "chosen livebar variant rendered")
+r4 = subprocess.run([sys.executable, str(ROOT / "tools" / "brand_icons.py"),
+                     "--plan", str(plan_f), "--site", str(ROOT / "sites" / "selftest-e2e.site")],
+                    capture_output=True, text=True, cwd=ROOT)
+chk(r4.returncode == 0 and (ROOT / "sites" / "selftest-e2e.site" / "favicon.svg").exists(), "brand icons generated")
+_fav = (ROOT / "sites" / "selftest-e2e.site" / "favicon.svg").read_text()
+chk("<svg" in _fav and "viewBox=\"0 0 64 64\"" in _fav, "favicon is a real svg mark")
+_arrow_plan = json.loads(json.dumps(_p)); _arrow_plan["layout"]["variants"]["logo"] = "e"
+_tmp_plan = ROOT / "plans" / "selftest-arrow-logo.site.json"
+_tmp_plan.write_text(json.dumps(_arrow_plan))
+subprocess.run([sys.executable, str(ROOT / "tools" / "brand_icons.py"), "--plan", str(_tmp_plan),
+                "--site", str(ROOT / "sites" / "selftest-e2e.site")], capture_output=True, cwd=ROOT)
+chk("↗" in (ROOT / "sites" / "selftest-e2e.site" / "favicon.svg").read_text(), "logo-e favicon uses the arrow glyph")
+_tmp_plan.unlink()
+r5 = subprocess.run([sys.executable, str(ROOT / "tools" / "mobile_lint.py"),
+                     "sites/selftest-e2e.site"], capture_output=True, text=True, cwd=ROOT)
+chk(r5.returncode == 0, f"mobile lint passes: {r5.stdout[-160:] if r5.returncode else 'ok'}")
+print("== 7b. calculator is switchable")
+for mode, want, dom in (("off", False, "selftest-nocalc.site"), ("on", True, "selftest-calc.site")):
+    pf = ROOT / "plans" / f"{dom}.json"
+    rr = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "CalcSwitch",
+                          "--lang", "it", "--domain", dom, "--calculator", mode],
+                         capture_output=True, text=True, cwd=ROOT)
+    _pl = json.loads(pf.read_text()) if pf.exists() else {}
+    has = "calculator" in _pl.get("layout", {}).get("section_order", [])
+    g3 = _pl.get("widgets", {}).get("G3")
+    chk(rr.returncode == 0 and has is want and (g3 == "calculator") is want,
+        f"--calculator {mode}: section {'present' if want else 'absent'}, G3={g3}")
+    if pf.exists(): pf.unlink()
+
+print("== 8. anti-twin gate really fires")
+import shutil as _sh
+built = ROOT / "sites" / "selftest-e2e.site"
+clone = ROOT / "sites" / "selftest-e2e-clone.site"
+if clone.exists(): _sh.rmtree(clone)
+_sh.copytree(built, clone)
+r3 = subprocess.run([sys.executable, str(ROOT / "tools" / "twin_check.py"),
+                      "sites/selftest-e2e-clone.site"], capture_output=True, text=True, cwd=ROOT)
+chk(r3.returncode == 1, f"clone of a fresh site is rejected (rc={r3.returncode})")
+_sh.rmtree(clone)
+
+print("== 9. consecutive plans differ structurally")
+def _plan(dom, seed):
+    f = ROOT / "plans" / f"{dom}.json"
+    subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "Difftest",
+                     "--lang", "cs", "--domain", dom, "--currency", "CZK",
+                     "--seed", str(seed)], capture_output=True, cwd=ROOT)
+    return json.loads(f.read_text()) if f.exists() else {}
+
+def _types(o):
+    m = {"claim-band": "band", "access-band": "band", "enroll-band": "band", "trust-band": "cta",
+         "cta-band": "cta", "intro-center": "intro", "stats-intro": "intro", "steps-live": "steps",
+         "brand-note": "brandnote"}
+    return {m.get(t, t) for t in o}
+
+p1 = _plan("difftest-a.site", 4242)
+p2 = _plan("difftest-b.site", 4343)
+for f in ("difftest-a.site", "difftest-b.site"):
+    q = ROOT / "plans" / f"{f}.json"
+    if q.exists(): q.unlink()
+chk(bool(p1) and bool(p2), "two plans generated")
+if p1 and p2:
+    ta, tb = _types(p1["layout"]["section_order"]), _types(p2["layout"]["section_order"])
+    j = len(ta & tb) / max(1, len(ta | tb))
+    chk(j < 0.72, f"section inventory differs ({j:.0%})")
+    chk(len(ta - tb) >= 2, f"new section types present ({len(ta - tb)})")
+    chk(p1["layout"].get("variants") != p2["layout"].get("variants"), "variant maps differ")
+    chk(set(p1["layout"]["slugs"].values()) != set(p2["layout"]["slugs"].values()), "slug sets differ")
+
+# cleanup
+import shutil
+out = ROOT / "sites" / "selftest-e2e.site"
+if out.exists(): shutil.rmtree(out)
+if plan_f.exists(): plan_f.unlink()
+if content_f.exists(): content_f.unlink()
+
+print()
+if FAIL:
+    print(f"SELFTEST FAILED: {len(FAIL)}"); [print("  ✗", f) for f in FAIL]; sys.exit(1)
+print("SELFTEST PASSED — infrastructure healthy")

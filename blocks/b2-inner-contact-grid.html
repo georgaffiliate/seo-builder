@@ -1,0 +1,45 @@
+<section class="contact-grid">
+<div>
+<h2>Blizu smo.<br>Tudi ob prvem koraku.</h2>
+<p>Ekipa Nacionalnega programa finančne vključenosti (NPFV) odgovarja v slovenščini, med delovnimi dnevi in v uradnih urah.</p>
+<div class="contact-item"><small>PODPORA</small><b><a href="mailto:podpora@nacionalni-program-financne-vkljucenosti.site">podpora@nacionalni-program-financne-vkljucenosti.site</a></b><span>Odgovor v enem delovnem dnevu</span></div>
+<div class="contact-item"><small>TELEFON</small><b><a href="tel:+38616002240">+386 1 600 22 40</a></b><span>Pon–pet, 9.00–18.00</span></div>
+<div class="contact-item"><small>SEDEŽ</small><b>Slovenska cesta 55<br>1000 Ljubljana, Slovenija</b><span>Obisk po predhodnem dogovoru</span></div>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Pišite nam</h3>
+<div class="form-group">
+<label for="c-first">Ime<input id="c-first" required autocomplete="given-name" name="first_name" placeholder="Kako naj vas nagovorimo?"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-last">Priimek<input id="c-last" required autocomplete="family-name" name="last_name" placeholder="Vaš priimek"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-email">E-pošta<input id="c-email" required type="email" name="email" autocomplete="email" placeholder="ime@primer.si"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-phone">Telefon<input id="c-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="40 123 456"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="c-subject">Tema
+<select id="c-subject" name="subject">
+<option>Splošno vprašanje</option>
+<option>Pomoč pri registraciji</option>
+<option>Verifikacija in depozit</option>
+<option>Povratna informacija</option>
+</select>
+</label>
+</div>
+<div class="form-group">
+<label for="c-message">Sporočilo<textarea id="c-message" required rows="4" name="message" placeholder="Kako lahko pomagamo?"></textarea></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Pošlji sporočilo <span>↗</span></button>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

@@ -1,0 +1,234 @@
+# seo-builder
+
+Контейнер-сервіс, який за одним HTTP-запитом збирає готовий статичний сайт
+(план → контент → верстка → гейти → іконки → SEO-перевірки) і, за бажанням,
+одразу заливає його на хостинг через API панелі.
+
+**Це сервіс-сусід:** контейнер `seo-builder` запускається поруч (на тій самій
+машині, в тій самій Docker-мережі), що й ваш робочий контейнер. Ваш контейнер
+відправляє йому HTTPS-запит — сервіс будує сайт, заливає його по API панелі
+і віддає назад JSON-відповідь «все залито успішно» (або детальну помилку).
+
+```
+┌────────────────┐   HTTPS :8443    ┌───────────────────┐        ┌────────────────┐
+│ ваш контейнер  │ ───────────────▶ │  seo-builder      │ ──────▶ │ панель хостингу│
+│ (клієнт)       │ ◀─────────────── │  (+ caddy TLS)    │  zip    │ (stores API)   │
+└────────────────┘  JSON-результат  └───────────────────┘        └────────────────┘
+```
+
+- Пайплайн всередині — той самий, що в CLI: `gen_plan.py --build` /
+  `--with-llm` (план, контент, assemble, гейти, іконки, профіль).
+- LLM пише **тільки контент-JSON**, верстку збирає детермінований конструктор.
+- Кожен сайт унікальний: `twin_check` звіряє план з історією `plans/`.
+
+---
+
+## Швидкий старт
+
+```bash
+git clone https://github.com/georgaffiliate/seo-builder.git
+cd seo-builder
+cp .env.example .env            # заповнити API_TOKEN (+ ключі, див. таблицю нижче)
+docker compose up -d --build
+
+# перевірка
+curl -sk https://localhost:8443/healthz
+# {"ok": true, "service": "seo-builder", ...}
+```
+
+## Доступ з іншого контейнера (та сама машина)
+
+**Варіант 1 — приєднати вже запущений контейнер до нашої мережі (найпростіше):**
+
+```bash
+docker network connect seo-builder_buildnet <ім'я_вашого_контейнера>
+```
+
+Після цього всередині вашого контейнера сервіс доступний як:
+
+```
+https://seo-builder-tls:8443
+```
+
+**Варіант 2 — у compose-файлі клієнта:**
+
+```yaml
+services:
+  my-app:
+    # ...
+    networks: [default, builder]
+
+networks:
+  builder:
+    external: true
+    name: seo-builder_buildnet
+```
+
+**З хост-машини** сервіс доступний на `https://localhost:8443`.
+
+TLS — self-signed (Caddy `tls internal`), тому клієнтські запити йдуть з
+`curl -k` / `verify=False`, або підключіть власний CA.
+
+---
+
+## API
+
+Авторизація: заголовок `Authorization: Bearer <API_TOKEN>` на всіх ендпоінтах
+крім `/healthz`.
+
+### `POST /build`
+
+Поставити сайт у чергу на збірку.
+
+**Приклад запиту:**
+
+```bash
+curl -sk -X POST https://seo-builder-tls:8443/build \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "brand": "Infinity Shop",
+    "lang": "en",
+    "cc": "CZ",
+    "geo": "Praha",
+    "currency": "CZK",
+    "domain": "infinity-shop.site",
+    "with_llm": true,
+    "deploy": true
+  }'
+```
+
+**Відповідь (202 Accepted, збірка йде у фоні):**
+
+```json
+{
+  "ok": true,
+  "job_id": "7f3c2a1e8b9d4f02a1c35e6d7b8a9f01",
+  "status": "queued",
+  "domain": "infinity-shop.site",
+  "poll": "/jobs/7f3c2a1e8b9d4f02a1c35e6d7b8a9f01"
+}
+```
+
+**Параметри:**
+
+| Поле         | Тип      | Обов'язково | Опис |
+|--------------|----------|-------------|------|
+| `brand`      | string   | так         | Бренд як є, напр. `Infinity Shop` |
+| `lang`       | string   | так         | Мова/гео сайту: `en`, `it`, `cs`, … |
+| `domain`     | string   | так         | Домен, напр. `infinity-shop.site`. Якщо план уже існує — помилка 409 |
+| `cc`         | string   | ні          | ISO-код країни (`CZ`, `NO`, `IT`…); за замовчуванням виводиться з `lang` |
+| `geo`        | string   | ні          | Місто, напр. `Praha` (інакше — столиця) |
+| `currency`   | string   | ні          | Валюта депозиту, за замовчуванням `EUR` |
+| `seed`       | int      | ні          | Фіксація варіації плану (інакше детерміновано з brand+domain) |
+| `calculator` | string   | ні          | `auto` (за замовчуванням) / `on` / `off` |
+| `with_llm`   | bool     | ні          | `true` — унікальні тексти пише LLM (потрібен `VENICE_API_KEY`); `false` — мовний банк |
+| `llm_model`  | string   | ні          | Перевизначити модель LLM |
+| `deploy`     | bool     | ні          | `true` — після успішної збірки залити сайт на панель |
+| `force`      | bool     | ні          | `true` — перезібрати домен, план якого вже існує |
+| `wait`       | bool     | ні          | `true` — тримати з'єднання до завершення (відповідь — готовий результат) |
+
+### `GET /jobs/{job_id}`
+
+Статус і результат. Поки працює — `202` зі статусом; коли завершено — `200`.
+
+Статуси: `queued → running → deploying → done | failed`.
+
+```json
+{
+  "job_id": "7f3c…",
+  "status": "done",
+  "domain": "infinity-shop.site",
+  "seed": 4213775,
+  "pages": 9,
+  "deploy": {
+    "ok": true,
+    "domain": "infinity-shop.site",
+    "store_id": 123,
+    "can_upload": true,
+    "upload_http": 200,
+    "note_htaccess": ".htaccess rejected by the panel - expected (custom 404 via 404.php)",
+    "public_check": { "url": "https://infinity-shop.site/", "status": 200 }
+  },
+  "build_log": "PLAN OK -> plans/infinity-shop.site.json  (seed 4213775) …",
+  "log_tail": "== building: gen_plan.py --build … == upload OK"
+}
+```
+
+При помилці збірки/деплою: `status: "failed"`, поле `error` з причиною,
+`build_log` / `deploy_log` з хвостом логів. **Гейти впали → нічого не деплоїться.**
+
+### `GET /healthz`
+
+Без авторизації. `{"ok": true, "queued": 0, "jobs": 3}` — для моніторингу.
+
+### Коди відповідей
+
+| Код | Значення |
+|-----|----------|
+| 202 | Прийнято в чергу / ще працює |
+| 200 | Готово (`done` або `failed` — див. `status`) |
+| 400 | Невалідний запит (немає `brand`/`lang`/`domain`, поганий JSON…) |
+| 401 | Немає/невірний `Authorization: Bearer` |
+| 404 | Невідомий шлях або `job_id` |
+| 409 | План для домену вже існує (використайте `force: true`) |
+
+### Готовий скрипт-клієнт
+
+```bash
+export API_TOKEN=...
+docker network connect seo-builder_buildnet "$HOSTNAME"   # якщо ви в контейнері
+./client/example.sh                                       # Infinity Shop → infinity-shop.site
+DEPLOY=1 WAIT=1 ./client/example.sh                       # збірка + деплой, синхронно
+# свої значення: BRAND=... DOMAIN=... CC=NO GEO=Oslo ./client/example.sh
+```
+
+---
+
+## Змінні середовища (`.env`)
+
+| Змінна | Навіщо |
+|--------|--------|
+| `API_TOKEN` | Bearer-токен для клієнтів (обов'язково) |
+| `VENICE_API_KEY` | Ключ LLM для `with_llm: true`. Без нього сайт збирється на мовному банку |
+| `PANEL_API_KEY` | Ключ панелі хостингу (lookup stores + upload zip). Або змонтуйте файл у `/run/secrets/panel_api_key` |
+| `PANEL_API_URL` | Адреса панелі, за замовчуванням `https://florentina-tr.shop` |
+| `BUILD_TIMEOUT` | Ліміт на збірку, сек (3600) |
+| `DEPLOY_TIMEOUT` | Ліміт на деплой, сек (600) |
+
+Збірки виконуються **послідовно** (по одній у черзі) — це свідомо: гейти
+унікальності порівнюють кожен план з історією.
+
+## Що зберігається де
+
+Docker-volumes: `plans/` (історія планів — вхід для анти-твін гейта),
+`profiles/`, `content/` (контент-паки), `sites/` (зібрані сайти). Дані
+переживають рестарт контейнера і не потрапляють у git.
+
+## Обмеження та нагадування
+
+- Панель відкидає `.htaccess` — це нормально, власний 404 працює через `404.php`.
+- **Прод-форму не тестувати** (submit = лід у CRM). Перевірка — GET-статуси
+  сторінок, їх повертає `public_check`.
+- DNS та IP-whitelist панелі налаштовуються вручну — якщо `public_check.status`
+  дорівнює `null`, домен, швидше за все, ще не резолвиться.
+- Мобільний огляд (360/390/768 px) залишається ручним кроком — це єдине,
+  що машина не ловить.
+
+---
+
+## API quick reference (EN)
+
+```bash
+curl -sk -X POST https://seo-builder-tls:8443/build \
+  -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"brand":"Infinity Shop","lang":"en","cc":"CZ","geo":"Praha",
+       "currency":"CZK","domain":"infinity-shop.site","with_llm":true,"deploy":true}'
+# -> 202 {"job_id":"...","poll":"/jobs/..."}
+curl -sk https://seo-builder-tls:8443/jobs/<job_id> -H "Authorization: Bearer $API_TOKEN"
+# -> 200 {"status":"done","deploy":{"ok":true,...}}  |  {"status":"failed","error":"..."}
+```
+
+Add `"wait": true` to hold the connection until the job finishes.
+The service runs as a sibling container on the same Docker host; TLS is
+self-signed (use `-k` or mount your own CA).

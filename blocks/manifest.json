@@ -1,0 +1,1092 @@
+{
+ "blocks": [
+  {
+   "id": "hero-dash",
+   "category": "hero",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".hero",
+    ".dash",
+    ".kpi",
+    ".book"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "hero-converter",
+   "category": "hero",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    "intro",
+    ".fx-card"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "hero-terminal",
+   "category": "hero",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".hero",
+    ".terminal"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "hero-watchlist",
+   "category": "hero",
+   "source": "queltonera.tech",
+   "anchors": [
+    ".hero-split",
+    ".watch"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "hero-book",
+   "category": "hero",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".hero",
+    ".wk-book"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "form-enroll-band",
+   "category": "form",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".enroll-band",
+    ".lead-form"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "index|register"
+  },
+  {
+   "id": "form-signup-band",
+   "category": "form",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".signup-band",
+    ".perks"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "form-access-band",
+   "category": "form",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".access-band",
+    ".lead-form"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "index|register"
+  },
+  {
+   "id": "form-open-band",
+   "category": "form",
+   "source": "queltonera.tech",
+   "anchors": [
+    ".open-band",
+    ".lead-form"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "form-desk-card",
+   "category": "form",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".open-desk",
+    ".form-card"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "cta-consult-band",
+   "category": "cta",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".consult-band"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "cta-reserve-strip",
+   "category": "cta",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".reserve-band"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "cta-band-consult",
+   "category": "cta",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".band-consult"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-security-grid",
+   "category": "features",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".security-grid"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-stream-grid",
+   "category": "features",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".stream-grid",
+    ".stream-section"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-feature-grid",
+   "category": "features",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".feature-grid",
+    ".pannello-cards"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-pillars",
+   "category": "features",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".pillars"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-alloc-panel",
+   "category": "features",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".alloc-panel",
+    ".alloc-bars"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "features-strategy-tabs",
+   "category": "features",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".strat",
+    ".st-btn",
+    ".st-panel"
+   ],
+   "requires_js": [],
+   "slot": "index|any"
+  },
+  {
+   "id": "steps-qa-list",
+   "category": "steps",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".qa-list",
+    ".quick-answer"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "steps-path-five",
+   "category": "steps",
+   "source": "queltonera.tech",
+   "anchors": [
+    ".path-steps",
+    ".path-five"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "markets-strip",
+   "category": "markets",
+   "source": "queltonera.tech",
+   "anchors": [
+    ".markets-strip",
+    ".market-card"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "markets-listino-rows",
+   "category": "markets",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".wk-listino",
+    ".wk-row"
+   ],
+   "requires_js": [],
+   "slot": "index|mercati"
+  },
+  {
+   "id": "markets-heat-zone",
+   "category": "markets",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".heat-zone",
+    ".wk-heatmap"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "proof-review-grid",
+   "category": "proof",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".review-grid"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "proof-rating-band",
+   "category": "proof",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".rate-band",
+    ".rb-score"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "proof-score-bars",
+   "category": "proof",
+   "source": "queltonera.tech",
+   "anchors": [
+    ".score-card",
+    ".score-bars"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "proof-stats-figures",
+   "category": "proof",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".figures-block",
+    ".stats-band"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "faq-grid",
+   "category": "faq",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".faq-grid"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "faq-split-tabs",
+   "category": "faq",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".wk-faq-split",
+    ".wk-q",
+    ".wk-answer"
+   ],
+   "requires_js": [],
+   "slot": "index|any"
+  },
+  {
+   "id": "faq-accordion-widget",
+   "category": "faq",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".ask-zone",
+    ".wk-faq"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "scarcity-countdown",
+   "category": "scarcity",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".scarcity",
+    ".countdown"
+   ],
+   "requires_js": [
+    "app.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "scarcity-flip-clock",
+   "category": "scarcity",
+   "source": "quantrivieraz.xyz",
+   "anchors": [
+    ".pulse",
+    ".wk-flip"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "scarcity-progress-intake",
+   "category": "scarcity",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".seat-band",
+    ".wk-progress"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "demo-bars",
+   "category": "demo",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".demo-grid",
+    "#demo-bars",
+    ".demo-controls"
+   ],
+   "requires_js": [
+    "app.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "demo-sentiment-gauge",
+   "category": "demo",
+   "source": "it-quantrivieraz.site",
+   "anchors": [
+    ".gauge-box",
+    ".wk-gauge",
+    ".trust-duo"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "demo-line",
+   "category": "demo",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".demo-grid",
+    "#demo-line",
+    ".demo-controls"
+   ],
+   "requires_js": [
+    "app.js"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "inner-page-intro",
+   "category": "inner",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".page-intro"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "inner-editorial-abstract",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".editorial",
+    ".abstract"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "inner-engine-winrate",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".engine-card",
+    ".winrate",
+    ".mini-stats"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "inner-timeline",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".timeline"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "inner-team-band",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".team-band"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "inner-contact-grid",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".reach-grid",
+    ".contact-item"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "contact"
+  },
+  {
+   "id": "inner-register-core",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".enroll-band",
+    ".signup-points",
+    ".form-h"
+   ],
+   "requires_js": [
+    "lead-form.js"
+   ],
+   "slot": "register"
+  },
+  {
+   "id": "inner-legal-section",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".legal",
+    ".legal-meta",
+    ".legal-table"
+   ],
+   "requires_js": [],
+   "slot": "privacy|terms"
+  },
+  {
+   "id": "inner-office-grid",
+   "category": "inner",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".office",
+    ".office-grid"
+   ],
+   "requires_js": [],
+   "slot": "contact|any"
+  },
+  {
+   "id": "inner-sedi-office",
+   "category": "inner",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".sedi",
+    ".sedi-grid"
+   ],
+   "requires_js": [],
+   "slot": "contact|any"
+  },
+  {
+   "id": "tail-brand-overview",
+   "category": "tail",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".brand-overview"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "tail-brand-note",
+   "category": "tail",
+   "source": "rendisca-ai.xyz",
+   "anchors": [
+    ".brand-note"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "tail-thanks-hero",
+   "category": "tail",
+   "source": "quelton-era.site",
+   "anchors": [
+    ".thanks-hero",
+    ".thanks-ring",
+    ".thanks-art"
+   ],
+   "requires_js": [
+    "thanks-init.js"
+   ],
+   "slot": "thankyou"
+  },
+  {
+   "id": "b2-hero-phone",
+   "category": "hero",
+   "source": "folio-site",
+   "anchors": [
+    ".hero",
+    ".hero-copy",
+    ".visual",
+    ".phone",
+    ".float.stock",
+    ".float.pie"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-form-access-band",
+   "category": "form",
+   "source": "folio-site",
+   "anchors": [
+    ".access-band",
+    ".access-info",
+    ".access-list",
+    "form.compact.lead-form",
+    ".form-group",
+    ".form-error"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "b2-markets-ticker",
+   "category": "markets",
+   "source": "folio-site",
+   "anchors": [
+    ".ticker"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-proof-stats-band",
+   "category": "proof",
+   "source": "folio-site",
+   "anchors": [
+    ".intro-center",
+    ".stats-band",
+    ".fine"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-markets-ladder",
+   "category": "markets",
+   "source": "folio-site",
+   "anchors": [
+    ".daily",
+    ".split-heading",
+    ".ladder"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-steps-three",
+   "category": "steps",
+   "source": "folio-site",
+   "anchors": [
+    ".how",
+    ".features.steps",
+    ".step-num"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-demo-calculator",
+   "category": "demo",
+   "source": "folio-site",
+   "anchors": [
+    ".calculator-wrap",
+    ".calc-heading",
+    ".calc-controls",
+    ".calc-result",
+    ".rate-presets",
+    "#calc-chart",
+    ".calc-totals"
+   ],
+   "requires_js": [
+    "compound-interest JS: #initial/#monthly/#years/#rate -> #future-value, #calc-chart paths, #contributed/#gain, #calc-error"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "b2-proof-people-grid",
+   "category": "proof",
+   "source": "folio-site",
+   "anchors": [
+    ".people",
+    ".people-grid",
+    ".person",
+    ".person-gain",
+    ".avatar"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-scarcity-countdown",
+   "category": "scarcity",
+   "source": "folio-site",
+   "anchors": [
+    ".scarcity",
+    ".countdown",
+    "#countdown",
+    "[data-unit]"
+   ],
+   "requires_js": [
+    "countdown JS ticks [data-unit] cells"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "b2-features-assets",
+   "category": "features",
+   "source": "folio-site",
+   "anchors": [
+    ".assets",
+    ".instrument-grid",
+    ".asset-art"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-features-risk",
+   "category": "features",
+   "source": "folio-site",
+   "anchors": [
+    ".risk-section",
+    ".risk-list"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-cta-blue",
+   "category": "cta",
+   "source": "folio-site",
+   "anchors": [
+    ".blue-section",
+    ".big-symbol",
+    ".button.white"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "b2-faq-two-col",
+   "category": "faq",
+   "source": "folio-site",
+   "anchors": [
+    ".faq",
+    "details",
+    "summary"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-inner-office",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".office",
+    ".office-grid"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "b2-tail-brand-note",
+   "category": "tail",
+   "source": "folio-site",
+   "anchors": [
+    ".brand-note",
+    ".brand-note-grid"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-inner-contact-grid",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".contact-grid",
+    ".contact-item",
+    "form.lead-form",
+    "select",
+    "textarea"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "contact"
+  },
+  {
+   "id": "b2-inner-register",
+   "category": "form",
+   "source": "folio-site",
+   "anchors": [
+    ".register",
+    ".register-points",
+    ".register-art",
+    ".badge",
+    "label.check"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "register"
+  },
+  {
+   "id": "b2-inner-team-band",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".team-band"
+   ],
+   "requires_js": [],
+   "slot": "who"
+  },
+  {
+   "id": "b2-inner-page-intro",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".page-intro",
+    ".eyebrow",
+    ".brand-line"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "b2-inner-editorial",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".editorial",
+    ".abstract",
+    ".text-link"
+   ],
+   "requires_js": [],
+   "slot": "about"
+  },
+  {
+   "id": "b2-inner-about-engine",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".about-engine",
+    ".mini-stats",
+    ".engine-card",
+    ".winrate"
+   ],
+   "requires_js": [],
+   "slot": "about"
+  },
+  {
+   "id": "b2-inner-timeline",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".timeline",
+    "article > b"
+   ],
+   "requires_js": [],
+   "slot": "about"
+  },
+  {
+   "id": "b2-features-numbered",
+   "category": "features",
+   "source": "folio-site",
+   "anchors": [
+    ".features",
+    ".number"
+   ],
+   "requires_js": [],
+   "slot": "about"
+  },
+  {
+   "id": "b2-inner-legal",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".legal",
+    ".legal-meta",
+    "h2"
+   ],
+   "requires_js": [],
+   "slot": "terms"
+  },
+  {
+   "id": "b2-thanks-bundle",
+   "category": "inner",
+   "source": "folio-site",
+   "anchors": [
+    ".thanks-hero",
+    ".thanks-call",
+    ".thanks-ring",
+    ".thanks-warn",
+    ".thanks-art",
+    ".thanks-steps",
+    ".thanks-step"
+   ],
+   "requires_js": [],
+   "slot": "thanks"
+  },
+  {
+   "id": "b2-hero-terminal",
+   "category": "hero",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".hero-center",
+    ".hero-cta",
+    ".hero-stats",
+    ".terminal-lg",
+    ".term-bar",
+    ".term-chart",
+    ".term-grid"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-form-claim-band",
+   "category": "form",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".claim-band",
+    ".claim-list",
+    "form.lead-form",
+    ".pay-chips"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "b2-steps-h",
+   "category": "steps",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".section-soft.center",
+    ".steps-h",
+    ".n"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-markets-price-board",
+   "category": "markets",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    "#prijsbord",
+    ".price-board",
+    ".price-card",
+    ".pc-top",
+    ".pc-val[data-price]",
+    ".pc-chg.up",
+    ".pc-chg.down",
+    ".spark"
+   ],
+   "requires_js": [
+    "optional live-tick JS animating [data-price]/.pc-chg"
+   ],
+   "slot": "index"
+  },
+  {
+   "id": "b2-features-koers-grid",
+   "category": "features",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".koers-grid",
+    ".fi"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "b2-proof-review-grid",
+   "category": "proof",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".review-grid",
+    ".person",
+    ".avatar"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-cta-trust-band",
+   "category": "cta",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".trust-band",
+    ".trust-inner",
+    ".button"
+   ],
+   "requires_js": [],
+   "slot": "any"
+  },
+  {
+   "id": "b2-faq-split",
+   "category": "faq",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    "#faq",
+    ".split-heading",
+    "details",
+    "summary"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-register-claim",
+   "category": "form",
+   "source": "rendisca-ai-nl.site",
+   "anchors": [
+    ".claim-band",
+    ".badge",
+    ".brand-line",
+    ".register-points",
+    ".form-h",
+    "label.check"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "register"
+  },
+  {
+   "id": "b2-hero-market-table",
+   "category": "hero",
+   "source": "altvecto-hu.site",
+   "anchors": [
+    ".hero",
+    ".hero-copy",
+    ".button.ghost",
+    ".hero-trust",
+    ".visual",
+    ".glow",
+    ".terminal-mkt",
+    ".demo-label"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-markets-ticker-tape",
+   "category": "markets",
+   "source": "altvecto-hu.site",
+   "anchors": [
+    ".ticker",
+    ".tape-track"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-proof-rating-chips",
+   "category": "proof",
+   "source": "altvecto-hu.site",
+   "anchors": [
+    ".rating-band",
+    ".stars",
+    ".chip"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-features-method-cols",
+   "category": "features",
+   "source": "altvecto-hu.site",
+   "anchors": [
+    ".method-section",
+    ".method-cols",
+    "article > i"
+   ],
+   "requires_js": [],
+   "slot": "index"
+  },
+  {
+   "id": "b2-form-contact-register",
+   "category": "form",
+   "source": "altvecto-hu.site",
+   "anchors": [
+    ".contact-register",
+    ".contact-copy",
+    ".exclusive-list",
+    "form.compact.lead-form"
+   ],
+   "requires_js": [
+    "api_local/integration/hidden.php (PHP include kept inline)"
+   ],
+   "slot": "index"
+  }
+ ]
+}

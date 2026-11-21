@@ -1,0 +1,37 @@
+<section class="access-band" id="claim">
+<div class="access-info">
+<div class="eyebrow"><span></span> CLAIM UW TERMINAL</div>
+<h2>Registreer en open<br>uw live terminal.</h2>
+<p>Laat uw gegevens achter. Een specialist belt u, loopt de terminal en de richtingtest met u door en begeleidt de storting.</p>
+<ul class="access-list">
+<li><span>◆</span> Live charts en tickers uit meerdere markten</li>
+<li><span>◆</span> Richtingtest met eigen bedrag en horizon</li>
+<li><span>◆</span> Support in het Nederlands tijdens uw start</li>
+<li><span>◆</span> Zelfde terminal op desktop en telefoon</li>
+</ul>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Claim uw toegang</h3>
+<div class="form-group">
+<label for="a-first">Voornaam<input id="a-first" required autocomplete="given-name" name="first_name" placeholder="Voornaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-last">Achternaam<input id="a-last" required autocomplete="family-name" name="last_name" placeholder="Achternaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-email">E-mail<input id="a-email" required type="email" autocomplete="email" name="email" placeholder="naam@voorbeeld.nl"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="a-phone">Telefoonnummer<input id="a-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="6 12 34 56 78"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Account openen</button>
+<div class="pay-chips"><span>iDEAL</span><span>Visa</span><span>Mastercard</span><span>Overschrijving</span></div>
+<small>Door te registreren gaat u akkoord met het <a href="privacy.php">Privacybeleid</a> en de <a href="terms.php">Voorwaarden</a>. Min. storting €250.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

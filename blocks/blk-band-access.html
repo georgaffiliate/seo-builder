@@ -1,0 +1,34 @@
+<section class="blk-band sec sec-band" id="claim">
+  <div>
+    <div class="eyebrow">{{c:bands.mid_eyebrow}}</div>
+    <h2>{{c:bands.mid_h2}}</h2>
+    <p>{{c:bands.mid_lead}}</p>
+    <ul class="list">
+      <li>{{c:bands.mid_points.0}}</li><li>{{c:bands.mid_points.1}}</li>
+      <li>{{c:bands.mid_points.2}}</li><li>{{c:bands.mid_points.3}}</li>
+    </ul>
+  </div>
+  <form class="form compact lead-form blk-formcard" action="api_local/integration/api.php" method="post" novalidate>
+    <h3>{{c:bands.form_title}}</h3>
+    <p>{{c:bands.form_sub}}</p>
+    <div class="form-group"><label for="lf-first">{{c:bands.labels.first}}
+      <input id="lf-first" required autocomplete="given-name" name="first_name" placeholder="{{c:bands.placeholders.first}}"></label>
+      <div class="form-error" role="alert"></div></div>
+    <div class="form-group"><label for="lf-last">{{c:bands.labels.last}}
+      <input id="lf-last" required autocomplete="family-name" name="last_name" placeholder="{{c:bands.placeholders.last}}"></label>
+      <div class="form-error" role="alert"></div></div>
+    <div class="form-group"><label for="lf-email">{{c:bands.labels.email}}
+      <input id="lf-email" required type="email" autocomplete="email" name="email" placeholder="{{c:bands.placeholders.email}}"></label>
+      <div class="form-error" role="alert"></div></div>
+    <div class="form-group"><label for="lf-phone">{{c:bands.labels.phone}}
+      <input id="lf-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="{{c:bands.placeholders.phone}}"></label>
+      <div class="form-error" role="alert"></div></div>
+    {{HIDDEN_INC}}
+    <button class="blk-btn form-submit" type="submit">{{c:bands.submit}} <span>↗</span></button>
+    <div class="pay-chips"><span>Visa</span><span>Mastercard</span><span>SEPA</span></div>
+    <small class="form-consent">{{c:bands.form_consent}}</small>
+    <p class="form-status" role="status" aria-live="polite"
+       data-msg-sending="{{c:ui.status_sending}}" data-msg-fix="{{c:ui.status_fix}}"
+       data-msg-fail="{{c:ui.status_fail}}" data-msg-ok="{{c:ui.status_ok}}"></p>
+  </form>
+</section>

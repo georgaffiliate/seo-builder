@@ -1,0 +1,42 @@
+<section class="calculator-wrap sec sec-calculator" id="calculator" data-cur-code="{{c:ui.cur_code}}" data-cur-sym="{{c:ui.cur_sym}}" data-w-full="{{c:ui.year_full}}" data-w-short="{{c:ui.year_short}}" data-min-init="{{c:ui.min_init}}">
+  <div class="calc-heading">
+    <div class="eyebrow">{{c:ui.calc_eyebrow}}</div>
+    <h2>{{c:sections.intro.h2}}</h2>
+    <p>{{c:sections.intro.lead}}</p>
+  </div>
+  <div class="calculator">
+    <div class="calc-controls">
+      <label for="initial">{{c:ui.calc_initial}} <span>{{c:ui.calc_init_note}}</span></label>
+      <input id="initial" type="number" min="250" max="1000000" step="50" value="{{c:ui.min_init}}">
+      <label for="monthly">{{c:ui.calc_monthly}} <span>{{c:ui.calc_cur_note}}</span></label>
+      <input id="monthly" type="number" min="0" max="10000" step="10" value="100">
+      <label for="years">{{c:ui.calc_years}} <output id="years-label">5</output></label>
+      <input id="years" type="range" min="1" max="30" value="5">
+      <div class="range-ends"><span>1</span><span>30</span></div>
+      <label for="rate">{{c:ui.calc_rate}} <output id="rate-label">3 %</output></label>
+      <input id="rate" type="range" min="-10" max="6" value="3" step="0.5">
+      <div class="range-ends"><span>−10 %</span><span>+6 %</span></div>
+      <div class="rate-presets">
+        <button type="button" data-rate="-3">−3 %</button>
+        <button type="button" data-rate="0">0 %</button>
+        <button type="button" data-rate="3">3 %</button>
+        <button type="button" data-rate="5">5 %</button>
+      </div>
+    </div>
+    <div class="calc-result">
+      <small>{{c:ui.calc_value_after}} <span id="result-years"></span></small>
+      <strong id="future-value" aria-live="polite">—</strong>
+      <dl class="calc-breakdown">
+        <div><dt>{{c:ui.calc_contributed}}</dt><dd id="contributed">—</dd></div>
+        <div><dt>{{c:ui.calc_gain}}</dt><dd id="gain">—</dd></div>
+      </dl>
+      <svg id="calc-chart" viewBox="0 0 500 200" role="img" aria-label="Projection chart">
+        <path id="calc-area" fill="#ffffff18"/>
+        <path id="contribution-line" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5"/>
+        <path id="growth-line" fill="none" stroke="var(--acc)" stroke-width="3"/>
+      </svg>
+      <div class="chart-axis"><span>{{c:ui.calc_now}}</span><span id="end-year"></span></div>
+      <div id="calc-error" role="status"></div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,36 @@
+<section class="contact-register" id="csatlakozas">
+<div class="contact-copy">
+<div class="eyebrow"><span></span> FIÓKIGÉNYLÉS</div>
+<h2>Nyisson ablakot<br>a saját számlájára.</h2>
+<p>Hagyjon alapadatokat. A jelentkezést követően személyes tanácsadó hívja fel, aki lezárja a hitelesítést és az első befizetést.</p>
+<ul class="exclusive-list">
+<li><i>◆</i> Határos eszközosztály – index, részvénykosár, deviza, kripto, nyersanyag</li>
+<li><i>◆</i> Jelzőpanel egyénileg állítható figyelmeztetésekkel</li>
+<li><i>◆</i> Magyar nyelvű bevezetés és hétköznapi ügyintézés</li>
+<li><i>◆</i> Egyazon fiók gépen és mobilon</li>
+</ul>
+</div>
+<form class="form compact lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Ingyenes jelentkezés</h3>
+<div class="form-group">
+<label for="access-first">Keresztnév<input id="access-first" required autocomplete="given-name" name="first_name" placeholder="Az Ön keresztneve"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-last">Vezetéknév<input id="access-last" required autocomplete="family-name" name="last_name" placeholder="Az Ön vezetékneve"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-email">E-mail<input id="access-email" required type="email" autocomplete="email" name="email" placeholder="nev@example.hu"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-phone">Telefonszám<input id="access-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="20 123 4567"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Fiók igénylése <span>↗</span></button>
+<small>A minimumbefizetés 100 000 Ft. Beküldéssel elfogadja az <a href="adatvedelem.php">adatkezelési tájékoztatót</a> és a <a href="feltetelek.php">használati feltételeket</a>. A jelentkezés díjtalan és önmagában nem jelent befektetést.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

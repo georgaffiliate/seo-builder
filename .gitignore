@@ -1,0 +1,15 @@
+# secrets
+.llm_env
+*.llm_env
+.env
+secrets/
+.panel_api_key
+
+# build artifacts (kept in runtime volumes, not in git)
+sites/
+jobs/
+
+# OS / python
+.DS_Store
+__pycache__/
+*.pyc

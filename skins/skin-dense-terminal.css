@@ -1,0 +1,9 @@
+/* SKIN: dense-terminal — compact, tabular, mono-accents (trading terminal) */
+:root{--r-card:6px;--r-btn:6px;--r-input:6px;--r-img:6px;
+  --pad-card:18px;--pad-sec:72px;--gap-grid:14px;--maxw:1120px;
+  --bw:1px;--shadow-card:none;--shadow-btn:none;--fw-btn:700;
+  --h-tracking:-.015em;--eyebrow-transform:uppercase}
+.blk-card{background:var(--panel);border:var(--bw) solid var(--line)}
+.ladder>div,.timeline article{padding-block:16px}
+.countdown b{font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px}

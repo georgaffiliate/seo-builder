@@ -1,0 +1,30 @@
+{
+  "_doc": "Regulators registry — financial market authorities per country. Accumulated by AI: when planning an offer for a NEW geo, resolve the regulator (own knowledge; websearch if unsure), then APPEND it here so it persists. Format: ISO country code -> official name shown in legal pages (local language if certain, else English), + optional short note. 'lang' hints default language code for the geo.",
+  "regulators": {
+    "PL": {"name": "UOKiK", "note": "Polska Organizacja Ochrony Konsumentów / KNF for financial markets", "lang": "pl"},
+    "CZ": {"name": "ČNB", "note": "Česká národní banka", "lang": "cs"},
+    "HU": {"name": "MNB", "note": "Magyar Nemzeti Bank", "lang": "hu"},
+    "NL": {"name": "AFM", "note": "Autoriteit Financiële Markten", "lang": "nl"},
+    "IT": {"name": "CONSOB", "note": "Commissione Nazionale per le Società e la Borsa", "lang": "it"},
+    "NO": {"name": "Finanstilsynet", "note": "Norwegian financial supervisory authority", "lang": "nb"},
+    "SE": {"name": "FI", "note": "Finansinspektionen", "lang": "sv"},
+    "DK": {"name": "Finanstilsynet", "note": "Danish FSA (Finanstilsynet.dk)", "lang": "da"},
+    "FI": {"name": "FIN-FSA", "note": "Finansivalvonta", "lang": "fi"},
+    "SI": {"name": "ATVP", "note": "Agencija za trg vrednostnih papirjev", "lang": "sl"},
+    "ES": {"name": "CNMV", "note": "Comisión Nacional del Mercado de Valores", "lang": "es"},
+    "PT": {"name": "CMVM", "note": "Comissão do Mercado de Valores Mobiliários", "lang": "pt"},
+    "DE": {"name": "BaFin", "note": "Bundesanstalt für Finanzdienstleistungsaufsicht", "lang": "de"},
+    "FR": {"name": "AMF", "note": "Autorité des marchés financiers", "lang": "fr"},
+    "RO": {"name": "ASF", "note": "Autoritatea de Supraveghere Financiară", "lang": "ro"},
+    "BG": {"name": "FSC", "note": "Financial Supervision Commission", "lang": "bg"},
+    "GR": {"name": "HCMC", "note": "Hellenic Capital Market Commission", "lang": "el"},
+    "LT": {"name": "LB", "note": "Lietuvos bankas (supervizija)", "lang": "lt"},
+    "LV": {"name": "FKTK", "note": "Finanšu un kapitāla tirgus komisija", "lang": "lv"},
+    "EE": {"name": "FiA", "note": "Finantsinspektsioon", "lang": "et"},
+    "AT": {"name": "FMA", "note": "Finanzmarktaufsicht", "lang": "de"},
+    "BE": {"name": "FSMA", "note": "Autoriteit voor Financiële Diensten en Markten", "lang": "nl"},
+    "SK": {"name": "NBS", "note": "Národná banka Slovenska", "lang": "sk"},
+    "HR": {"name": "HANFA", "note": "Hrvatska agencija za nadzor financijskih usluga", "lang": "hr"},
+    "IE": {"name": "CBI", "note": "Central Bank of Ireland", "lang": "en"}
+  }
+}

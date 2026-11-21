@@ -1,0 +1,36 @@
+<section class="claim-band" id="claim">
+<div>
+<h2>Start gratis met een korte kennismaking.</h2>
+<p>Laat uw gegevens achter. Een specialist belt u, loopt het prijsbord en de rekenhulp met u door en begeleidt de storting.</p>
+<ul class="claim-list">
+<li><span>✓</span> Rustig prijsbord met meerdere markten</li>
+<li><span>✓</span> Heldere koerskaarten, zonder ruis</li>
+<li><span>✓</span> Rekenhulp voor inleg en horizon</li>
+<li><span>✓</span> Support in het Nederlands</li>
+</ul>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Open uw account</h3>
+<div class="form-group">
+<label for="b-first">Voornaam<input id="b-first" required autocomplete="given-name" name="first_name" placeholder="Voornaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-last">Achternaam<input id="b-last" required autocomplete="family-name" name="last_name" placeholder="Achternaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-email">E-mail<input id="b-email" required type="email" autocomplete="email" name="email" placeholder="naam@voorbeeld.nl"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="b-phone">Telefoonnummer<input id="b-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="6 12 34 56 78"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Open uw account</button>
+<div class="pay-chips"><span>iDEAL</span><span>Visa</span><span>Mastercard</span><span>Overschrijving</span></div>
+<small>Met registreren aanvaardt u het <a href="privacy.php">Privacybeleid</a> en de <a href="terms.php">Voorwaarden</a>. Min. storting €250.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

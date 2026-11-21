@@ -1,0 +1,38 @@
+<section class="enroll-band" style="padding-top:70px">
+<div class="access-info">
+<div class="eyebrow"><span></span> IL VOSTRO PASSO SUCCESSIVO</div>
+<h1 style="font-size:clamp(38px,5.5vw,64px)"><span class="brand-line">Queltoñera</span>Aprite la<br>pannello in<br><span>un minuto.</span></h1>
+<p>Conoscere il mercato al vostro ritmo.</p>
+<div class="signup-points">
+<div><b>01</b><span>Registrazione gratuita e un richiamo con un consulente</span></div>
+<div><b>02</b><span>Provare il test di direzione e completare la verifica</span></div>
+<div><b>03</b><span>Versamento e accesso al pannello</span></div>
+</div>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<span class="badge">QUELTOÑERA · PANNELLO LIVE</span>
+<h2 class="form-h">Apri l'account</h2>
+<p style="font-size:14px;margin-top:6px">Lasciate i dati, così un consulente può richiamarvi per l'avvio.</p>
+<div class="form-group">
+<label for="reg-first">Nome<input id="reg-first" required autocomplete="given-name" name="first_name" placeholder="Nome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-last">Cognome<input id="reg-last" required autocomplete="family-name" name="last_name" placeholder="Cognome"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-email">Email<input id="reg-email" required type="email" autocomplete="email" name="email" placeholder="nome@esempio.it"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-phone">Telefono<input id="reg-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="02 8974 1200"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<label class="check"><input required type="checkbox" name="agree" value="1"><span>Accetto i <a href="terms.php">termini</a>, l'<a href="privacy.php">informativa privacy</a> e il trattamento dei miei dati per questa registrazione.</span></label>
+<button class="button form-submit" type="submit">Invia la registrazione</button>
+<small>Registrarsi è gratuito e non implica ancora un versamento. Il deposito minimo è 250 €.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

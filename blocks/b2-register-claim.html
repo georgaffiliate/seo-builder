@@ -1,0 +1,36 @@
+<section class="claim-band" style="margin-top:60px">
+<div>
+<span class="badge">RENDISCA AI · GROENE KOERS</span>
+<h1 style="font-size:clamp(34px,4.5vw,52px)"><span class="brand-line">Rendisca AI</span>Begin rustig.<br>U beslist <span>wanneer.</span></h1>
+<p>Registreer vrijblijvend en bekijk eerst het prijsbord en de rekenhulp. Starten kan daarna, in uw eigen tempo.</p>
+<div class="register-points">
+<div><b>01</b><span>Gratis registratie, gevolgd door een korte kennismaking</span></div>
+<div><b>02</b><span>Prijsbord en rekenhulp bekijken</span></div>
+<div><b>03</b><span>Storting en openstelling van uw overzicht</span></div>
+</div>
+</div>
+<form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h2 class="form-h">Open uw account</h2>
+<div class="form-group">
+<label for="reg-first">Voornaam<input id="reg-first" required autocomplete="given-name" name="first_name" placeholder="Voornaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-last">Achternaam<input id="reg-last" required autocomplete="family-name" name="last_name" placeholder="Achternaam"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-email">E-mail<input id="reg-email" required type="email" autocomplete="email" name="email" placeholder="naam@voorbeeld.nl"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="reg-phone">Telefoonnummer<input id="reg-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="6 12 34 56 78"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<label class="check"><input required type="checkbox" name="agree" value="1"><span>Ik ga akkoord met de <a href="terms.php">voorwaarden</a>, het <a href="privacy.php">privacybeleid</a> en de verwerking van mijn gegevens.</span></label>
+<button class="button form-submit" type="submit">Verstuur registratie</button>
+<small>Registreren is gratis en nog geen storting. De minimale storting is €250.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

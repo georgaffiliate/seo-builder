@@ -1,0 +1,12 @@
+{
+  "_doc": "LLM provider for tools/llm_content.py. Key lookup: env var (api_key_env) → <api_key_file>. CLI (opencode) is used only when provider=cli or no key is found. Run `python3 tools/llm_content.py --list-models` to print exact model ids from the provider.",
+  "provider": "venice",
+  "base_url": "https://api.venice.ai/api/v1",
+  "model": "z-ai-glm-5-3-flash",
+  "api_key_env": "VENICE_API_KEY",
+  "api_key_file": ".llm_env",
+  "max_tokens": 48000,
+  "temperature": 0.85,
+  "timeout_sec": 300,
+  "response_format_json": true
+}

@@ -1,0 +1,9 @@
+/* SKIN: brutalist-block — heavy borders, offset shadows, blocks (bold/youth) */
+:root{--r-card:0px;--r-btn:0px;--r-input:0px;--r-img:0px;
+  --pad-card:24px;--pad-sec:82px;--gap-grid:16px;
+  --bw:2px;--shadow-card:8px 8px 0 var(--ink);--shadow-btn:5px 5px 0 var(--ink);--fw-btn:800;
+  --h-tracking:-.04em;--eyebrow-transform:uppercase}
+.blk-card{border:var(--bw) solid var(--ink)}
+.blk-btn{border:2px solid var(--ink);background:var(--acc);color:var(--btn-ink)}
+.blk-btn:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.review-grid article{border:2px solid var(--ink)}

@@ -1,0 +1,36 @@
+<section class="access-band" id="prijava">
+<div class="access-info">
+<div class="eyebrow"><span></span> ODPRTA PRIJAVA</div>
+<h2>Zaprosite za dostop<br>do svojega računa.</h2>
+<p>Pustite osnovne podatke. Po prijavi vas pokliče osebni svetovalec, ki uskladi verifikacijo in prvi depozit.</p>
+<ul class="access-list">
+<li><span>◉</span> Večsredstveni trgovalni pult: delnice, indeksi, FX in kripto</li>
+<li><span>↗</span> Signali z lastnimi pragovi in opozorili</li>
+<li><span>◷</span> Pomoč v slovenščini med uvajanjem</li>
+<li><span>▣</span> Isti račun na računalniku in telefonu</li>
+</ul>
+</div>
+<form class="form compact lead-form" action="api_local/integration/api.php" method="post" novalidate>
+<h3>Brezplačna prijava</h3>
+<div class="form-group">
+<label for="access-first">Ime<input id="access-first" required autocomplete="given-name" name="first_name" placeholder="Vaše ime"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-last">Priimek<input id="access-last" required autocomplete="family-name" name="last_name" placeholder="Vaš priimek"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-email">E-pošta<input id="access-email" required type="email" autocomplete="email" name="email" placeholder="ime@primer.si"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<div class="form-group">
+<label for="access-phone">Telefon<input id="access-phone" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="40 123 456"></label>
+<div class="form-error" role="alert"></div>
+</div>
+<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+<button class="button form-submit" type="submit">Zaprosi za dostop <span>↗</span></button>
+<small>Pošiljanjem sprejmete <a href="privacy.php">politiko zasebnosti</a> in <a href="terms.php">pogoje uporabe</a>. Prijava je brezplačna in ne pomeni naložbe.</small>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+</section>

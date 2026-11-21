@@ -1,0 +1,7 @@
+/* SKIN: rounded-air — ', airy, pill- (fintech-friendly) */
+:root{--r-card:26px;--r-btn:99px;--r-input:14px;--r-img:20px;
+  --pad-card:34px;--pad-sec:100px;--gap-grid:28px;
+  --bw:0px;--shadow-card:0 22px 60px -30px rgb(0 0 0/.28);--shadow-btn:0 10px 26px -14px var(--acc-deep);
+  --h-tracking:-.028em;--eyebrow-transform:uppercase}
+.blk-btn{padding:18px 34px}
+.blk-card{background:var(--panel)}

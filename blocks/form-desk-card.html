@@ -1,0 +1,47 @@
+  <section class="open-desk" id="conto">
+    <div>
+      <div class="eyebrow">APRI UN CONTO</div>
+      <h2>Un consulente ti richiama: partenza guidata per il tuo conto QuantRivieraZ.</h2>
+      <p>Compila il modulo con nome, cognome, email e telefono. Entro 30 minuti in orario d'ufficio ricevi la chiamata di un consulente che ti accompagna nella verifica guidata e nelle primissime mosse sul listino.</p>
+      <ul class="desk-points">
+        <li><span class="tick">✓</span><span><b>Chiamata entro 30 minuti</b> in giorni lavorativi, numero milanese <a href="tel:+390294751180">+39 02 9475 1180</a></span></li>
+        <li><span class="tick">✓</span><span><b>Conto multistrumento</b>: indici, criptovalute EUR, forex e materie prime nello stesso listino</span></li>
+        <li><span class="tick">✓</span><span><b>Protezioni impostate col consulente</b>: massimale per posizione e criteri d'uscita</span></li>
+        <li><span class="tick">✓</span><span><b>Supporto in italiano</b> lun–ven 9.00–19.00, email <a href="mailto:supporto@quantrivieraz.xyz">supporto@quantrivieraz.xyz</a></span></li>
+      </ul>
+    </div>
+    <aside class="form-card">
+      <form class="form lead-form" action="api_local/integration/api.php" method="post" novalidate>
+        <h3>Modulo di apertura conto</h3>
+        <div class="form-group">
+          <label for="f-nome">Nome
+            <input id="f-nome" required autocomplete="given-name" name="first_name" placeholder="Mario">
+          </label>
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="f-cognome">Cognome
+            <input id="f-cognome" required autocomplete="family-name" name="last_name" placeholder="Rossi">
+          </label>
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="f-email">Email
+            <input id="f-email" required type="email" autocomplete="email" name="email" placeholder="mario.rossi@esempio.it">
+          </label>
+          <div class="form-error" role="alert"></div>
+        </div>
+        <div class="form-group">
+          <label for="f-telefono">Telefono
+            <input id="f-telefono" required type="tel" autocomplete="tel" class="js-lead-phone" placeholder="348 123 4567">
+          </label>
+          <div class="form-error" role="alert"></div>
+        </div>
+        <?php include __DIR__ . '/api_local/integration/hidden.php'; ?>
+        <label class="check"><input type="checkbox" required> Ho letto la <a href="privacy.php">Privacy policy</a> e i <a href="terms.php">Termini</a> e acconsento al trattamento dei dati per essere ricontattato.</label>
+        <button class="button form-submit" type="submit">Voglio essere richiamato</button>
+        <small class="pay-note">Al termine della verifica dell'identità potrai effettuare il primo versamento di attivazione — deposito minimo 250 € — con i metodi pagamento disponibili nell'area riservata.</small>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </aside>
+  </section>

@@ -1,0 +1,143 @@
+# CLAUDE.md — static-create-sites (автономна фабрика статичних сайтів)
+
+> Це САМОДОСТАТНІЙ продукт. Ти працюєш ЛИШЕ всередині цієї папки (`Documents/seo-sites/static-create-sites`).
+> Батьківська папка `seo-sites/` — окремий legacy-проєкт: не читай його доки, не пиши в його `sites/`,
+> не запускай його скрипти. Тут усе своє.
+
+## Вхідна точка
+
+Людина заходить у цю папку і пише кілька коротких рядків:
+
+```
+IT
+Pheira Voltreksc
+pheira-voltreksc.site
+```
+
+Розшифровка: UPPERCASE-2 = код країни → довгі рядки = бренд (як є) → рядки з TLD = домени (1..10).
+≥2 домени = режим MULTI (окремий план/контент на кожен; тексти сиблінгів <20% перетину).
+
+**Авто-рішення (не питати людину):** мова/локаль і регулятор — з `resources/regulators.json`
+(нема країни → визнач сам і допиши туди); місто — столиця; депозит — €250-еквівалент у валюті
+(тільки `<small>` під кнопкою); buyer=`PUMA`; funnel — найдовший токен бренду CAPS
+(`Pheira Voltreksc`→`VOLTREKSC`); logo — перше слово lowercase; контакти — правдоподібні локальні,
+у сиблінгів різні (інша вулиця/номер телефону).
+
+## Пайплайн (2 команди; LLM пише ТІЛЬКИ контент-JSON, не HTML!)
+
+```bash
+# 0. Прочитати ЛИШЕ: content/content-pack.schema.json (схема контенту). Понад ~6 KB документів — ні.
+
+# 1. План + КОНТЕНТ + збірка + гейти + іконки + перевірки + профіль — однією командою:
+python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltreksc.site --build
+#   план    → plans/<domain>.json (палітра × скін × hero × порядок × віджети × слуги × меню ×
+#             числа × персони+фото × регулятор; валідатор упав → --seed +1)
+#   контент → content/<domain>-content.json з resources/content-l10n.json (мова гео, сиблінги
+#             різняться seed-ом; депозит лише bands.form_consent; наявний контент не перетирає,
+#             якщо не --force — можна покласти свій/LLM-пак і він піде в збірку)
+#   далі    → sites/<domain>/ (9 сторінок, інтеграція, sitemap/robots/htaccess) + gates
+#             tools/seo_audit.py (0 err) + tools/twin_check.py (унікальність)
+#   іконки  → favicon.svg/.ico/.png + apple-touch-icon.png + og-image.png з палітри бренду
+#   гейти   → node --check усіх JS + tools/mobile_lint.py (viewport/tbl-scroll/inline grid)
+#   профіль → profiles/<domain>.json (+ взаємні siblings)
+# ALL GREEN = готово; інакше exit≠0 і нічого не деплоїться.
+
+# Варіант з LLM-контентом (унікальні тексти, персони й числа обирає модель):
+python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltreksc.site --with-llm
+#   → content/<domain>-brief.json (верстка+слоти+схема+шортлист персон+бінди чисел)
+#   → модель пише content/<domain>-content.json, програма валідує, при помилках 1 repair-пас,
+#     далі автоматично: assemble + гейти + іконки + перевірки + профіль
+#   → вибрані моделлю персони/фото/числа записуються в план (без перетину з історією, в межах біндів)
+#   → якщо модель не дала валідний пак — fallback на мовний банк, сайт усе одно збереться
+#   транспорт: HTTP до resources/llm.json (ключ VENICE_API_KEY у .llm_env або env);
+#   без ключа — opencode CLI ≥2 як запасний. Модель: --llm-model, транспорт: --llm-provider
+#   точні id моделей: python3 tools/llm_content.py --list-models
+
+# 2. Ручний мобільний огляд (єдине, що машина не ловить):
+#    прогнати 360/390/768 px у браузері — 0 горт. скролу, нічого не обрізано
+#    (hero/таблиці/калькулятор/форма). Далі — деплой.
+```
+
+Окремі кроки (коли треба руками):
+```bash
+python3 tools/content_gen.py --plan plans/<domain>.json --force      # перегенерувати контент
+python3 assemble.py --plan plans/<domain>.json                        # тільки збірка + гейти
+python3 tools/brand_icons.py --plan plans/<domain>.json --site sites/<domain>
+python3 tools/mobile_lint.py sites/<domain>
+python3 tools/profile_write.py --plan plans/<domain>.json --content content/<domain>-content.json
+```
+
+
+## Деплой (один раз наприкінці, для кожного домену)
+
+```bash
+curl -s "https://florentina-tr.shop/api/v1/stores?q=<domain>" \
+     -H "Authorization: Bearer $(grep PANEL_API_KEY ../../.panel_api_key | cut -d= -f2)"   # → store id
+zip -rq /tmp/<domain>.zip sites/<domain> -x "*.DS_Store"
+curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
+     -H "Authorization: Bearer <KEY>" -F "file=@/tmp/<domain>.zip"
+```
+- `can_upload:true` обовʼязково; `.htaccess` панель відкидає — це норм (власний 404 через 404.php).
+- **Прод не тестувати** (submit = лід у CRM). Перевірка — curl GET-статуси сторінок (200/404).
+- IP-whitelist/DNS — напом'янути у звіті.
+
+## Структурна різноманітність (обовʼязково, гейти не пропустять однакові сайти)
+- Кожен `<section>` несе `class="… sec sec-<type>"` (+ `data-var="b|c"` у варіантах): skeleton читається з `sec-*`, а не з `blk-*`.
+- `.sec` — лише маркер: НЕ задає `display` (інакше пізніше правило вбиває grid/flex кореня секції);
+  layout-властивості живуть на класі-компоненті (`.faq-flex`, `.blk-hero`, `.blk-band`), selftest 2c це ловить.
+- `gen_plan.py` сам тримає дистанцію: inventory vs сусіди <0.65, vs старі плани <0.72, ≥2 нових типи секцій,
+  унікальний набір слагів/меню/inner-skeleton, ≥25% слотів з іншим варіантом; у плані зʼявляються
+  `layout.variants` + `structure.*` — не видаляти, не «оптимізувати».
+- Калькулятор — це варіант віджета G3 (`calculator`), окремої секції в пулі немає: секція
+  з'являється лише коли G3 випав калькулятор; примус — `--calculator on|off`.
+- Хедер — вісь (`layout.variants.header`): 7 розкладок (лого зліва/справа/по центру, без лого,
+  без CTA, дворівневий, компактний з меню-кнопкою); лого-марка — окрема вісь `logo` (8 марок).
+- Стрічка в хедері (`livebar`) — окрема вісь поза `section_order`: 10 варіантів (b–j: валюти,
+  крипта, індекси, сировина, новини, статус сервісів, сесія, сентимент, черга) + канон;
+  вибір у плані (`layout.variants.livebar`) + дані в `plan.livebar.subs`, assemble рендерить їх.
+- `SECTION_POOL` ×24 типи; `VARIANTS` ×21 слот. Додаєш тип → додай фрагмент `blk-<type>.html` і (для слотів з варіантами)
+  по файлу на кожен варіант, інакше `assemble.py` впаде на валідації.
+- Новий варіант = інша структура (rail/таблиця/чips/рядки/акордеон), не інший колір. Контракт форми/калькулятора зберігати.
+- `twin_check.py` падає на: однаковий inventory/variant-map/slug-set, ≥72% inventory, positional ≥60% проти 2+ планів,
+  class-Jaccard ≥85%, widget-superset. `tests/selftest.py` перевіряє, що клон справді ловиться.
+
+## Жорсткі правила
+- `h1 .brand-line` + бренд-first `<title>` + 1 h1/сторінка — audit ловить.
+- Контракт форми/інтеграції незмінний: `form.lead-form`, `js-lead-phone` без name, `{{HIDDEN_INC}}`,
+  `crm.php aff_sub11='google.com'` НЕ чіпати (Telegram бере реальний хост).
+- 0 inline `<script>`; 0 кириличних коментарів у ship-файлах; числа без обіцянок.
+- `thanks.php` рядок 1 = `require _postback.php; send_postback();`; serve-js (`calculator.js`/
+  `app.js`/`widgets.js`) — присутні в корені, підключені в footer-партіалі.
+- Ассети (blocks.css/skin.css/app.js/calculator.js/lead-form.js) підключаються з `?v=` (хеш збірки
+  або mtime): прод кешує CSS на 30 днів, без мітки правки не доїжджають.
+- Після будь-якої правки JS: `node --check` (одна регулярка ламала форму на сиблінгах).
+- Широкі таблиці — одразу у `.tbl-scroll`; жодних inline `grid-template-columns` на контейнерах.
+- Self-check після змін інфраструктури: `python3 tests/selftest.py` (має бути PASSED).
+
+## Структура продукту
+```
+gen_plan.py             планувальник (seed-детермінований, валідує проти plans/*) + --build ланцюжок
+tools/content_gen.py    контент-пак з resources/content-l10n.json (мова гео, seed-варіації)
+tools/llm_content.py    LLM-пак: бриф → модель пише JSON → валідація + repair + запис персон/чисел
+tools/brand_icons.py    favicon/og з палітри плану (rsvg-convert + PIL)
+tools/mobile_lint.py    статичний мобільний гейт (viewport/tbl-scroll/inline grid)
+tools/profile_write.py  реєстрація profiles/<domain>.json + взаємні siblings
+resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
+assemble.py             конструктор: plan(+content) → sites/<domain> + gates
+tools/seo_audit.py      SEO/форма/помилки gate (порт сам обирає)
+tools/twin_check.py     анти-близнюк gate: inventory/порядок/варіанти/слаги/класи (проти plans/*)
+blocks/blocks.css       єдина geometric-мова (responsive, 700/1000)
+blocks/blk-*.html       канонічні фрагменти + варіанти blk-<slot>-b/-c ({{PLACEHOLDER}}, {{c:path}})
+skins/ ×6               geometric character (радиуси/тіні/щільність/типографіка)
+content/                схеми контенту + палітри × шрифти
+people/ ×183            банк аватарок (ніколи не повторюються між планами)
+integr.-example/        канон інтеграції (config плейсхолдери, crm.php канонічний)
+plans/ plans/*.json     історія планів (вхід twin_check; не видаляти)
+sites/                  вихід assembler'а
+tests/selftest.py       самоперевірка інфраструктури (54 перевірки + e2e)
+```
+
+## Звіт (мовою людини)
+Таблиця: домен / палітра / скін / hero / віджети / депозит / контакти / слуги.
+Матриця відмінностей сиблінгів + вихід гейтів. Вручну: DNS, IP-whitelist, мобільний огляд.
+Нагадування: прод не тестували.
