@@ -89,26 +89,26 @@ button,input,textarea,select{font:inherit;color:inherit}
   letter-spacing:.07em;text-transform:uppercase;color:#d8c8b6;
   background:color-mix(in srgb,var(--acc-deep,#142a66) 26%,#14100c)}
 .blk-livebar b{color:#fff;font-variant-numeric:tabular-nums}
-.blk-livebar .live{display:inline-flex;align-items:center;gap:7px;color:var(--acc-text,#7ddca0);
+.blk-livebar .live{display:inline-flex;align-items:center;gap:7px;color:var(--acc-ondark,#7ddca0);
   font-weight:800;flex:none;white-space:nowrap}
-.blk-livebar .dot{width:7px;height:7px;border-radius:50%;background:var(--acc,#3ddc84);flex:none;
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--acc,#3ddc84) 20%,transparent);
+.blk-livebar .dot{width:7px;height:7px;border-radius:50%;background:var(--acc-ondark,#3ddc84);flex:none;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--acc-ondark,#3ddc84) 20%,transparent);
   animation:blkpulse 1.8s infinite}
-.blk-livebar .lb-sq{width:7px;height:7px;background:var(--acc,#3ddc84);flex:none}
-.blk-livebar .lb-rule{width:2px;height:14px;background:var(--acc,#3ddc84);flex:none}
+.blk-livebar .lb-sq{width:7px;height:7px;background:var(--acc-ondark,#3ddc84);flex:none}
+.blk-livebar .lb-rule{width:2px;height:14px;background:var(--acc-ondark,#3ddc84);flex:none}
 .blk-livebar .lb-stat{flex:none;white-space:nowrap}
 .blk-livebar .geo{margin-left:auto;flex:none;white-space:nowrap}
 .blk-livebar .lb-tag,.blk-livebar .lb-chip{font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
-.blk-livebar .lb-chip{border:1px solid var(--acc,#3ddc84);padding:2px 7px;border-radius:2px;color:var(--acc,#3ddc84);opacity:1}
+.blk-livebar .lb-chip{border:1px solid var(--acc-ondark,#3ddc84);padding:2px 7px;border-radius:2px;color:var(--acc-ondark,#3ddc84);opacity:1}
 .blk-livebar .lb-pair em{font-style:normal;margin-left:6px}
-.blk-livebar .up{color:var(--up-text,#7ddca0)}.blk-livebar .dn{color:var(--down-text,#f08a8a)}
+.blk-livebar .up{color:var(--up-ondark,#7ddca0)}.blk-livebar .dn{color:var(--down-ondark,#f08a8a)}
 .blk-livebar .lb-bar{width:80px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;flex:none}
-.blk-livebar .lb-bar i{display:block;height:100%;width:var(--fill,50%);background:var(--acc,#3ddc84)}
+.blk-livebar .lb-bar i{display:block;height:100%;width:var(--fill,50%);background:var(--acc-ondark,#3ddc84)}
 .blk-livebar .lb-time{opacity:.6;font-variant-numeric:tabular-nums}
 .blk-livebar .lb-flag{width:6px;height:6px;border-radius:50%;display:inline-block;flex:none;
   margin-right:5px;background:var(--acc-2,#e6c34a)}
-.blk-livebar .lb-flag.up{background:var(--up-text,#7ddca0)}
-.blk-livebar .lb-flag.dn{background:var(--down-text,#f08a8a)}
+.blk-livebar .lb-flag.up{background:var(--up-ondark,#7ddca0)}
+.blk-livebar .lb-flag.dn{background:var(--down-ondark,#f08a8a)}
 /* seamless tape: the sequence is duplicated once inside, -50% loops without a gap */
 .blk-livebar .lbt{flex:1;min-width:0;overflow:hidden;white-space:nowrap;
   mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
@@ -116,12 +116,12 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-livebar .lbt-track{display:flex;gap:30px;width:max-content;
   animation:lbtape var(--lb-dur,30s) linear infinite}
 .blk-livebar .lbt-track>span{flex:none;display:inline-flex;align-items:center;gap:6px}
-.blk-livebar .lbt-track em{font-style:normal;color:var(--acc-text,#7ddca0)}
+.blk-livebar .lbt-track em{font-style:normal;color:var(--acc-ondark,#7ddca0)}
 @keyframes lbtape{to{transform:translateX(-50%)}}
 /* family Q structural modifiers (b–j): band is not a fixed template */
 .blk-livebar[data-var="b"]{border-bottom:1px solid rgba(255,255,255,.14);gap:18px;letter-spacing:.04em}
-.blk-livebar[data-var="c"]{border-top:2px solid var(--acc,#3ddc84);letter-spacing:.09em}
-.blk-livebar[data-var="d"]{padding-block:12px;border-bottom:2px solid var(--acc,#3ddc84);gap:26px}
+.blk-livebar[data-var="c"]{border-top:2px solid var(--acc-ondark,#3ddc84);letter-spacing:.09em}
+.blk-livebar[data-var="d"]{padding-block:12px;border-bottom:2px solid var(--acc-ondark,#3ddc84);gap:26px}
 .blk-livebar[data-var="e"]{border-bottom:1px dashed rgba(255,255,255,.25)}
 .blk-livebar[data-var="g"] .lb-flag{box-shadow:0 0 0 3px rgba(255,255,255,.06)}
 .blk-livebar[data-var="h"]{border-bottom:3px double rgba(255,255,255,.18);letter-spacing:.05em}
@@ -547,7 +547,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 }
 
 /* ------------------------------ pulse-sim (G3 market simulator) ---------- */
-.sec-pulse-sim .ps-panel{max-width:var(--maxw);margin-inline:auto;background:var(--card);
+.sec-pulse-sim .ps-panel{max-width:940px;margin-inline:auto;background:var(--card);
   color:var(--card-ink);border:var(--bw) solid var(--line);border-radius:var(--r-card);
   box-shadow:var(--shadow-card);padding:22px}
 .ps-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;

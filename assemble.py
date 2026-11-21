@@ -102,6 +102,17 @@ def load(p: pathlib.Path, default=None):
 
 def esc(s): return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
 
+def _on_dark(hex_color: str, min_l: float = 0.62) -> str:
+    """Lift a palette color to a readable-on-dark lightness (keeps the hue).
+    Light palettes carry dark accent text — unreadable on the dark livebar strip."""
+    import colorsys
+    s = (hex_color or "").strip()
+    if not re.match(r"^#[0-9a-fA-F]{6}$", s): return s
+    r, g, b = (int(s[1:3], 16) / 255, int(s[3:5], 16) / 255, int(s[5:7], 16) / 255)
+    h, l, sat = colorsys.rgb_to_hls(r, g, b)
+    r, g, b = colorsys.hls_to_rgb(h, max(l, min_l), sat)
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
 def php_str(s): return (s or "").replace("'", "\\'")
 
 # ---------------------------------------------------------------- validation -
@@ -230,8 +241,14 @@ def css_link_block(plan: dict) -> tuple[str, str, str]:
         fp_key = "grotesk-man" if plan["design"].get("theme") == "dark" or pal["theme"] == "dark" else "bitter-work"
     fonts = pals["fonts"].get(fp_key)
     if not fonts: die(f"font pair '{fp_key}' unknown")
+    # always-dark surfaces (livebar family Q) need readable colors for every
+    # palette: derive on-dark variants by lifting lightness, keeping the hue
+    ondark = (";--acc-ondark:%s;--up-ondark:%s;--down-ondark:%s" % (
+        _on_dark(pal["vars"].get("acc", "#3ddc84"), 0.62),
+        _on_dark(pal["vars"].get("up", "#22c55e"), 0.66),
+        _on_dark(pal["vars"].get("down", "#ef4444"), 0.60)))
     css_vars = ":root{" + ";".join(
-        f"--{k.replace('_','-')}:{v}" for k, v in pal["vars"].items()) + \
+        f"--{k.replace('_','-')}:{v}" for k, v in pal["vars"].items()) + ondark + \
         f";--font-head:'{fonts['head']}'" + f";--font-body:'{fonts['body']}'}}"
     theme_meta = pal["vars"].get("bg", "#111111") if pal["theme"] == "dark" else \
         (pal["vars"].get("acc_deep") or pal["vars"].get("acc", "#111111"))
