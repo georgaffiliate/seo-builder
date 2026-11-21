@@ -164,6 +164,21 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     rv = content.get("reviews", {})
     if n.get("rating") and isinstance(rv, dict):
         pass  # displayed rating uses plan value; pack carries items only
+    # fragment arrays must carry text: LLM packs occasionally return empty strings
+    # or empty dicts, which render as blank chips/cards on live pages
+    def _nonempty(x):
+        if isinstance(x, str): return bool(x.strip())
+        if isinstance(x, dict): return any(str(v).strip() for v in x.values())
+        return True
+    order = (plan.get("layout") or {}).get("section_order") or []
+    for slot, key, need in (("facts", "points", 4), ("portal", "cards", 3),
+                            ("reviews", "items", 3)):
+        if slot not in order: continue
+        arr = ((content.get("sections") or {}).get(slot) or {}).get(key) \
+              if slot != "reviews" else (rv.get("items") or [])
+        good = [x for x in arr if _nonempty(x)]
+        if len(good) < need:
+            errs.append(f"sections.{slot}.{key} empty or shorter than {need} ({len(good)} valid)")
     return errs
 
 # ---------------------------------------------------------------- content ----

@@ -262,15 +262,34 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
         if not str(gl.get(k, "")).strip():
             gl[k] = (bank.get("sections", {}).get("glance", {}) or {}).get(k, "")
             fixed.append(f"sections.glance.{k}")
-    # facts / portal have their own slots now — never fall back to bands.mid_points
+    # facts / portal have their own slots now — never fall back to bands.mid_points.
+    # LLM packs may return the arrays filled with empty strings / empty dicts:
+    # those pass a naive presence check but render as blank chips and cards.
+    def _nonempty(x):
+        if isinstance(x, str): return bool(x.strip())
+        if isinstance(x, dict): return any(str(v).strip() for v in x.values())
+        return True
     sec_bank = bank.get("sections", {})
     for slot in ("facts", "portal"):
         node = content.setdefault("sections", {}).setdefault(slot, {})
         src = sec_bank.get(slot, {}) or {}
         for k, default in src.items():
             if isinstance(default, list):
-                if not node.get(k):
-                    node[k] = [dict(x) if isinstance(x, dict) else x for x in default]
+                fill = [dict(x) if isinstance(x, dict) else x for x in default]
+                cur = node.get(k) or []
+                cleaned = [x for x in cur if _nonempty(x)]
+                if not cleaned:                       # nothing usable → bank wholesale
+                    node[k] = fill
+                    fixed.append(f"sections.{slot}.{k}")
+                    continue
+                out = []
+                for i, x in enumerate(cur):
+                    if _nonempty(x): out.append(x)
+                    elif i < len(fill): out.append(fill[i])
+                while len(out) < len(fill):
+                    out.append(fill[len(out) % len(fill)])
+                node[k] = out[:len(fill)]
+                if node[k] != cur:
                     fixed.append(f"sections.{slot}.{k}")
                 continue
             if not str(node.get(k, "")).strip():
