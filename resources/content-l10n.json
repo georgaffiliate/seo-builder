@@ -469,23 +469,23 @@
    "items": [
     {
      "q": "Serve un versamento per registrarsi?",
-     "a": "No, la richiesta è gratuita. Il versamento serve solo per attivare l'area."
+     "a": "No, la richiesta è gratuita e non vincola a nulla. Il versamento serve solo in un secondo momento, per attivare l'area operativa. Fino ad allora potete esplorare la panoramica e decidere con calma."
     },
     {
      "q": "Quanto dura la verifica?",
-     "a": "In genere lo stesso giorno lavorativo, se i dati sono completi."
+     "a": "In genere lo stesso giorno lavorativo, se i dati inviati sono completi e leggibili. Se servono documenti aggiuntivi, il team lo segnala subito nell'area personale. Ricevete una email a ogni cambio di stato."
     },
     {
      "q": "L'assistenza è in italiano?",
-     "a": "Sì, il supporto risponde in italiano in orario di ufficio."
+     "a": "Sì, il supporto risponde in italiano in orario di ufficio, dal lunedì al venerdì. Le risposte arrivano per email o tramite il modulo di contatto, di solito entro un giorno lavorativo. Per le domande ricorrenti esiste anche la sezione guide."
     },
     {
      "q": "Posso cambiare i dati dopo l'apertura?",
-     "a": "Sì, dall'area personale, con conferma via email."
+     "a": "Sì, dall'area personale: nome, contatti e preferenze si aggiornano in pochi clic. Ogni modifica chiede una conferma via email per sicurezza. Se qualcosa non va a buon fine, l'assistenza vi segue passo per passo."
     },
     {
      "q": "I dati dei listini sono in tempo reale?",
-     "a": "Dipende dal livello: il ritardo è indicato accanto al prezzo."
+     "a": "Dipende dal livello dell'account: il ritardo eventuale è indicato accanto al prezzo, così sapete sempre cosa state vedendo. I grafici restano sincronizzati tra desktop e mobile. I valori mostrati restano dimostrativi finché l'area non è attiva."
     }
    ]
   },
@@ -1223,23 +1223,23 @@
    "items": [
     {
      "q": "Je registrace zpoplatněná?",
-     "a": "Ne, žádost je zdarma. Vklad slouží k aktivaci zóny."
+     "a": "Ne, žádost je zdarma a nic vás nezavazuje. Vklad slouží až později k aktivaci pracovní zóny. Do té doby si můžete v klidu prohlédnout přehledy a rozhodnout se vlastním tempem."
     },
     {
      "q": "Jak dlouho ověření trvá?",
-     "a": "Obvykle týž pracovní den, pokud jsou údaje úplné."
+     "a": "Obvykle týž pracovní den, pokud jsou odeslané údaje úplné a čitelné. Pokud jsou potřeba další dokumenty, tým to hned oznámí v zóně. O každé změně stavu přijde e-mail."
     },
     {
      "q": "Je podpora v češtině?",
-     "a": "Ano, v pracovní době."
+     "a": "Ano, podpora odpovídá v češtině ve všední dny v pracovní době. Odpovědi chodí e-mailem nebo přes kontaktní formulář, obvykle do jednoho pracovního dne. Pro časté dotazy je tu i sekce příručky."
     },
     {
      "q": "Můžu údaje později změnit?",
-     "a": "Ano, v zóně s potvrzením e-mailem."
+     "a": "Ano, v zóně: jméno, kontakty i preference změníte za pár kliků. Každou změnu je potřeba potvrdit e-mailem, to z bezpečnostních důvodů. Když něco neprojde, podpora vás provede krok za krokem."
     },
     {
      "q": "Jsou data v reálném čase?",
-     "a": "Podle úrovně; zpoždění je u ceny."
+     "a": "Závisí na úrovni účtu: případné zpoždění je vyznačené přímo u ceny, takže vždy víte, co vidíte. Grafy zůstávají synchronizované mezi počítačem a mobilem. Hodnoty zůstávají ukázkové, dokud zóna není aktivní."
     }
    ]
   },
@@ -2002,23 +2002,23 @@
    "items": [
     {
      "q": "Does sign-up cost anything?",
-     "a": "No, the request is free. The deposit only activates the area."
+     "a": "No, the request is free and commits you to nothing. The deposit only comes later, when you activate the working area. Until then you can browse the overviews and decide at your own pace."
     },
     {
      "q": "How long does the check take?",
-     "a": "Usually the same working day when details are complete."
+     "a": "Usually the same working day, provided the details you submit are complete and readable. If extra documents are needed, the team flags it right away in your area. You get an email at every status change."
     },
     {
      "q": "Is support in local language?",
-     "a": "Yes, during office hours."
+     "a": "Yes, support answers in your language during office hours, Monday to Friday. Replies arrive by email or through the contact form, usually within one working day. A guides section covers the recurring questions."
     },
     {
      "q": "Can I change details later?",
-     "a": "Yes, in your area with email confirmation."
+     "a": "Yes, in your area: name, contacts and preferences update in a few clicks. Every change needs an email confirmation for security. If something fails, support walks you through it step by step."
     },
     {
      "q": "Is listing data real time?",
-     "a": "Depends on the level; the delay sits next to the price."
+     "a": "It depends on the account level: any delay is shown right next to the price, so you always know what you are looking at. Charts stay in sync between desktop and mobile. Values remain illustrative until the area is active."
     }
    ]
   },

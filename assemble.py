@@ -200,6 +200,13 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
                 v = ((content.get("sections") or {}).get(slot) or {}).get(k)
                 if isinstance(v, list) or not str(v or "").strip():
                     errs.append(f"sections.{slot}.{k} missing or a raw list")
+    # faq answers shorter than ~2 sentences read as stubs on live pages
+    for it in ((content.get("faq") or {}).get("items") or []):
+        a = it.get("a") if isinstance(it, dict) else ""
+        if not isinstance(a, str) or not a.strip():
+            errs.append("faq answer empty")
+        elif len(a.strip()) < 120:
+            errs.append(f"faq answer too short ({len(a.strip())} chars): {a[:40]}…")
     return errs
 
 # ---------------------------------------------------------------- content ----

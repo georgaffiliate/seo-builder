@@ -402,6 +402,10 @@ def build_plan(rng, args, hist)->dict|None:
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
     # people-e is a rating-summary screen: same stat family as the numbers screen — never both
     if variants.get("people")=="e" and "numbers" in order: order.remove("numbers")
+    # one Q/A screen per page: faq, mini-faq and compare all bind faq.items —
+    # two of them on one page read as a duplicated block (seen live)
+    for extra in [s for s in ("faq", "compare", "mini-faq") if s in order][1:]:
+        order.remove(extra)
 
     inner={pg:rng.choice(v) for pg,v in sorted(INNER_SKELETONS.items())}
     for _ in range(10):
