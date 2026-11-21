@@ -1,14 +1,15 @@
 <section class="section sec sec-pulse-sim" id="pulse-sim">
-  <div class="wrap blk-center">
-    <div class="eyebrow">{{PS_EYEBROW}}</div>
-    <h2>{{PS_H2}}</h2>
-    <p>{{PS_NOTE}}</p>
-  </div>
-  <div class="wrap">
+  <div class="wrap ps-split">
+    <div class="ps-copy">
+      <div class="eyebrow">{{PS_EYEBROW}}</div>
+      <h2>{{PS_H2}}</h2>
+      <p class="ps-note">{{PS_NOTE}}</p>
+      <p class="ps-fine">{{PS_LIVE_NOTE}}</p>
+    </div>
     <div class="ps-panel" data-widget="pulse-sim">
       <div class="ps-head">
         <span class="ps-mark" aria-hidden="true">{{BRAND}}</span>
-        <div class="ps-title"><b>{{PS_TITLE}}</b><small>{{PS_LIVE_NOTE}}</small></div>
+        <div class="ps-title"><b>{{PS_TITLE}}</b></div>
         <div class="ps-ranges" role="group" aria-label="{{PS_TITLE}}">
           <button type="button" class="ps-range is-active" data-range="0" aria-pressed="true">{{PS_R1}}</button>
           <button type="button" class="ps-range" data-range="1" aria-pressed="false">{{PS_R2}}</button>

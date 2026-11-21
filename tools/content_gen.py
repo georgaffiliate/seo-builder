@@ -122,6 +122,11 @@ def build(plan: dict, bank_all: dict) -> dict:
     phone = prefix + " ".join(str(rng.randint(100, 999)) for _ in range(2)) + f" {rng.randint(1000, 9999)}"
     email = f"info@{dom}"
 
+    _bal = rng.uniform(8_000, 26_000) * rate
+    _pct = rng.uniform(0.8, 3.6)
+    _r1 = rng.uniform(1_500, 9_000) * rate
+    _r2 = rng.uniform(900, 6_000) * rate
+
     content = {
         "meta": {
             "title_home": pick(rng, bank["meta"]["title"], ctx),
@@ -149,16 +154,20 @@ def build(plan: dict, bank_all: dict) -> dict:
             "device_risk": pick(rng, bank["hero"].get("device_risk", ""), ctx),
             "device_safe": pick(rng, bank["hero"].get("device_safe", ""), ctx),
             "trust_label": pick(rng, bank["hero"].get("trust_label", ""), ctx),
-            "device_bal": money(rng.uniform(8_000, 26_000) * rate, cur, True),
+            "device_bal": money(_bal, cur, True),
+            "device_bal_v": f"{_bal:.2f}",
+            "device_cur": sym,
+            "device_cur_code": cur,
+            "device_pct": f"{_pct:.1f}",
             "device_aria": pick(rng, bank["hero"]["device_aria"], ctx),
             "device_note": pick(rng, bank["hero"]["device_note"], ctx),
             "device_delta": pick(rng, bank["hero"]["device_delta"],
-                                  {**ctx, "pct": f"{rng.uniform(0.8, 3.6):.1f}".replace(".", ",")}),
+                                  {**ctx, "pct": f"{_pct:.1f}".replace(".", ",")}),
             "device_rows": [
                 {"n": pick(rng, bank["hero"]["asset_1"], ctx), "s": "MIX-GL",
-                 "v": money(rng.uniform(1_500, 9_000) * rate, cur, True), "d": f"+{rng.uniform(0.4, 2.2):.1f}%".replace(".", ",")},
+                 "v": money(_r1, cur, True), "vv": f"{_r1:.2f}", "d": f"+{rng.uniform(0.4, 2.2):.1f}%".replace(".", ",")},
                 {"n": pick(rng, bank["hero"]["asset_2"], ctx), "s": "BND-EU",
-                 "v": money(rng.uniform(900, 6_000) * rate, cur, True), "d": f"+{rng.uniform(0.1, 0.9):.1f}%".replace(".", ",")},
+                 "v": money(_r2, cur, True), "vv": f"{_r2:.2f}", "d": f"+{rng.uniform(0.1, 0.9):.1f}%".replace(".", ",")},
             ],
         },
         "bands": deep(rng, {k: bank["bands"][k] for k in
@@ -338,6 +347,42 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
     if not str(bd.get("side_note", "")).strip():
         bd["side_note"] = str(bsrc.get("side_note", ""))
         fixed.append("bands.side_note")
+    # hero device-sim numeric twins: LLM packs carry only the formatted strings;
+    # derive data-bal/data-cur/data-pct so the widget JS never parses locales
+    h = content.setdefault("hero", {})
+    bal = str(h.get("device_bal", "") or "")
+    if bal.strip() and not str(h.get("device_bal_v", "") or "").strip():
+        m = re.search(r"[\d][\d\s.,]*", bal)
+        if m:
+            t = re.sub(r"[^\d.,]", "", m.group(0))
+            a, b = t.rfind(","), t.rfind(".")
+            if a > -1 and b > -1:                       # both seps → last is decimal
+                t2 = (t.replace(".", "").replace(",", ".") if a > b
+                      else t.replace(",", "").replace(" ", ""))
+            elif max(a, b) > -1 and len(t) - max(a, b) - 1 == 3 and re.search(r"[.,]\d{3}$", t) and not re.match(r"^[01][.,]", t):
+                t2 = re.sub(r"[.,]", "", t)             # lone sep + 3 digits → thousands
+            else:
+                t2 = t.replace(",", ".")
+            try:
+                h["device_bal_v"] = f"{float(t2):.2f}"
+                fixed.append("hero.device_bal_v")
+            except ValueError:
+                pass
+        m2 = re.match(r"^(\D+)", bal)
+        if m2 and m2.group(1).strip():
+            h["device_cur"] = m2.group(1).strip()[:3]
+            fixed.append("hero.device_cur")
+            code = {"€": "EUR", "Kč": "CZK", "zł": "PLN", "Ft": "HUF",
+                    "kr": "SEK", "kr.": "DKK", "lei": "RON", "Kc": "CZK"}.get(
+                        m2.group(1).strip(), "EUR")
+            h["device_cur_code"] = code
+            fixed.append("hero.device_cur_code")
+    dlt = str(h.get("device_delta", "") or "")
+    if dlt.strip() and not str(h.get("device_pct", "") or "").strip():
+        m3 = re.search(r"(\d+[.,]\d+|\d+)\s*%", dlt)
+        if m3:
+            h["device_pct"] = m3.group(1).replace(",", ".")
+            fixed.append("hero.device_pct")
     return fixed
 
 

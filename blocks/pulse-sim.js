@@ -166,4 +166,100 @@
       window.addEventListener('pagehide', function () { if (timer) window.clearInterval(timer); }, { once: true });
     }
   });
+
+  /* device-sim: the hero mockup becomes a quiet live widget — the curve drifts
+     and the balance/row prices nudge every few seconds. All numerics arrive in
+     data attributes (machine format), so no localized string is ever parsed.
+     Seeded and illustrative — never a real quote. Reduced motion: stays static. */
+  onReady(function () {
+    var box = document.querySelector('[data-widget="device-sim"]');
+    if (!box || box.dataset.simBound) return;
+    box.dataset.simBound = '1';
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var line = box.querySelector('.sim-line'), area = box.querySelector('.sim-area');
+    var balEl = box.querySelector('.bal .v'), dEl = box.querySelector('.delta');
+    var rEls = box.querySelectorAll('.row .v'), cEls = box.querySelectorAll('.row em');
+    var LOCALE = document.documentElement.getAttribute('lang') || 'en';
+    var seed = parseFloat(box.getAttribute('data-seed')) || 7;
+    var bal = parseFloat(box.getAttribute('data-bal'));
+    if (!line || !area || !balEl || !isFinite(bal) || bal <= 0) return;
+    var cur = box.getAttribute('data-cur') || '';
+    var curCode = box.getAttribute('data-cur-code') || 'EUR';
+    var SP_GROUPS = ['HUF', 'CZK', 'PLN', 'SEK', 'NOK', 'DKK', 'RON'].indexOf(curCode) >= 0;
+    function grp(v, dec) {
+      var s = v.toFixed(dec).split('.');
+      s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, SP_GROUPS ? ' ' : '.');
+      return s.join(',');
+    }
+    function moneyStr(v) {
+      var dec = curCode === 'HUF' ? 0 : 2;
+      var body = grp(curCode === 'HUF' ? Math.round(v / 100) * 100 : v, dec);
+      if (curCode === 'EUR') return cur + body;
+      return /[A-Za-z]/.test(cur) ? body + '\u00a0' + cur : cur + body;
+    }
+    var pct0 = parseFloat(box.getAttribute('data-pct'));
+    if (!isFinite(pct0)) pct0 = 1.5;
+    var W = 320, H = 120, N = 14, TOP = 12, BOTTOM = 6;
+    var vals = [];
+    for (var i = 0; i < N; i++) {
+      var wave = Math.sin((i + seed % 17) * 0.55) * 2.2 + Math.cos((i + seed % 11) * 0.31) * 1.4;
+      var noise = (Math.sin((seed + i * 7.13) * 99.7) % 1) * 4;
+      vals.push(30 + i * (1.4 + seed % 5 * 0.25) + wave * 4 + noise);
+    }
+    function draw() {
+      var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+      var sp = Math.max(1e-6, max - min), d = '';
+      for (var j = 0; j < N; j++) {
+        var x = j / (N - 1) * W;
+        var y = (H - BOTTOM) - ((vals[j] - min) / sp) * (H - TOP - BOTTOM);
+        d += (j ? ' L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }
+      line.setAttribute('d', d);
+      area.setAttribute('d', d + ' L' + W + ' ' + H + ' L0 ' + H + ' Z');
+    }
+    function fmt(v, dec) {
+      try { return new Intl.NumberFormat(LOCALE, { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v); }
+      catch (e) { return v.toFixed(dec); }
+    }
+    function decComma() { try { return (1.1).toLocaleString(LOCALE).indexOf(',') >= 0; } catch (e) { return false; } }
+    function flash(el, up) {
+      el.classList.remove('flash-up', 'flash-dn'); void el.offsetWidth;
+      el.classList.add(up ? 'flash-up' : 'flash-dn');
+    }
+    function tick() {
+      if (document.hidden) return;
+      var dc = decComma();
+      var last = vals[N - 1];
+      var step = (Math.sin(Date.now() / 9000) * 1.2) + (Math.random() - 0.42) * 6;
+      vals.push(Math.max(6, last + step)); vals.shift(); draw();
+      var up = step >= 0;
+      bal *= 1 + (up ? 1 : -1) * (0.0004 + Math.random() * 0.0012);
+      balEl.textContent = moneyStr(bal);
+      flash(balEl, up);
+      for (var i = 0; i < rEls.length; i++) {
+        var v = parseFloat(rEls[i].getAttribute('data-v'));
+        if (!isFinite(v) || v <= 0) continue;
+        var rUp = Math.random() > 0.45;
+        var nv = v * (1 + (rUp ? 1 : -1) * (0.001 + Math.random() * 0.004));
+        rEls[i].setAttribute('data-v', nv.toFixed(2));
+        rEls[i].textContent = moneyStr(nv);
+        flash(rEls[i], rUp);
+        var em = cEls[i];
+        if (em) {
+          var old = parseFloat((em.getAttribute('data-c') || '0').replace('+', '').replace(',', '.').replace('%', '')) || 0;
+          var nd = Math.max(-1, Math.min(4, old + (rUp ? 1 : -1) * (0.02 + Math.random() * 0.08)));
+          em.setAttribute('data-c', (nd >= 0 ? '+' : '') + nd.toFixed(2));
+          em.textContent = (nd >= 0 ? '+' : '\u2212') + Math.abs(nd).toFixed(2).replace('.', dc ? ',' : '.') + '%';
+          em.className = nd >= 0 ? 'up' : 'dn';
+        }
+      }
+      pct0 = Math.max(0.2, Math.min(4.6, pct0 + (up ? 1 : -1) * 0.05));
+      if (dEl) dEl.textContent = dEl.textContent.replace(/(\d+[.,]\d+|\d+)\s*%/,
+        pct0.toFixed(1).replace('.', dc ? ',' : '.') + '%');
+      box.setAttribute('data-pct', pct0.toFixed(2));
+    }
+    draw();
+    setInterval(tick, 2400);
+    window.addEventListener('pagehide', function () { /* interval dies with the page */ }, { once: true });
+  });
 })();

@@ -415,6 +415,7 @@ def R(name: str, plan, C, **kw) -> str:
         "{{LATENCY}}": str(plan["numbers"].get("latency_ms", 52)),
         "{{API_UPTIME}}": "99,9%", "{{ORDERS}}": f"{plan['numbers'].get('users', 12500)//4:,}".replace(",", "."),
         "{{GEO}}": plan["params"].get("geo", ""), "{{RATING}}": str(plan["numbers"].get("rating", "4,7")),
+        "{{SEED}}": str(plan.get("seed", "")),
         "{{REVIEWS}}": f"{plan['numbers'].get('reviews', 641):,}".replace(",", "."),
         "{{USERS}}": f"{plan['numbers'].get('users', 12500):,}".replace(",", "."),
     }
