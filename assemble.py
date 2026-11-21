@@ -179,6 +179,11 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         good = [x for x in arr if _nonempty(x)]
         if len(good) < need:
             errs.append(f"sections.{slot}.{key} empty or shorter than {need} ({len(good)} valid)")
+        if slot in ("facts", "portal"):
+            for k in ("eyebrow", "h2", "lead"):
+                v = ((content.get("sections") or {}).get(slot) or {}).get(k)
+                if isinstance(v, list) or not str(v or "").strip():
+                    errs.append(f"sections.{slot}.{k} missing or a raw list")
     return errs
 
 # ---------------------------------------------------------------- content ----
@@ -427,6 +432,9 @@ def R(name: str, plan, C, **kw) -> str:
                 except Exception: return ""
             else: return ""
             if node is None: return ""
+        if isinstance(node, (list, dict)):
+            # a template bound a whole array/object — never print python repr
+            return ""
         return str(node)
     out = re.sub(r"\{\{c:([\w.]+)\}\}", fill, out)
     # a content pack with empty strings left blank <p>/<h2> blocks that rendered as

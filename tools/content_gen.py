@@ -270,30 +270,50 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
         if isinstance(x, dict): return any(str(v).strip() for v in x.values())
         return True
     sec_bank = bank.get("sections", {})
+    SCALAR_KEYS = ("eyebrow", "h2", "lead")
     for slot in ("facts", "portal"):
         node = content.setdefault("sections", {}).setdefault(slot, {})
         src = sec_bank.get(slot, {}) or {}
         for k, default in src.items():
-            if isinstance(default, list):
-                fill = [dict(x) if isinstance(x, dict) else x for x in default]
-                cur = node.get(k) or []
-                cleaned = [x for x in cur if _nonempty(x)]
-                if not cleaned:                       # nothing usable → bank wholesale
-                    node[k] = fill
-                    fixed.append(f"sections.{slot}.{k}")
-                    continue
-                out = []
-                for i, x in enumerate(cur):
-                    if _nonempty(x): out.append(x)
-                    elif i < len(fill): out.append(fill[i])
-                while len(out) < len(fill):
-                    out.append(fill[len(out) % len(fill)])
-                node[k] = out[:len(fill)]
-                if node[k] != cur:
+            if k in SCALAR_KEYS:
+                # bank stores variant LISTS for these (deep() picks one); topup is
+                # deterministic and takes the first — a raw list must never reach HTML
+                cur = node.get(k, "")
+                if isinstance(cur, list):
+                    node[k] = cur[0] if cur else ""
+                    if node[k] != cur: fixed.append(f"sections.{slot}.{k}")
+                    cur = node[k]
+                if not str(cur).strip():
+                    node[k] = default[0] if isinstance(default, list) and default else default
                     fixed.append(f"sections.{slot}.{k}")
                 continue
-            if not str(node.get(k, "")).strip():
-                node[k] = default
+            if not isinstance(default, list):
+                cur = node.get(k, "")
+                if isinstance(cur, list):
+                    node[k] = cur[0] if cur else ""
+                    if node[k] != cur: fixed.append(f"sections.{slot}.{k}")
+                    cur = node[k]
+                if not str(cur).strip():
+                    node[k] = default
+                    fixed.append(f"sections.{slot}.{k}")
+                continue
+            # array slot (facts.points / portal.cards): items with no text are
+            # replaced item-wise, wholesale when nothing usable remains
+            fill = [dict(x) if isinstance(x, dict) else x for x in default]
+            cur = node.get(k) or []
+            cleaned = [x for x in cur if _nonempty(x)]
+            if not cleaned:
+                node[k] = fill
+                fixed.append(f"sections.{slot}.{k}")
+                continue
+            out = []
+            for i, x in enumerate(cur):
+                if _nonempty(x): out.append(x)
+                elif i < len(fill): out.append(fill[i])
+            while len(out) < len(fill):
+                out.append(fill[len(out) % len(fill)])
+            node[k] = out[:len(fill)]
+            if node[k] != cur:
                 fixed.append(f"sections.{slot}.{k}")
     # an empty notes section rendered as blank space on live sites — never again
     nt = content.setdefault("sections", {}).setdefault("notes", {})
