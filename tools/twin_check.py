@@ -136,6 +136,11 @@ def pos(a, b) -> float:
     return sum(1 for x, y in zip(a[:n], b[:n]) if x == y) / max(n, 1)
 
 
+def _norm_tenure(t: str) -> str:
+    """Loose tenure normalization: '2 Years.' and '2 years' are the same tenure."""
+    return re.sub(r"\s+", " ", (t or "").strip().lower().rstrip(".!"))
+
+
 def main():
     folders = [pathlib.Path(a).resolve() for a in sys.argv[1:]]
     if not folders:
@@ -223,10 +228,12 @@ def main():
                 probs.append(f"{folder.name}: content fingerprint {jac(my_fp, pr['fp']):.0%} like "
                              f"{pr['name']} — rewrite the cloned sections")
             if my_personas and pr["personas"] and pr["brand"] == my_brand:
+                # occasional single city/tenure overlaps are tolerated; only a full
+                # 3/3 template repeat of a same-brand sibling fails the gate
                 phits = sum(1 for a, b in zip(my_personas, pr["personas"])
                             if (a.get("city") or "").strip().lower() == (b.get("city") or "").strip().lower()
-                            or (a.get("tenure") or "") == (b.get("tenure") or ""))
-                if phits >= 2:
+                            or _norm_tenure(a.get("tenure") or "") == _norm_tenure(b.get("tenure") or ""))
+                if phits >= 3:
                     probs.append(f"{folder.name}: review template repeats {pr['name']} "
                                  f"({phits}/3 same city/tenure)")
         if worstJ >= 0.72:

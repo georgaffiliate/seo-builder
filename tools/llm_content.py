@@ -15,7 +15,7 @@ Key: VENICE_API_KEY from env or .llm_env (KEY=VALUE lines). Model/provider come 
 resources/llm.json and can be overridden with --model.
 """
 from __future__ import annotations
-import argparse, glob, json, os, pathlib, re, shutil, subprocess, sys, time
+import argparse, glob, json, os, pathlib, random, re, shutil, subprocess, sys, time
 import urllib.error, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -182,9 +182,42 @@ def available_personas(plan: dict):
     return sorted(used_names), women, men
 
 
+def sibling_persona_values(plan: dict) -> tuple[list, list]:
+    """Cities and tenures already shown by same-brand sibling offers (from profiles/).
+    Passed to the model as a soft avoid-hint: exact repeats of the full trio are what
+    twin_check used to flag; occasional single collisions are acceptable."""
+    cities, tenures = [], []
+    brand = (plan["params"].get("brand") or "").lower()
+    if not brand:
+        return cities, tenures
+    for f in sorted((ROOT / "profiles").glob("*.json")):
+        if f.stem == plan["params"]["domain"]:
+            continue
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if (d.get("brand") or "").lower() != brand:
+            continue
+        for p in (d.get("personas") or []):
+            if (p.get("city") or "").strip():
+                cities.append(p["city"].strip())
+            if (p.get("tenure") or "").strip():
+                tenures.append(str(p["tenure"]).strip())
+    return cities, tenures
+
+
+TENURE_EXAMPLES = [["3 months", "8 months", "2 years"],
+                   ["5 months", "1 year", "3 years"],
+                   ["7 months", "18 months", "4 years"],
+                   ["2 months", "1 year", "5 years"],
+                   ["6 months", "2 years", "6 years"]]
+
+
 def brief(plan: dict) -> dict:
     brand = plan["params"]["brand"]
     used_names, women, men = available_personas(plan)
+    sib_cities, sib_tenures = sibling_persona_values(plan)
     slots = []
     for slot in plan["layout"]["section_order"]:
         canon = assemble.CANON.get(slot) or f"blk-{slot}"
@@ -218,9 +251,17 @@ def brief(plan: dict) -> dict:
                     "gender matches each photo (p-women-* → female, p-men-* → male) and set g to f or m.",
             "cities": "3 DIFFERENT real cities of the geo (geo_city may be at most one of them); never "
                       "repeat a city inside one pack and never reuse sibling cities.",
-            "tenure": "3 DIFFERENT believable tenures (e.g. 4 months / 1 year / 2 years), not a fixed trio.",
+            "tenure": "3 DIFFERENT believable tenures (for example: " +
+                      " / ".join(random.choice(TENURE_EXAMPLES)) + "), phrased freshly in the plan "
+                      "language — do not reuse this example verbatim.",
             "style_reference_only": style_ref,
             "names_already_used_by_other_offers_do_not_reuse": sorted(used_names)[:60],
+            "sibling_values_avoid_if_possible": {
+                "cities": sorted({c.lower() for c in sib_cities}),
+                "tenures": sorted({t.lower() for t in sib_tenures}),
+                "note": "Cities/tenures already shown by sibling offers of this brand. "
+                        "Pick different ones when the geo allows; a single overlap is tolerable, "
+                        "copying the whole trio is not."},
             "women_photos": women, "men_photos": men,
         },
         "livebar": {"variant": (plan.get("livebar") or {}).get("variant"),
