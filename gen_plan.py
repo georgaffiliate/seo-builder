@@ -55,7 +55,9 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
-    "livebar": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    "livebar": ["b", "c", "d", "e", "f", "g", "h", "i", "j",
+                "k", "l", "m", "n", "o", "p", "q", "r", "s",
+                "t", "u", "v", "w", "x", "y"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
     "header": ["b", "c", "d", "e", "f", "g"],
 }
@@ -416,44 +418,240 @@ def _fmt_num(v: float, lang: str, dec: int = 2) -> str:
                 .replace("T", whole).replace("D", "," if lang in ("it", "cs") else "."))
 
 
-def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
-    """Content for the top strip variant; rows are numbers only, words are localised."""
-    L = LIVEBAR_L10N.get(lang) or LIVEBAR_L10N["en"]
+# Instrument ranges per tape variant: (symbol, lo, hi, decimals).
+# b–j = family Q (dark quelton-style tape), k–y = family L (light ledger strip).
+def _livebar_data(variant: str) -> list:
     sets = {
-        "b": [("EUR/USD", 1.07, 1.10, 4), ("EUR/GBP", 0.84, 0.87, 4), ("EUR/CHF", 0.93, 0.96, 4)],
-        "c": [("BTC/EUR", 82_000, 94_000, 0), ("ETH/EUR", 2_900, 3_400, 0), ("SOL/EUR", 130, 165, 2)],
-        "d": [("FTSEMIB", 33_800, 34_900, 0), ("DAX", 17_900, 18_600, 0), ("S&P 500", 5_100, 5_320, 0)],
-        "e": [("ORO", 2_180, 2_360, 0), ("BRENT", 74, 82, 2), ("RAME", 8_900, 9_400, 0)],
-        "f": [], "g": [], "h": [], "i": [], "j": [],
-    }
-    rows = []
-    for sym, lo, hi, dec in sets.get(variant, []):
-        chg = rng.uniform(-1.2, 2.4)
-        rows.append({"s": sym, "v": _fmt_num(rng.uniform(lo, hi), lang, dec),
-                     "c": f"{chg:+.2f}".replace(".", ",") + "%",
-                     "d": "up" if chg >= 0 else "dn"})
-    subs = {"GEO_SHORT": geo_short}
-    for i in range(4):
-        r = rows[i] if i < len(rows) else {"s": "", "v": "", "c": "", "d": "up"}
-        subs.update({f"LB{i+1}S": r["s"], f"LB{i+1}V": r["v"],
-                     f"LB{i+1}C": r["c"], f"LB{i+1}D": r["d"]})
-    news = list(L["news"])
-    pct = rng.randint(52, 71)
-    subs.update({
-        "LB_TAG": L["crypto"] if variant == "c" else L["bull"],
-        "LB_LABEL": L["commod"], "LB_SESSION": L["session"],
-        "LB_CLOCK": f"{rng.randint(0, 3):02d}:{rng.randint(10, 59):02d}:{rng.randint(10, 59):02d}",
-        "LB_NEWS1": news[0], "LB_NEWS2": news[1],
-        "LB_TIME": f"{rng.randint(8, 17):02d}:{rng.randint(0, 59):02d}",
-        "LB_S1": f"API {rng.choice(['OK', 'OK', '42 ms'])}",
-        "LB_S2": f"DB {rng.choice(['OK', 'OK', 'sync'])}",
-        "LB_S3": f"{L['payouts']} OK",
-        "LB_BULL": f"{L['bull']} {pct}%", "LB_BEAR": f"{L['bear']} {100 - pct}%",
-        "LB_PCT": str(pct),
-        "LB_QUEUE": f"{L['queue']} {rng.randint(14, 48)}",
-        "LB_WAIT": f"{L['wait']} {rng.randint(4, 19)} min",
-        "LB_SLOTS": f"{rng.randint(3, 9)} {L['slots']}",
-    })
+        "a": [("BTC/EUR", 42_000, 61_000, 0), ("ETH/EUR", 1_900, 3_300, 0),
+              ("DAX 40", 17_200, 19_400, 0), ("FTSE MIB", 32_400, 34_900, 0),
+              ("Brent", 72, 93, 2), ("EUR/USD", 1.05, 1.12, 4)],
+        "b": [("EUR/USD", 1.05, 1.12, 4), ("GBP/USD", 1.24, 1.30, 4),
+              ("USD/JPY", 141, 154, 2), ("EUR/GBP", 0.84, 0.88, 4),
+              ("USD/CHF", 0.88, 0.93, 4), ("AUD/USD", 0.63, 0.68, 4)],
+        "c": [("BTC/EUR", 42_000, 61_000, 0), ("ETH/EUR", 1_900, 3_300, 0),
+              ("SOL/EUR", 125, 195, 2), ("XRP/EUR", 0.41, 0.79, 4),
+              ("ADA/EUR", 0.31, 0.58, 4), ("DOT/EUR", 5.2, 8.9, 2)],
+        "d": [("FTSE MIB", 32_400, 34_900, 0), ("DAX 40", 17_200, 19_400, 0),
+              ("CAC 40", 7_300, 7_900, 0), ("IBEX 35", 10_300, 11_100, 0),
+              ("S&P 500", 5_100, 5_400, 0), ("NASDAQ 100", 18_100, 18_900, 0)],
+        "e": [("Brent", 72, 93, 2), ("WTI", 67, 89, 2), ("Gas TTF", 26, 44, 2),
+              ("Oro", 2_120, 2_480, 0), ("Argento", 24, 31, 2), ("Rame", 3.9, 4.7, 2)],
+        "k": [("BTC/EUR", 42_000, 61_000, 0), ("DAX 40", 17_200, 19_400, 0),
+              ("FTSE MIB", 32_400, 34_900, 0), ("S&P 500", 5_100, 5_400, 0),
+              ("EUR/USD", 1.05, 1.12, 4), ("Oro", 2_120, 2_480, 0)],
+        "l": [("EUR/USD", 1.05, 1.12, 4), ("EUR/GBP", 0.84, 0.88, 4),
+              ("EUR/CHF", 0.93, 0.99, 4), ("EUR/JPY", 155, 172, 2),
+              ("EUR/PLN", 4.21, 4.36, 4), ("EUR/CZK", 24.9, 25.5, 2)],
+        "s": [("DOGE/EUR", 0.12, 0.25, 4), ("LINK/EUR", 11.2, 18.6, 2),
+              ("AVAX/EUR", 28, 44, 2), ("ATOM/EUR", 6.2, 10.8, 2),
+              ("NEAR/EUR", 4.1, 8.7, 2), ("ARB/EUR", 0.71, 1.28, 4)],
+        "p": [("FTSE MIB", 32_400, 34_900, 0), ("SOL/EUR", 125, 195, 2),
+              ("TTF", 26, 44, 2), ("CAC 40", 7_300, 7_900, 0),
+              ("XRP/EUR", 0.41, 0.79, 4), ("Brent", 72, 93, 2)],
+        "q": [("Brent", 72, 93, 2), ("WTI", 67, 89, 2), ("Gas TTF", 26, 44, 2),
+              ("PSV", 88, 118, 2), ("CO2 EUA", 62, 79, 2), ("Carbone", 96, 128, 2)],
+        "r": [("Oro", 2_120, 2_480, 0), ("Argento", 24, 31, 2), ("Platino", 890, 1_010, 0),
+              ("Palladio", 910, 1_090, 0), ("Rame", 3.9, 4.7, 2), ("Oro/Argento", 81, 92, 1)],
+    }.get(variant, [])
+    return sets
+
+
+def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
+    """Content for the top strip variant; words are localised, numbers are seeded.
+
+    Token contract for every blk-livebar fragment (a + b..y):
+      {{LB_LIVE}}                    strip label next to the marker
+      {{LB_S1K}}..{{LB_S3K}} / V    up to three static stats (key/value)
+      {{LB1S}}..{{LB6S}} / V / C / D six tape items (label, value, change, dir class)
+      {{LB_NEWS1}}..{{LB_NEWS4}}     news headlines (content pack may override)
+      {{GEO_SHORT}}                  global token (plan param)
+    """
+    L = LIVEBAR_L10N.get(lang) or LIVEBAR_L10N["en"]
+    comma = lang in ("it", "cs", "es")
+
+    def num(lo, hi, dec=2):
+        return _fmt_num(rng.uniform(lo, hi), lang, dec)
+
+    def chg(lo=-1.2, hi=2.4, dec=2):
+        c = rng.uniform(lo, hi)
+        return (f"{c:+.{dec}f}".replace(".", "," if comma else "."),
+                "up" if c >= 0 else "dn")
+
+    def q_six(data):
+        """Six quote rows from (symbol, lo, hi, dec) tuples."""
+        rows = []
+        for sym, lo, hi, dec in data:
+            c, d = chg()
+            rows.append((sym, num(lo, hi, dec), c, d))
+        return rows
+
+    hh, mm = rng.randint(8, 17), rng.randint(0, 59)
+    clock = f"{hh:02d}:{mm:02d}"
+    stats, items, live, extra = [], [], L["live"], {}
+
+    if variant in ("a", "k"):
+        items = q_six(_livebar_data(variant))
+        stats = [(L["latency"], f"{rng.randint(28, 62)} ms"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+    elif variant == "b":
+        items = q_six(_livebar_data("b"))
+        live = L["fx"]
+        stats = [(L["spread"], f"{num(0.0, 0.8, 1)} pip"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+    elif variant == "c":
+        items = q_six(_livebar_data("c"))
+        live = f"{L['crypto']} · 24/7"
+        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} Mld"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+    elif variant == "d":
+        items = q_six(_livebar_data("d"))
+        live = L["indices"]
+        stats = [(L["spread"], f"{num(0.0, 1.2, 1)} pt"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+    elif variant == "e":
+        items = q_six(_livebar_data("e"))
+        live = L["commod"]
+        stats = [(L["source"], "flow int."), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["volume"], f"{num(0.4, 2.2, 1)} Mld")]
+    elif variant == "f":
+        live = L["news_tag"]
+        news = list(L["news"])[:4]
+        extra = {f"LB_NEWS{i+1}": t for i, t in enumerate(news)}
+        items = [(t, clock, "", "") for i, t in enumerate(news)] \
+              + [("", "", "", ""), ("", "", "", "")]
+        stats = [(L["updated"], clock), ("API", "99,9%d%%" % rng.randint(1, 9)), ("", "")]
+    elif variant == "g":
+        live = L["sessions"]
+        offsets = [9, 10, 0, 1, -5, 1]
+        states = [("open", "up"), ("closed", "dn"), ("preopen", ""), ("open", "up"),
+                  ("closed", "dn"), ("preopen", "")]
+        for city, off, (st, cls) in zip(L["cities"], offsets, states):
+            lt = (hh + off) % 24
+            items.append((city, f"{lt:02d}:{mm:02d}", L[st], cls))
+        stats = [("Sessioni aperte", str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
+    elif variant == "h":
+        live = L["sentiment"]
+        pct = rng.randint(30, 75)
+        fg = L["greed"] if pct >= 50 else L["fear"]
+        longs, shorts = rng.randint(50, 65), 100 - rng.randint(50, 65)
+        items = [("Fear & Greed", str(pct), fg, "up" if pct >= 50 else "dn"),
+                 ("Long/Short", f"{longs} / {100 - longs}", "", ""),
+                 ("VIX", num(11, 22, 1), L["volatility"], ""),
+                 ("Bull ratio", num(0.4, 0.7, 2), "", ""),
+                 ("Funding", f"{num(0.005, 0.05, 3)}%", "", ""),
+                 ("Spread BTP–Bund", f"{rng.randint(90, 160)} bp", "", "")]
+        stats = [(L["updated"], clock), ("API", "99,9%d%%" % rng.randint(1, 9)), ("", "")]
+    elif variant == "i":
+        live = L["system"]
+        pct = rng.randint(52, 99)
+        items = [(L["platform"], "ONLINE", "99", "up"),
+                 (L["gateway"], f"99,9{rng.randint(1, 9)}%", "100", "up"),
+                 (L["support"], f"< {rng.randint(2, 9)} min", "", ""),
+                 (L["queue"], str(rng.randint(14, 48)), "", ""),
+                 (L["slots"], str(rng.randint(3, 9)), "", ""),
+                 ("Verifiche/giorno", f"{rng.randint(700, 1_500):,}".replace(",", "."), "", "")]
+        stats = [("Uptime", "99,9%d%%" % rng.randint(1, 9)), (L["latency"], f"{rng.randint(28, 62)} ms"), ("", "")]
+    elif variant == "j":
+        live = "LIVE"
+        items = q_six(_livebar_data("a"))[:4]
+        stats = [("", ""), ("", ""), ("", "")]
+    elif variant == "l":
+        items = q_six(_livebar_data("l"))
+        live = f"{L['fx']} · EUR"
+        stats = [(L["spread"], f"{num(0.0, 0.8, 1)} pip"), (L["updated"], clock), ("", "")]
+    elif variant == "m":
+        live = L["bonds"]
+        bonds = [("BTP 10Y", 3.6, 4.2, 3), ("Bund 10Y", 1.9, 2.6, 3), ("OAT 10Y", 2.7, 3.2, 3),
+                 ("Bonos 10Y", 3.1, 3.6, 3), ("Gilt 10Y", 3.5, 4.3, 3), ("UST 10Y", 4.0, 4.5, 3)]
+        for sym, lo, hi, dec in bonds:
+            v = num(lo, hi, dec) + "%"
+            bp = rng.randint(1, 9)
+            items.append((sym, v, f"{'+' if rng.random() < .5 else '−'}{bp} bp",
+                          "up" if bp <= 4 else "dn"))
+        stats = [("BTP–Bund", f"{rng.randint(90, 160)} bp"), (L["updated"], clock), ("", "")]
+    elif variant == "n":
+        live = L["macro"]
+        items = [("Tasso BCE", f"{num(3.5, 4.5, 2)}%", "", ""), ("Infl. eurozona", f"{num(1.8, 3.2, 1)}%", "", ""),
+                 ("PMI", num(48, 53, 1), "", ""), ("Disoccupazione", f"{num(6.2, 7.8, 1)}%", "", ""),
+                 ("GDP", f"+{num(0.1, 1.2, 1)}%", "up", "up"), ("Spread", f"{rng.randint(90, 160)} bp", "", "")]
+        stats = [(L["updated"], clock), ("API", "99,9%d%%" % rng.randint(1, 9)), ("", "")]
+    elif variant == "o":
+        live = L["calendar"]
+        times = [f"{rng.randint(8, 16):02d}:{rng.choice(['00', '15', '30', '45'])}" for _ in range(4)]
+        items = [(ev, t, "", "") for ev, t in zip(L["calendar_events"][:4], times)]
+        stats = [("Sessioni aperte", str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
+    elif variant == "p":
+        live = L["movers"]
+        data = _livebar_data("p")
+        up = data[:3]
+        dn = data[3:]
+        for sym, lo, hi, dec in up:
+            c = rng.uniform(1.5, 4.8)
+            items.append((sym, num(lo, hi, dec), f"+{c:.2f}".replace(".", ","), "up"))
+        for sym, lo, hi, dec in dn:
+            c = rng.uniform(1.5, 4.8)
+            items.append((sym, num(lo, hi, dec), f"−{c:.2f}".replace(".", ","), "dn"))
+        stats = [(L["updated"], clock), ("API", "99,9%d%%" % rng.randint(1, 9)), ("", "")]
+    elif variant == "q":
+        items = q_six(_livebar_data("q"))
+        live = L["energy"]
+        stats = [(L["source"], "flow int."), ("API", "99,9%d%%" % rng.randint(1, 9)), ("", "")]
+    elif variant == "r":
+        items = q_six(_livebar_data("r"))
+        live = L["metals"]
+        stats = [(L["volume"], f"{num(0.2, 1.6, 1)} Mld"), (L["updated"], clock), ("", "")]
+    elif variant == "s":
+        items = q_six(_livebar_data("s"))
+        live = L["altcoin"]
+        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} Mld"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+    elif variant == "t":
+        live = L["throughput"]
+        items = [("Tick/s", f"{rng.randint(28, 46)}k", "", ""), ("Punti dati/s", f"{rng.randint(2, 4)}k", "", ""),
+                 ("Uptime", "99,9%d%%" % rng.randint(1, 9), "99", "up"), ("Motori dati", str(rng.randint(6, 9)), "", ""),
+                 ("Latenza", f"{rng.randint(28, 62)} ms", "", ""), ("Code attive", str(rng.randint(2, 6)), "", "")]
+        stats = [("Uptime", "99,9%d%%" % rng.randint(1, 9)), (L["latency"], f"{rng.randint(28, 62)} ms"), ("", "")]
+    elif variant == "u":
+        live = L["clocks"]
+        offsets = [9, 10, 0, 1, -5, 1]
+        for city, off in zip(L["cities"], offsets):
+            lt = (hh + off) % 24
+            items.append((city, f"{lt:02d}:{mm:02d}", f"UTC{off:+d}", ""))
+        stats = [("UTC", f"{hh:02d}:{mm:02d}"), ("Sessioni aperte", str(rng.randint(1, 4))), ("", "")]
+    elif variant == "v":
+        live = L["earnings"]
+        times = [f"{rng.randint(8, 16):02d}:{rng.choice(['00', '30'])}" for _ in range(4)]
+        items = [(co, t, L["report"], "") for co, t in zip(L["earnings_co"][:4], times)]
+        stats = [("Trimestre", f"Q{rng.randint(1, 4)}"), (L["updated"], clock), ("", "")]
+    elif variant == "w":
+        live = L["history"]
+        items = [(t, "", "", "") for t in L["history_facts"][:4]]
+        stats = [(L["updated"], clock), ("", ""), ("", "")]
+    elif variant == "x":
+        live = L["volatility"]
+        meters = [("BTC", 2.1, 4.5), ("DAX 40", 0.5, 1.3), ("Oro", 0.4, 1.1),
+                  ("EUR/USD", 0.2, 0.6), ("NASDAQ", 0.9, 2.0), ("Brent", 0.8, 2.2)]
+        for sym, lo, hi in meters:
+            vol = rng.uniform(lo, hi)
+            items.append((sym, f"{num(vol, vol, 1)} %", str(int(vol * 18)), ""))
+        stats = [("VIX", num(11, 22, 1)), (L["updated"], clock), ("", "")]
+    elif variant == "y":
+        live = L["verified"]
+        names = NAME_BANK.get(lang, NAME_BANK["fallback"])
+        picked = rng.sample(names, 6)
+        for nm in picked:
+            items.append((nm, f"★ {num(4.5, 5.0, 1)}", L["verified"], "up"))
+        stats = [(L["media"], num(4.6, 4.9, 1)), (L["recensioni"], f"{rng.randint(480, 980):,}".replace(",", ".")), ("", "")]
+
+    subs = {"LB_LIVE": live, "GEO_SHORT": geo_short}
+    for i in range(3):
+        k, v = stats[i] if i < len(stats) else ("", "")
+        subs[f"LB_S{i+1}K"] = k
+        subs[f"LB_S{i+1}V"] = v
+    for i in range(6):
+        it = items[i] if i < len(items) else ("", "", "", "up")
+        subs[f"LB{i+1}S"], subs[f"LB{i+1}V"], subs[f"LB{i+1}C"], subs[f"LB{i+1}D"] = it
+    subs.update(extra)
     return {"variant": variant, "subs": subs}
 
 

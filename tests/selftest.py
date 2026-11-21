@@ -174,7 +174,9 @@ r = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "Selft
 chk(r.returncode == 0, f"gen_plan smoke: rc={r.returncode}")
 _p = json.loads(plan_f.read_text()) if plan_f.exists() else {}
 _lb = (_p.get("livebar") or {}).get("variant")
-chk(_lb in {"b", "c", "d", "e", "f", "g", "h", "i", "j"}, f"livebar variant chosen ({_lb})")
+chk(_lb in {"b", "c", "d", "e", "f", "g", "h", "i", "j",
+            "k", "l", "m", "n", "o", "p", "q", "r", "s",
+            "t", "u", "v", "w", "x", "y"}, f"livebar variant chosen ({_lb})")
 chk(bool((_p.get("livebar") or {}).get("subs")), "livebar subs present in plan")
 if _p:
     sys.path.insert(0, str(ROOT)); import assemble as _asm
@@ -197,8 +199,12 @@ if _p:
             chk("blk-logo" not in _hv_html, "header-d drops the logo")
         if _hv == "e":
             chk("blk-btn" not in _hv_html, "header-e drops the CTA")
-    for _v in ("b", "c", "d", "e", "f", "g", "h", "i", "j"):
-        _plan = json.loads(json.dumps(_p)); _plan["livebar"] = {"variant": _v, "subs": _p.get("livebar", {}).get("subs", {})}
+    for _v in ("b", "c", "d", "e", "f", "g", "h", "i", "j",
+           "k", "l", "m", "n", "o", "p", "q", "r", "s",
+           "t", "u", "v", "w", "x", "y"):
+        import random as _rd, gen_plan as _gp
+        _subs = _gp.build_livebar(_rd.Random(9), _v, "it", _p["params"].get("geo_short", ""))["subs"]
+        _plan = json.loads(json.dumps(_p)); _plan["livebar"] = {"variant": _v, "subs": _subs}
         _plan["layout"]["variants"]["livebar"] = _v
         _html = _asm.R("livebar", _plan, {})
         chk("{{" not in _html and "blk-livebar" in _html, f"livebar-{_v} renders fully")

@@ -362,15 +362,10 @@ def R(name: str, plan, C, **kw) -> str:
             subs["{{" + k + "}}"] = v
         lb = C.get("livebar") or {}
         if lb:
-            variant = (plan.get("livebar") or {}).get("variant", "")
-            tag = lb.get("crypto") if variant == "c" else lb.get("bull")
-            if tag:
-                subs["{{LB_TAG}}"] = tag
-            for key, token in (("commod", "LB_LABEL"), ("session", "LB_SESSION"),
-                               ("bull", "LB_BULL"), ("bear", "LB_BEAR")):
-                if lb.get(key):
-                    subs["{{" + token + "}}"] = lb[key]
-            # keep the plan numbers, swap only the leading word
+            # content pack may override the news headlines (kept from plan words otherwise)
+            for i, text in enumerate((lb.get("news") or [])[:4], start=1):
+                subs["{{LB_NEWS%d}}" % i] = text
+            # legacy word-swap: replace only the leading word of queue/wait/slots stats
             for key, token in (("queue", "LB_QUEUE"), ("wait", "LB_WAIT"),
                                ("slots", "LB_SLOTS"), ("payouts", "LB_S3")):
                 if lb.get(key):
