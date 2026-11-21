@@ -345,6 +345,15 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
         errs.append(f"title_home longer than 70 chars ({len(title)})")
     if not title.lower().startswith(plan["params"]["brand"].lower()):
         errs.append("meta.title_home must start with the brand")
+    # deposit rule: keep in sync with tools/seo_audit.py dep_pat — meta/og/JSON-LD text
+    # (meta.description feeds the JSON-LD org.description) must never mention a deposit
+    dep_pat = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|min(?:imální|minimāl)|100\s?000\s?Ft|100000\s?Ft)")
+    for mkey in ("description", "og_description", "keywords"):
+        mval = str((pack.get("meta") or {}).get(mkey) or "")
+        hit = dep_pat.findall(mval)
+        if hit:
+            errs.append(f"meta.{mkey} mentions a deposit ({hit[0]}) — deposit lives only "
+                        f"in bands.form_consent <small>; rephrase without amounts/deposit words")
     inner_titles = [v.get("title", "") for k, v in pack.items() if k.startswith("inner_")]
     if len(set(inner_titles)) != len(inner_titles):
         errs.append("inner_* titles duplicate")
