@@ -487,13 +487,14 @@ def main():
                                             "JSON object, no commentary."},
             ]
             try:
-                pack = extract_json(http_pack(cfg, key, messages)[0])
+                _raw, _fin = http_pack(cfg, key, messages)
+                pack = extract_json(_raw)
                 if not isinstance(pack, dict):
                     raise ValueError("not a JSON object")
                 pack = merge_skeleton(sk, pack)
                 out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
             except Exception as e:
-                print(f"  repair {attempt} unparsable ({e}) — keeping previous pack")
+                print(f"  repair {attempt} unparsable ({e}) finish={_fin} len={len(_raw)} — keeping previous pack")
         else:
             cli_chat(find_cli(), cfg["model"],
                      f"Fix content/{dom}-content.json. Keep schema and language. Errors: "
