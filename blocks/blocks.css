@@ -396,7 +396,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* ------------------------ layout variants (blk-*-b / blk-*-c) ------------ */
 .center-band{max-width:780px;margin-inline:auto;text-align:center}
 .center-band .eyebrow{justify-content:center}
-.center-band .hero-cta,.center-band .hero-stats{justify-content:center}
+.center-band .hero-cta,.center-band .hero-stats,.center-band .chip-row{justify-content:center}
 /* centred hero must not inherit the two-column shell, otherwise half the screen stays empty */
 .centered-hero{display:block;text-align:center;padding-block:84px 76px}
 .centered-hero .center-band{max-width:940px}

@@ -1357,12 +1357,16 @@
    "cta_primary": [
     "Open access",
     "Start now",
-    "Request access"
+    "Request access",
+    "Create account",
+    "Get started"
    ],
    "cta_secondary": [
     "How it works",
     "See the steps",
-    "The method"
+    "The method",
+    "Watch the demo",
+    "See the panel"
    ],
    "stat_rating": "user rating",
    "stat_users": "registered users",
@@ -1647,10 +1651,14 @@
     ]
    },
    "cta": {
-    "eyebrow": "NEXT STEP",
-    "h2": "Open access to {brand}",
-    "lead": "Short form, call back in office hours.",
-    "btn": "Start now"
+    "eyebrow": ["NEXT STEP", "READY WHEN YOU ARE", "ONE FORM AWAY", "GET STARTED"],
+    "h2": ["Open access to {brand}", "Your {brand} panel starts with one form",
+           "Request your {brand} access today", "One form stands between you and {brand}"],
+    "lead": ["Short form, call back in office hours.",
+             "One form; an advisor calls you back the same working day.",
+             "Fill it in once — setup takes a few minutes.",
+             "Leave your details and the onboarding team does the rest."],
+    "btn": ["Start now", "Request access", "Open my account", "Get my access"]
    },
    "demo": {
     "eyebrow": "TREND",

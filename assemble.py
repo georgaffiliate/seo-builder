@@ -126,7 +126,11 @@ def validate_plan(plan: dict) -> None:
            and not (BLOCKS / f"{canon}-{var}.html").exists():
             die(f"variant fragment missing: {canon}-{var}.html")
     if not (10 <= len(order) <= 18): die(f"section_order len {len(order)} out of range 10..18")
-    if "faq" not in order: die("section_order must contain faq")
+    if not ({"faq", "people", "facts", "security", "compare"} & set(order)):
+        die("section_order needs a trust screen (faq/people/facts/security/compare)")
+    anchors = {"people", "faq", "numbers", "cta", "office", "compare"}
+    if len(anchors & set(order)) < 2:
+        die("section_order needs >= 2 rotating anchor screens (people/faq/numbers/cta/office/compare)")
     if not any(s in order for s in ("access-band", "claim-band", "enroll-band")):
         die("section_order must contain a form band")
     if "hero" not in order: die("section_order must start with hero-ish block")

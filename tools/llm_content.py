@@ -162,6 +162,8 @@ def cli_chat(bin_: str, model: str, prompt: str) -> str:
 
 # ---------------------------------------------------------------- brief/validate
 def available_personas(plan: dict):
+    """Photos are the only hard-constrained persona asset (never reused across plans);
+    names/cities/roles are invented by the model per geo, so no per-language bank is needed."""
     used_names, used_photos = set(), set()
     for f in (ROOT / "plans").glob("*.json"):
         if f.stem == plan["params"]["domain"]:
@@ -170,22 +172,18 @@ def available_personas(plan: dict):
             p = json.loads(f.read_text(encoding="utf-8"))
         except Exception:
             continue
-        used_names |= set(p.get("people") or [])
+        used_names |= {n.lower() for n in (p.get("people") or [])}
         used_photos |= set(p.get("photos") or [])
-    lang = plan["params"]["lang"]
-    bank = gen_plan.NAME_BANK.get(lang) or gen_plan.NAME_BANK["fallback"]
-    own_names = list(plan.get("people") or [])
-    names = own_names + [n for n in bank if n not in used_names and n not in own_names][:21]
     free = [ph.name for ph in sorted((ROOT / "people").glob("p-*.jpg")) if ph.name not in used_photos]
     own = list(plan.get("photos") or [])
     women = [p for p in own if p.startswith("p-women")] + [p for p in free if p.startswith("p-women")][:8]
     men = [p for p in own if p.startswith("p-men")] + [p for p in free if p.startswith("p-men")][:8]
-    return names, women, men
+    return sorted(used_names), women, men
 
 
 def brief(plan: dict) -> dict:
     brand = plan["params"]["brand"]
-    names, women, men = available_personas(plan)
+    used_names, women, men = available_personas(plan)
     slots = []
     for slot in plan["layout"]["section_order"]:
         canon = assemble.CANON.get(slot) or f"blk-{slot}"
@@ -196,6 +194,7 @@ def brief(plan: dict) -> dict:
         keys = sorted(set(re.findall(r"\{\{c:([\w.]+)\}\}", cand.read_text(encoding="utf-8")))) if cand.exists() else []
         slots.append({"slot": slot, "fragment": cand.name, "content_keys": keys})
     n = plan["numbers"]
+    style_ref = (gen_plan.NAME_BANK.get(plan["params"]["lang"]) or gen_plan.NAME_BANK["fallback"])[:3]
     return {
         "task": "Write ONE JSON content pack for the offer below. No HTML, no markdown.",
         "data_policy": "The offer is a fictional demo brand. Reviews, ratings, user counts, market prices and "
@@ -211,7 +210,18 @@ def brief(plan: dict) -> dict:
         "deposit_text_rule": "€250 equivalent only in bands.form_consent, wrapped in <small>; nowhere else",
         "numbers_must_stay_within": {"rating": n["rating"], "reviews": n.get("reviews_bin"),
                                      "users": n.get("users_bin"), "latency_ms": n.get("latency_bin")},
-        "persona_shortlist": {"names": names, "women_photos": women, "men_photos": men},
+        "persona_policy": {
+            "rule": "Invent 3 personas that read as native to the geo (names, cities, professions in the "
+                    "plan language). Do NOT copy the style_reference names. Photos are FIXED and already "
+                    "pre-filled in the skeleton — keep them in this exact order and invent a name whose "
+                    "gender matches each photo (p-women-* → female, p-men-* → male) and set g to f or m.",
+            "cities": "3 DIFFERENT real cities of the geo (geo_city may be at most one of them); never "
+                      "repeat a city inside one pack and never reuse sibling cities.",
+            "tenure": "3 DIFFERENT believable tenures (e.g. 4 months / 1 year / 2 years), not a fixed trio.",
+            "style_reference_only": style_ref,
+            "names_already_used_by_other_offers_do_not_reuse": sorted(used_names)[:60],
+            "women_photos": women, "men_photos": men,
+        },
         "livebar": {"variant": (plan.get("livebar") or {}).get("variant"),
                     "fields": ["crypto", "commod", "session", "bull", "bear", "queue",
                                "wait", "slots", "payouts"],
@@ -222,7 +232,7 @@ def brief(plan: dict) -> dict:
             "Cover EVERY content_keys path listed per slot, plus meta/hero/bands/ui/reviews/scarcity/faq/office/brand_note/inner_*/legal/footer/thanks.",
             "Brand-first title_home <= 70 chars; unique titles/descriptions per page; description <= 155 chars.",
             "No deposit amount in meta, hero, or any h2. Deposit only in bands.form_consent inside <small>.",
-            "Pick exactly 3 names from persona_shortlist.names and 3 photos matched by gender (women_photos for female names, men_photos for male), same order; put them in reviews.items.",
+            "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
             "Numbers: rating exactly as given; reviews/users/latency inside their bins; hero.stats uses rating, users, latency.",
             "No return promises; local language only; concrete, plain sentences in the register of the brand.",
             "reviews.lead must say the names and quotes are illustrative; office/footer may mention the regulator as reference only.",
@@ -230,6 +240,7 @@ def brief(plan: dict) -> dict:
             "Arrays need full length: faq.items 5, features.cards 6, steps.steps 5, ladder.rows 4, markets.rows 4, risk.rows 3, security.cards 3, streams.cards 3, reviews.items 3, hero.stats 3, hero.device_rows 2, bands.mid_points 4, scarcity.units 4, inner_about.blocks 4.",
             "livebar.* must be translated into the plan language (it feeds the top strip): all 9 fields plus 3-4 news headlines, short and concrete.",
             "Texts must read unlike the sibling offers: vary sentence openings, examples and section angles.",
+            "Hero CTAs, eyebrows, section h2 wording and the submit button must be phrased freshly for THIS offer — never copy boilerplate like 'EMPIEZA HOY'/'Solicitar acceso' from sibling offers.",
             "Write in the plan language, not English, even if this brief is English.",
         ],
     }
@@ -251,15 +262,16 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
         if isinstance(node, list):
             n = expand.get(path)
             if path == "reviews.items":
-                names = brief_data["persona_shortlist"]["names"][:3]
-                photos = (brief_data["persona_shortlist"]["women_photos"][:2] +
-                          brief_data["persona_shortlist"]["men_photos"][:2])
                 tmpl = node[0] if node and isinstance(node[0], dict) else {}
+                photos = list(plan.get("photos") or [])[:3]
                 out = []
                 for i in range(3):
                     item = json.loads(json.dumps(tmpl))
-                    item["name"] = names[i] if i < len(names) else ""
                     item["photo"] = photos[i] if i < len(photos) else ""
+                    item["name"] = ""          # model invents the persona (any geo)
+                    item["g"] = ""             # f|m, must match the photo
+                    item["city"] = ""
+                    item["tenure"] = ""
                     out.append(item)
                 return out
             if n:
@@ -298,30 +310,34 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     if len(items) != 3:
         errs.append(f"reviews.items has {len(items)} entries, need 3")
     else:
-        allowed_names = set(brief_data["persona_shortlist"]["names"])
-        allowed_photos = set(brief_data["persona_shortlist"]["women_photos"] +
-                             brief_data["persona_shortlist"]["men_photos"])
+        allowed_photos = set(brief_data["persona_policy"]["women_photos"] +
+                             brief_data["persona_policy"]["men_photos"])
+        used = set(brief_data["persona_policy"].get("names_already_used_by_other_offers_do_not_reuse") or [])
         for it in items:
-            if it.get("name") not in allowed_names:
-                errs.append(f"review name not in shortlist: {it.get('name')}")
-            if it.get("photo") not in allowed_photos:
-                errs.append(f"review photo not in shortlist: {it.get('photo')}")
+            name = (it.get("name") or "").strip()
+            photo = it.get("photo") or ""
+            if len(name) < 3 or not re.search(r"[^\W\d_]", name, re.UNICODE):
+                errs.append(f"review name missing/invalid: '{name}'")
+                continue
+            if name.lower() in used:
+                errs.append(f"persona name reused from another offer: {name}")
+            if photo not in allowed_photos:
+                errs.append(f"review photo not in shortlist: {photo}")
+            g = (it.get("g") or "").strip().lower()
+            if g not in ("f", "m"):
+                errs.append(f"{name}: g must be 'f' or 'm'")
+            elif g == "f" and not photo.startswith("p-women"):
+                errs.append(f"{name}: g=f needs a p-women photo")
+            elif g == "m" and not photo.startswith("p-men"):
+                errs.append(f"{name}: g=m needs a p-men photo")
+            if not str(it.get("city") or "").strip():
+                errs.append(f"{name}: city empty")
+            if not str(it.get("tenure") or "").strip():
+                errs.append(f"{name}: tenure empty")
         if len({it.get("name") for it in items}) != len(items):
             errs.append("review names repeat")
-        lang = plan["params"]["lang"]
-        fem = gen_plan.FEMALE_FIRST.get(lang, gen_plan.FEMALE_FIRST["fallback"])
-        men = gen_plan.MALE_FIRST.get(lang, gen_plan.MALE_FIRST["fallback"])
-        for it in items:
-            first = (it.get("name") or "").split()[0].split("-")[0]
-            photo = it.get("photo") or ""
-            if first not in fem and first not in men:
-                errs.append(f"{it.get('name')}: gender unknown (add to FEMALE_FIRST/MALE_FIRST)")
-                continue
-            woman = first in fem
-            if woman and not photo.startswith("p-women"):
-                errs.append(f"{it.get('name')}: female name needs p-women photo")
-            if not woman and photo.startswith("p-women"):
-                errs.append(f"{it.get('name')}: male name needs p-men photo")
+        if len({(it.get("city") or "").strip().lower() for it in items}) < len(items):
+            errs.append("review cities must be 3 different places of the geo")
     stats = (pack.get("hero") or {}).get("stats") or []
 
     def digits(v):

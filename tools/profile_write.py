@@ -7,10 +7,49 @@ registry stays consistent with what actually shipped.
 Usage: python3 tools/profile_write.py --plan plans/<domain>.json --content content/<domain>-content.json
 """
 from __future__ import annotations
-import argparse, json, pathlib, re, sys
+import argparse, hashlib, json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PROFILES = ROOT / "profiles"
+
+FP_SKIP = {"legal", "footer", "thanks", "livebar"}   # boilerplate / numeric noise
+
+
+def norm_text(text: str, brand_variants: list[str]) -> str:
+    t = text.lower()
+    for b in brand_variants:
+        if b:
+            t = t.replace(b.lower(), " ")
+    t = re.sub(r"\d+", "#", t)
+    t = re.sub(r"[^\w\s]", " ", t, flags=re.UNICODE)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def fingerprints(content: dict, brand_variants: list[str] | None = None) -> dict:
+    """Per-section fingerprint of the SHIPPED TEXT (digits masked).
+    Brand masking is intentionally NOT applied: the brand token is constant for a
+    sibling pair, so it never inflates their similarity, and normalization stays
+    reproducible from the content pack alone (no plan file needed)."""
+    fp = {}
+    for key, node in content.items():
+        if key in FP_SKIP or key.startswith("_"):
+            continue
+        if isinstance(node, str):
+            text = node
+        else:
+            text = " ".join(re.findall(r"\w+", json.dumps(node, ensure_ascii=False)))
+        t = norm_text(text, [])
+        if len(t) > 40:
+            fp[key] = hashlib.sha1(t.encode()).hexdigest()[:10]
+    return fp
+
+
+def personas_of(content: dict) -> list[dict]:
+    out = []
+    for it in (content.get("reviews") or {}).get("items") or []:
+        out.append({"name": it.get("name", ""), "city": it.get("city", ""),
+                    "role": it.get("role", ""), "tenure": it.get("tenure", "")})
+    return out
 
 
 def main():
@@ -37,6 +76,7 @@ def main():
     reg = plan.get("regulator") or {}
     office = content.get("office", {})
     meta = content.get("meta", {})
+    brand_variants = [p["brand"], p["brand"].lower(), dom]
     prof = {
         "domain": dom,
         "brand": p["brand"],
@@ -58,6 +98,8 @@ def main():
         "widgets": list(plan["widgets"].values()),
         "slugs": plan["layout"].get("slugs", {}),
         "people": [{"name": n, "photo": ph} for n, ph in zip(plan.get("people", []), plan.get("photos", []))],
+        "personas": personas_of(content),
+        "content_fp": fingerprints(content, brand_variants),
         "plan": f"plans/{dom}.json",
         "content": f"content/{dom}-content.json",
         "built": plan.get("built") or "2026-11-21",

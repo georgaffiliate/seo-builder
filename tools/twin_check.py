@@ -21,6 +21,12 @@ import json, pathlib, re, socket, subprocess, sys, time, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PLANS = ROOT / "plans"
+PROFILES = ROOT / "profiles"
+sys.path.insert(0, str(ROOT / "tools"))
+try:
+    from profile_write import fingerprints, personas_of
+except Exception:            # fingerprint gate degrades gracefully if tools move
+    fingerprints = personas_of = None
 PORT = 8797
 SKIP = {"section", "wrap", "center", "alt", "sec", "blk", ""}
 TYPE_OF = {"claim-band": "band", "access-band": "band", "enroll-band": "band",
@@ -145,6 +151,16 @@ def main():
                      "inner": {tuple(v) for v in (d.get("inner_pages") or {}).values()},
                      "slugs": set((lay.get("slugs") or {}).values()),
                      "widgets": set((d.get("widgets") or {}).values())})
+    profs = []
+    for f in sorted(PROFILES.glob("*.json")):
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        profs.append({"name": f.stem,
+                      "brand": (d.get("brand") or "").lower(),
+                      "fp": set((d.get("content_fp") or {}).values()),
+                      "personas": d.get("personas") or []})
     probs = []
     for folder in folders:
         pages = render(folder)
@@ -152,6 +168,27 @@ def main():
         myvar = variant_map(pages.get("/", ""))
         myc = classes_of(pages)
         myw = widgets_of(pages)
+        my_fp, my_personas, my_brand = set(), [], ""
+        if fingerprints and personas_of:
+            cf = ROOT / "content" / f"{folder.name}-content.json"
+            pf = PLANS / f"{folder.name}.json"
+            brand0, dom0 = "", folder.name
+            if pf.exists():
+                try:
+                    d0 = json.loads(pf.read_text(encoding="utf-8"))
+                    brand0 = (d0.get("params", {}).get("brand", "") or "").lower()
+                    dom0 = d0.get("params", {}).get("domain", "") or dom0
+                except Exception:
+                    pass
+            my_brand = brand0
+            if cf.exists():
+                try:
+                    pack = json.loads(cf.read_text(encoding="utf-8"))
+                    # same normalization as profile_write: brand variants masked out
+                    my_fp = set(fingerprints(pack, [brand0, dom0]).values())
+                    my_personas = personas_of(pack)
+                except Exception:
+                    pass
         myslugs = {p.stem for p in folder.glob("*.php")
                    if p.name not in {"index.php", "thanks.php", "404.php", "_postback.php"}}
         myinner = set()
@@ -178,6 +215,19 @@ def main():
                 probs.append(f"{folder.name}: slug set equals {h['name']}")
             if h["widgets"] and h["widgets"] <= myw:
                 probs.append(f"{folder.name}: widgets superset of {h['name']}")
+        for pr in profs:
+            if pr["name"] == folder.name:
+                continue
+            if my_fp and pr["fp"] and jac(my_fp, pr["fp"]) >= 0.45:
+                probs.append(f"{folder.name}: content fingerprint {jac(my_fp, pr['fp']):.0%} like "
+                             f"{pr['name']} — rewrite the cloned sections")
+            if my_personas and pr["personas"] and pr["brand"] == my_brand:
+                phits = sum(1 for a, b in zip(my_personas, pr["personas"])
+                            if (a.get("city") or "").strip().lower() == (b.get("city") or "").strip().lower()
+                            or (a.get("tenure") or "") == (b.get("tenure") or ""))
+                if phits >= 2:
+                    probs.append(f"{folder.name}: review template repeats {pr['name']} "
+                                 f"({phits}/3 same city/tenure)")
         if worstJ >= 0.72:
             probs.append(f"{folder.name}: section inventory {worstJ:.0%} like {worstN} — swap block types")
         if len(hits) >= 2:

@@ -45,12 +45,17 @@ SECTION_POOL = ["intro-center", "features", "steps", "steps-live", "markets", "l
                  "ticker", "timeline", "stats-intro",
                  "numbers", "portal", "compare", "glance",
                  "facts", "notes", "mini-faq", "device"]
+# Recognisable "screens" that rotate between offers: a plan picks 2-3 of them and
+# never repeats the ones the previous plan / same-brand sibling already shows, so
+# two offers of one factory visibly have DIFFERENT screens (human and Google view).
+ANCHOR_TYPES = ("people", "faq", "numbers", "cta", "office", "compare")
 TYPE_OF = {"claim-band": "band", "access-band": "band", "enroll-band": "band",
            "trust-band": "cta", "cta-band": "cta", "intro-center": "intro", "stats-intro": "intro",
            "steps-live": "steps", "brand-note": "brandnote"}
 def types_of(order): return {TYPE_OF.get(t, t) for t in order}
 VARIANTS = {  # structural fragment variants per slot ("" = canonical file, always allowed)
-    "hero": ["b", "c"], "claim-band": ["b", "c"], "access-band": ["b", "c"], "enroll-band": ["b", "c"],
+    "hero": ["b", "c"], "claim-band": ["b", "c", "d", "e"], "access-band": ["b", "c", "d", "e"],
+    "enroll-band": ["b", "c", "d", "e"],
     "features": ["b", "c"], "people": ["b", "c"], "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
@@ -143,6 +148,7 @@ def load_history()->list[dict]:
         if not isinstance(d,dict) or not d.get("params"): continue
         out.append({
             "domain": d["params"].get("domain",""),
+            "brand": (d["params"].get("brand","") or "").lower(),
             "palette": d.get("design",{}).get("palette_id",""),
             "skin": d.get("design",{}).get("skin",""),
             "hero": d.get("layout",{}).get("hero",""),
@@ -155,7 +161,8 @@ def load_history()->list[dict]:
             "combo": (d.get("design",{}).get("skin",""), d.get("design",{}).get("palette_id","")),
             "people": d.get("people",[]) or [],
             "photos": d.get("photos",[]) or [],
-            "bins": (d.get("numbers",{}).get("reviews_bin"), d.get("numbers",{}).get("users_bin")),
+            "bins": (d.get("numbers",{}).get("reviews_bin"), d.get("numbers",{}).get("users_bin"),
+                     tuple(d.get("numbers",{}).get("latency_bin") or ())),
         })
     return out
 
@@ -171,32 +178,44 @@ def novel_need(hist:list)->int:
     near=set()
     for h in hist[-3:]:
         near |= types_of(h["order"])
-    pool_types={TYPE_OF.get(t, t) for t in SECTION_POOL}   # hero/faq/people are always present
+    pool_types={TYPE_OF.get(t, t) for t in SECTION_POOL}   # hero + form band always present
     free=len(pool_types - near)
     return min(3, max(0, free))
 
-def order_ok(od:list,hist:list)->bool:
-    """Hard structural separation from the nearest plans."""
-    types=types_of(od)
+def anchors_of(od:list)->set:
+    return types_of(od) & set(ANCHOR_TYPES)
+
+def order_ok(od:list,hist:list,brand:str="")->bool:
+    """Hard structural separation from the nearest plans and same-brand siblings."""
+    types=types_of(od); anch=anchors_of(od)
     for h in hist[-3:]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.65: return False
     for h in hist[:-3]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.72: return False
     for h in hist[-2:]:
         if h["order"] and seq_overlap(od,h["order"])>=0.5: return False
+    # anchors rotate: at most one shared with the previous plan or the last sibling
+    if hist[-1:] and len(anch & anchors_of(hist[-1]["order"]))>1: return False
+    sib=next((h for h in reversed(hist)
+              if h.get("brand")==brand and h["order"] and h.get("domain")), None)
+    if sib and len(anch & anchors_of(sib["order"]))>1: return False
     near=set()
     for h in hist[-3:]:
         near |= types_of(h["order"])
     if hist and len(types-near)<novel_need(hist): return False
     return True
 
-def structure_score(od:list,hist:list)->float:
-    types=types_of(od); sc=0.0
+def structure_score(od:list,hist:list,brand:str="")->float:
+    types=types_of(od); anch=anchors_of(od); sc=0.0
     for h in hist[-3:]:
         if not h["order"]: continue
         sc+=1.0-jac(types,types_of(h["order"]))
         sc+=(1.0-seq_overlap(od,h["order"]))*0.6
     sc+=0.25*len(types-{t for h in hist[-1:] for t in types_of(h["order"])})
+    sib=next((h for h in reversed(hist) if h.get("brand")==brand and h.get("order")), None)
+    if sib:
+        sc+=0.4*len(set(ANCHOR_TYPES)-anchors_of(sib["order"]))     # fresh anchors bonus
+        sc-=0.6*len(anch & anchors_of(sib["order"]))                # shared screens penalty
     return sc
 
 def bins_pick(rng,key,taken):
@@ -282,41 +301,70 @@ def build_plan(rng, args, hist)->dict|None:
     elif getattr(args, "calculator", "auto") == "off" and widgets["G3"] == "calculator":
         widgets["G3"] = "demo-line"
 
-    # section order: prefer slot TYPES unused by neighbours, hard structural caps
+    # section order: prefer slot TYPES unused by neighbours and same-brand siblings,
+    # hard structural caps. hero + form band are the only fixed screens; everything
+    # else rotates so no two offers share their screen set.
     neigh=hist[-3:]
     neigh_types={t for h in neigh for t in types_of(h["order"])}
+    prev_types=types_of(hist[-1]["order"]) if hist and hist[-1]["order"] else set()
+    brand=(args.brand or "").lower()
+    sib=next((h for h in reversed(hist)
+              if h.get("brand")==brand and h["domain"]!=args.domain and h["order"]), None)
+    sib_types=types_of(sib["order"])-{"hero","band"} if sib else set()
+    banned=prev_types|sib_types                      # screens these two already show
     pool_types={}
     for slot in SECTION_POOL:
         pool_types.setdefault(TYPE_OF.get(slot, slot), []).append(slot)
-    novel=[t for t in pool_types if t not in neigh_types]
-    stale=[t for t in pool_types if t in neigh_types]
-    rng.shuffle(novel); rng.shuffle(stale)
+    novel=[t for t in pool_types if t not in banned]
+    stale=[t for t in pool_types if t in banned]     # emergency filler only
+    anchor_pool=[t for t in ANCHOR_TYPES if t not in banned]
+    rng.shuffle(novel); rng.shuffle(stale); rng.shuffle(anchor_pool)
     order=None; best=None
-    for _ in range(80):
-        od=["hero"]+[rng.choice(FORM_BANDS)]
+    for attempt in range(80):
+        relax=attempt>=40          # pools exhausted: reuse fillers, keep anchors fresh
+        fillers=novel + (stale if relax else [])
+        form_band=rng.choice(FORM_BANDS)
+        od=["hero", form_band]
         # calculator is a G3 widget: present only when G3 drew it
         if widgets["G3"] == "calculator": od.append("calculator")
-        want=rng.randint(6,9)
-        fresh_n=min(len(novel),max(novel_need(hist),rng.randint(3,6)))
-        picked=novel[:fresh_n]+rng.sample(stale,k=min(len(stale),want-fresh_n))
+        want=rng.randint(5,8)
+        fresh_n=min(len(novel),max(novel_need(hist),rng.randint(3,5)))
+        picked=novel[:fresh_n]+rng.sample(stale,k=min(len(stale),want-fresh_n)) if relax \
+            else novel[:fresh_n]+[t for t in stale if t not in sib_types][:max(0,want-fresh_n)]
         rng.shuffle(picked)
         extras=[rng.choice(pool_types[t]) for t in picked]
         for s in extras:
             if s not in od: od.append(s)
-        if "people" not in od: od.append("people")
+        if widgets["G1"] in {"markets-strip","price-board","listino-rows","heatmap","tile-flip"} \
+           and not ({"markets","ticker","ladder"} & {TYPE_OF.get(x,x) for x in od}):
+            cand=[s for t in ("markets","ticker","ladder") for s in pool_types.get(t,[])
+                  if relax or t not in banned]
+            if cand: od.append(rng.choice(cand))
+        # anchors: 2-3 recognisable screens, none shared with prev plan / sibling
+        picked_a=anchor_pool[:rng.choice((2,2,3))]
+        if len(picked_a)<2:              # anchor pool drained by long sibling chains
+            rest=[t for t in ANCHOR_TYPES if t not in picked_a]
+            rng.shuffle(rest); picked_a+=rest[:2-len(picked_a)]
+        for a in picked_a:
+            if a not in {TYPE_OF.get(x,x) for x in od}:
+                od.append(rng.choice(pool_types[a]) if a in pool_types else a)
+        # trust proof: keep at least one of people/faq unless neighbours took both
+        have={TYPE_OF.get(x,x) for x in od}
+        if not ({"people","faq"} & have):
+            both=[t for t in ("people","faq") if t in anchor_pool or relax]
+            if both: od.append(rng.choice(both))
         if "scarcity" not in od and rng.random()<0.8: od.insert(rng.randrange(3,len(od)-2),"scarcity")
-        od+=["faq"]
-        if rng.random()<0.85: od.append("office")
         if rng.random()<0.6: od.append("brand-note")
         seen=set(); od=[x for x in od if not (x in seen or seen.add(x))][:16]
         if len(od)<10: continue
-        if "people" not in od or "faq" not in od: continue
-        if widgets["G1"] in {"markets-strip","price-board","listino-rows","heatmap","tile-flip"} \
-           and not ({"markets","ticker","ladder"} & set(od)):
-            od.insert(rng.randrange(3,len(od)-4),"markets")
-        score=structure_score(od,hist)
+        if not ({"people","faq","facts","security","compare"} & set(od)): continue
+        # the form band rotates: 35% right after the hero, 65% one to three screens deeper
+        od.remove(form_band)
+        pos=rng.choices((1,2,3,4),weights=(35,30,20,15))[0]
+        od.insert(min(pos,max(1,len(od)-4)),form_band)
+        score=structure_score(od,hist,brand)
         if best is None or score>best[0]: best=(score,od)
-        if order_ok(od,hist): order=od; break
+        if order_ok(od,hist,brand): order=od; break
     if order is None and best: order=best[1]
     if order is None: return None
 
@@ -367,8 +415,9 @@ def build_plan(rng, args, hist)->dict|None:
     def _bin(v):
         return tuple(v) if isinstance(v, list) else (v or ())
     taken_r={_bin(h["bins"][0]) for h in hist}; taken_u={_bin(h["bins"][1]) for h in hist}
+    taken_l={_bin(h["bins"][2]) for h in hist if len(h["bins"])>2 and h["bins"][2]}
     rb=bins_pick(rng,"reviews",taken_r); ub=bins_pick(rng,"users",taken_u)
-    lb=bins_pick(rng,"latency",{()})
+    lb=bins_pick(rng,"latency",taken_l)
     numbers={"rating":rng.choice(sorted(NUM_BINS["ratings"])),"reviews":rng.randint(*rb),
               "reviews_bin":list(rb),"users":rng.randint(*ub),"users_bin":list(ub),
               "latency_ms":round(rng.uniform(*lb)),"latency_bin":[round(lb[0]),round(lb[1])]}
@@ -687,6 +736,15 @@ def validate(plan,hist)->list[str]:
     for h in hist[-3:]:
         near |= types_of(h["order"])
     if hist and len(types-near)<novel_need(hist): errs.append("too few section types unused nearby")
+    sib=next((h for h in reversed(hist)
+              if h.get("brand")==plan["params"]["brand"].lower()
+              and h["domain"]!=plan["params"]["domain"] and h["order"]), None)
+    if sib:
+        shared=anchors_of(types) & anchors_of(types_of(sib["order"]))
+        if len(shared)>1:
+            errs.append(f"sibling shares screens {sorted(shared)} with {sib['domain']}")
+        if seq_overlap(lay["section_order"],sib["order"])>=0.5:
+            errs.append(f"section order too close to sibling {sib['domain']}")
     if hist and set(lay["slugs"].values())==hist[-1]["slugs"]: errs.append("slug set equals previous plan")
     if any(set(lay["slugs"].values())==h["slugs"] for h in hist[:-1]): errs.append("slug set used before")
     sig=tuple(sorted(tuple(v) for v in plan["inner_pages"].values()))

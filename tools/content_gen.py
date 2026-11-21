@@ -192,10 +192,17 @@ def build(plan: dict, bank_all: dict) -> dict:
     month_word = {"it": "questo mese", "cs": "tento měsíc", "en": "this month"}.get(lang, "this month")
     quotes = list(bank["reviews"]["quotes"])
     rng.shuffle(quotes)
+    roles = list(bank["reviews"]["roles"]); rng.shuffle(roles)
+    tenures = list(bank["reviews"]["tenures"]); rng.shuffle(tenures)
+    city_bank = (bank.get("contacts", {}).get("cities", {}) or {}).get(cc)
+    if isinstance(city_bank, list):
+        cities = list(city_bank); rng.shuffle(cities)
+    else:
+        cities = [city_bank or city]          # no geo city bank → capital only (LLM path fills real ones)
     for i, (name, photo) in enumerate(zip(plan["people"][:3], plan["photos"][:3])):
         content["reviews"]["items"].append({
-            "name": name, "city": city, "role": rng.choice(bank["reviews"]["roles"]),
-            "tenure": rng.choice(bank["reviews"]["tenures"]),
+            "name": name, "city": cities[i % len(cities)], "role": roles[i % len(roles)],
+            "tenure": tenures[i % len(tenures)],
             "gain": f"+{money(rng.uniform(180, 1_900) * rate, cur)} {month_word}",
             "photo": photo, "quote": quotes[i % len(quotes)]})
 
