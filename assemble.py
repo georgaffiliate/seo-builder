@@ -18,7 +18,7 @@ Blocks: fragments from blocks/ are MINIMAL-HTML canonical blk-* pieces stored pe
 blocks/blk-*.html when present; donor fragments serve as reference/fallback).
 """
 from __future__ import annotations
-import argparse, hashlib, json, pathlib, random, shutil, subprocess, sys, re
+import argparse, hashlib, json, pathlib, random, shutil, subprocess, sys, re, time
 
 ROOT = pathlib.Path(__file__).resolve().parent          # static-create-sites/
 SITES_OUT = ROOT / "sites"
@@ -876,12 +876,37 @@ SITEMAP_T = """<?xml version="1.0" encoding="UTF-8"?>
 {urls}
 </urlset>"""
 
+# Canonical-host guard. The hosting panel serves extensionless URLs (e.g. /about)
+# with HTTP 200 (MultiViews) and its console may even regenerate sitemap.xml
+# without the .php suffix - both create duplicate URLs next to the canonical ones.
+# Every content page therefore opens with this guard: any GET/HEAD request whose
+# path does not end in ".php" gets an immediate 301 to the .php variant.
+# POST is never redirected; thanks.php keeps its line-1 postback contract;
+# 404.php is excluded so soft-404s stay 404 instead of 301-into-404.
+PHP_CANON_GUARD = (
+    "<?php\n"
+    "$__u = parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH) ?: '/';\n"
+    "$__u = rtrim($__u, '/');\n"
+    "$__m = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';\n"
+    "if ($__m !== 'POST' && $__u !== '' && substr($__u, -4) !== '.php') {\n"
+    "  $__q = (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '') ? '?' . $_SERVER['QUERY_STRING'] : '';\n"
+    "  header('Location: ' . $__u . '.php' . $__q, true, 301);\n"
+    "  exit;\n"
+    "}\n"
+    "?>\n"
+)
+
 def write_seo_files(out: pathlib.Path, plan, pages: list[str]):
     dom = plan["params"]["domain"]
     pages = [p for p in pages if p not in ("404.php", "thanks.php")]
-    urls = "\n".join(f'<url><loc>https://{dom}/{p}</loc><changefreq>{"weekly" if p=="index.php" else "monthly"}</changefreq><priority>{"1.0" if p=="index.php" else "0.7"}</priority></url>'.replace("/index.php", "/")
-                      for p in pages)
-    (out / "sitemap.xml").write_text(SITEMAP_T.format(urls=urls), encoding="utf-8")
+    lastmod = time.strftime("%Y-%m-%d")
+    urls = []
+    for p in pages:
+        loc = f"https://{dom}/" if p == "index.php" else f"https://{dom}/{p}"
+        freq, pri = ("weekly", "1.0") if p == "index.php" else ("monthly", "0.7")
+        urls.append(f"<url><loc>{loc}</loc><lastmod>{lastmod}</lastmod>"
+                    f"<changefreq>{freq}</changefreq><priority>{pri}</priority></url>")
+    (out / "sitemap.xml").write_text(SITEMAP_T.format(urls="\n".join(urls)), encoding="utf-8")
     (out / "robots.txt").write_text(f"""User-agent: *
 Allow: /
 Allow: /blocks/blocks.css
@@ -932,6 +957,8 @@ def cmd_build(a):
     pages["404.php"] = build_404(plan, C, css_vars, fonts_import, theme)
 
     for fname, html in pages.items():
+        if fname not in ("thanks.php", "404.php"):
+            html = PHP_CANON_GUARD + html
         (out / fname).write_text(html, encoding="utf-8")
     ok(f"pages written: {', '.join(sorted(pages))}")
 

@@ -22,6 +22,7 @@ import io
 import json
 import os
 import pathlib
+import re
 import sys
 import time
 import urllib.error
@@ -168,6 +169,19 @@ def main() -> None:
         except Exception as exc:  # noqa: BLE001 - DNS may simply not be ready
             result["public_check"] = {"url": url, "status": None, "note": str(exc)[:200],
                                       "hint": "DNS / IP whitelist may need manual setup"}
+
+        # The panel console may regenerate sitemap.xml without the .php suffix
+        # (observed on legacy sites). Best-effort comparison against the local file.
+        try:
+            with urllib.request.urlopen(f"https://{a.domain}/sitemap.xml", timeout=20) as r:
+                live_locs = re.findall(r"<loc>([^<]+)</loc>", r.read().decode("utf-8", "replace"))
+            want_locs = re.findall(r"<loc>([^<]+)</loc>", (site / "sitemap.xml").read_text(encoding="utf-8"))
+            if want_locs and live_locs and sorted(live_locs) != sorted(want_locs):
+                result["sitemap_note"] = ("panel rewrote sitemap.xml (live != local); extensionless "
+                                          "URLs are tolerated only via the per-page 301 guard")
+                result["sitemap_live_first"] = live_locs[:4]
+        except Exception:  # noqa: BLE001 - DNS may simply not be ready
+            pass
 
         result["ok"] = True
         _log("== upload OK")

@@ -294,6 +294,9 @@ def main():
         if d["canonical"] and domain_hint:
             chk(d["canonical"].startswith(f"https://{domain_hint}"), "ERR",
                 f"canonical host /{path}", f"canonical wrong host /{path}: {d['canonical']}")
+            cpath = d["canonical"].split(domain_hint, 1)[1]
+            chk(cpath == "/" or cpath.endswith(".php"), "ERR",
+                f"canonical .php /{path}", f"canonical lacks .php suffix /{path}: {d['canonical']}")
         f = d["forms"]
         chk(f["lead_forms"] <= 1 or path != "/", "INFO")
         if f["lead_forms"]:
@@ -336,6 +339,36 @@ def main():
             try: code,_ = fetch(origin + il)
             except urllib.error.HTTPError as e: code = e.code
         chk(code == 200, "ERR", f"200 {il}", f"BROKEN internal link {il} → {code}")
+
+    # ---- canonical-url gate: sitemap must list the .php canonicals
+    # (hosting-panel consoles regenerate sitemap.xml without .php - legacy bug) ----
+    sm_path = os.path.join(folder, "sitemap.xml")
+    if os.path.exists(sm_path):
+        locs = re.findall(r"<loc>([^<]+)</loc>", open(sm_path, encoding="utf-8").read())
+        root_url = f"https://{domain_hint}/" if domain_hint else ""
+        prefix = f"https://{domain_hint}"
+        bad = [u for u in locs if not (u.endswith(".php") or u == root_url)]
+        chk(not bad, "ERR", "sitemap .php urls",
+            f"sitemap lists non-canonical (non-.php) URLs: {bad[:4]}")
+        sm_paths = {u[len(prefix):] if u.startswith(prefix) else u for u in locs}
+        can_paths = set()
+        for p, (code, html) in seen_pages.items():
+            c = extract(html, p)["canonical"]
+            if c:
+                can_paths.add(c[len(prefix):] if c.startswith(prefix) else c)
+        missing = can_paths - sm_paths
+        chk(not missing, "ERR", "sitemap covers canonicals",
+            f"canonical URLs missing from sitemap: {sorted(missing)[:4]}")
+        # every <url> needs a valid, non-future lastmod (fuller crawl signals)
+        blocks = re.findall(r"<url>(.*?)</url>", open(sm_path, encoding="utf-8").read(), re.S)
+        bad_lm = []
+        today = time.strftime("%Y-%m-%d")
+        for blk in blocks:
+            m = re.search(r"<lastmod>([^<]+)</lastmod>", blk)
+            if not m or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", m.group(1)) or m.group(1) > today:
+                bad_lm.append(m.group(1) if m else "(missing)")
+        chk(not bad_lm, "ERR", "sitemap lastmod",
+            f"sitemap <url> entries with missing/invalid/future lastmod: {bad_lm[:4]}")
 
     # ---- language gate: Cyrillic comments in shipped files (= DevTools leak) ----
     cyr_hits = audit_cyrillic_comments(folder)

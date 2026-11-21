@@ -129,6 +129,11 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
 - Після будь-якої правки JS: `node --check` (одна регулярка ламала форму на сиблінгах).
 - Широкі таблиці — одразу у `.tbl-scroll`; жодних inline `grid-template-columns` на контейнерах.
 - Self-check після змін інфраструктури: `python3 tests/selftest.py` (має бути PASSED).
+- Canonical-URL гігієна: sitemap/canonical/внутрішні лінки — тільки з `.php`; кожен контент-файл
+  починається з PHP-canonical-guard (`PHP_CANON_GUARD` в assemble.py): GET/HEAD на URL без `.php`
+  → 301 на `.php` (панель віддає extensionless з 200 і перегенеровує sitemap без `.php`).
+  Guard не ставиться на thanks.php (рядок 1 = postback) та 404.php (мʼякі 404 не мають 301-ити).
+  seo_audit ловить non-.php locs у sitemap та canonical-и поза sitemap.
 
 ## Структура продукту
 ```
