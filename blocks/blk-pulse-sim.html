@@ -1,0 +1,67 @@
+<section class="section sec sec-pulse-sim" id="pulse-sim">
+  <div class="wrap blk-center">
+    <div class="eyebrow">{{PS_EYEBROW}}</div>
+    <h2>{{PS_H2}}</h2>
+    <p>{{PS_NOTE}}</p>
+  </div>
+  <div class="wrap">
+    <div class="ps-panel" data-widget="pulse-sim">
+      <div class="ps-head">
+        <span class="ps-mark" aria-hidden="true">{{BRAND}}</span>
+        <div class="ps-title"><b>{{PS_TITLE}}</b><small>{{PS_LIVE_NOTE}}</small></div>
+        <div class="ps-ranges" role="group" aria-label="{{PS_TITLE}}">
+          <button type="button" class="ps-range is-active" data-range="0" aria-pressed="true">{{PS_R1}}</button>
+          <button type="button" class="ps-range" data-range="1" aria-pressed="false">{{PS_R2}}</button>
+          <button type="button" class="ps-range" data-range="2" aria-pressed="false">{{PS_R3}}</button>
+        </div>
+      </div>
+      <div class="ps-assets" role="tablist" aria-label="{{PS_EYEBROW}}">
+        <button type="button" class="ps-asset is-active" role="tab" aria-selected="true" data-asset
+                data-name="{{PS_A1_NAME}}" data-price="{{PS_A1_PRICE}}" data-dec="{{PS_A1_DEC}}" data-seed="{{PS_A1_SEED}}">
+          <b>{{PS_A1_SYM}}</b><small>{{PS_A1_TAG}}</small>
+        </button>
+        <button type="button" class="ps-asset" role="tab" aria-selected="false" data-asset
+                data-name="{{PS_A2_NAME}}" data-price="{{PS_A2_PRICE}}" data-dec="{{PS_A2_DEC}}" data-seed="{{PS_A2_SEED}}">
+          <b>{{PS_A2_SYM}}</b><small>{{PS_A2_TAG}}</small>
+        </button>
+        <button type="button" class="ps-asset" role="tab" aria-selected="false" data-asset
+                data-name="{{PS_A3_NAME}}" data-price="{{PS_A3_PRICE}}" data-dec="{{PS_A3_DEC}}" data-seed="{{PS_A3_SEED}}">
+          <b>{{PS_A3_SYM}}</b><small>{{PS_A3_TAG}}</small>
+        </button>
+        <button type="button" class="ps-asset" role="tab" aria-selected="false" data-asset
+                data-name="{{PS_A4_NAME}}" data-price="{{PS_A4_PRICE}}" data-dec="{{PS_A4_DEC}}" data-seed="{{PS_A4_SEED}}">
+          <b>{{PS_A4_SYM}}</b><small>{{PS_A4_TAG}}</small>
+        </button>
+      </div>
+      <div class="ps-quote">
+        <span id="ps-qname">{{PS_A1_NAME}}</span>
+        <b id="ps-price">{{PS_A1_PRICE}}</b>
+        <span class="ps-delta" id="ps-delta">+0,00%</span>
+      </div>
+      <div class="ps-plot">
+        <svg id="ps-svg" viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="{{PS_TITLE}}">
+          <defs>
+            <linearGradient id="ps-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop stop-color="var(--acc)" stop-opacity=".26"/>
+              <stop offset="1" stop-color="var(--acc)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path id="ps-area" fill="url(#ps-grad)"/>
+          <path id="ps-line" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <g id="ps-cross" opacity="0" aria-hidden="true">
+            <path id="ps-cross-line" stroke="var(--acc)" stroke-width="1.5" stroke-dasharray="4 5"/>
+            <circle id="ps-cross-dot" r="5" fill="var(--bg)" stroke="var(--acc)" stroke-width="2.5"/>
+          </g>
+        </svg>
+        <div class="ps-tip" id="ps-tip" hidden>
+          <small id="ps-tip-name"></small>
+          <b id="ps-tip-price"></b>
+        </div>
+        <div class="ps-axis" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <p class="fine">{{c:sections.demo.disclaimer}}</p>
+    </div>
+  </div>
+</section>

@@ -18,7 +18,8 @@ blks = sorted((ROOT / "blocks").glob("blk-*.html"))
 chk(len(blks) >= 20, f"canonical blk-fragments present ({len(blks)})")
 chk((ROOT / "blocks" / "blocks.css").exists(), "blocks.css present")
 need_frag = {"blk-hero", "blk-band-access", "blk-faq", "blk-reviews", "blk-scarcity",
-              "blk-cta", "blk-office", "blk-brandnote", "blk-calculator", "blk-livebar"}
+              "blk-cta", "blk-office", "blk-brandnote", "blk-calculator", "blk-livebar",
+              "blk-pulse-sim"}
 names = {b.stem for b in blks}
 chk(need_frag <= names, f"critical fragments: {sorted(need_frag - names) or 'all present'}")
 # form contract inside fragments
@@ -165,7 +166,7 @@ for lg in ("it", "cs", "en"):
 chk("EUR" in bank.get("fx", {}) and "IT" in bank.get("capital", {}), "fx + capital maps present")
 
 print("== 6b. canonical js invoke safety (IIFE closer must actually CALL the fn)")
-for js in ("lead-form.js", "calculator.js"):
+for js in ("lead-form.js", "calculator.js", "pulse-sim.js"):
     src = (ROOT / "blocks" / js).read_text()
     chk(src.rstrip().endswith("})();"), f"{js}: IIFE invoked (()();) closer")
     chk("})(();" not in src and "}());" not in src[:0], f"{js}: malformed closer absent")
@@ -282,6 +283,21 @@ for mode, want, dom in (("off", False, "selftest-nocalc.site"), ("on", True, "se
     g3 = _pl.get("widgets", {}).get("G3")
     chk(rr.returncode == 0 and has is want and (g3 == "calculator") is want,
         f"--calculator {mode}: section {'present' if want else 'absent'}, G3={g3}")
+    if pf.exists(): pf.unlink()
+
+print("== 7c. pulse-sim is switchable")
+for mode, want, dom in (("off", False, "selftest-nopulse.site"), ("on", True, "selftest-pulse.site")):
+    pf = ROOT / "plans" / f"{dom}.json"
+    rr = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "PulseSwitch",
+                          "--lang", "it", "--domain", dom, "--pulse", mode],
+                         capture_output=True, text=True, cwd=ROOT)
+    _pl = json.loads(pf.read_text()) if pf.exists() else {}
+    has = "pulse-sim" in _pl.get("layout", {}).get("section_order", [])
+    g3 = _pl.get("widgets", {}).get("G3")
+    subs = ((_pl.get("pulse_sim") or {}).get("subs") or {})
+    ok_subs = all(("{{" not in str(v)) and str(v).strip() for v in subs.values()) if want else True
+    chk(rr.returncode == 0 and has is want and (g3 == "pulse-sim") is want and ok_subs,
+        f"--pulse {mode}: section {'present' if want else 'absent'}, G3={g3}, subs clean")
     if pf.exists(): pf.unlink()
 
 print("== 8. anti-twin gate really fires")

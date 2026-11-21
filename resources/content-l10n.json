@@ -666,6 +666,23 @@
     "Retail Italia",
     "EnerGia Sud"
    ]
+  },
+  "_pulse": {
+   "eyebrows": [
+    "SIMULAZIONE DI MERCATO",
+    "POLSO DEI MERCATI",
+    "PANNELLO DI MERCATO"
+   ],
+   "h2": [
+    "Il polso del mercato, davanti ai tuoi occhi",
+    "Leggi il mercato mentre si muove"
+   ],
+   "title": "Polso del mercato / simulatore",
+   "note": "Dati illustrativi · non quotazioni live",
+   "r1": "1G",
+   "r2": "1S",
+   "r3": "1M",
+   "gold": "Oro"
   }
  },
  "cs": {
@@ -1335,6 +1352,23 @@
     "Retail Česko",
     "EnerGia Jih"
    ]
+  },
+  "_pulse": {
+   "eyebrows": [
+    "SIMULACE TRHU",
+    "PULZ TRHŮ",
+    "PANEL TRHU"
+   ],
+   "h2": [
+    "Puls trhu přímo před očima",
+    "Čtěte trh, jak se pohybuje"
+   ],
+   "title": "Puls trhu / simulátor",
+   "note": "Ilustrační data · nikoli kurzy v reálném čase",
+   "r1": "1D",
+   "r2": "1T",
+   "r3": "1M",
+   "gold": "Zlato"
   }
  },
  "en": {
@@ -2025,6 +2059,23 @@
     "Retail Group",
     "EnerGia South"
    ]
+  },
+  "_pulse": {
+   "eyebrows": [
+    "MARKET SIMULATION",
+    "MARKET PULSE",
+    "MARKET PANEL"
+   ],
+   "h2": [
+    "The market pulse, right in front of you",
+    "Read the market as it moves"
+   ],
+   "title": "Market pulse / simulator",
+   "note": "Illustrative data · not live quotes",
+   "r1": "1D",
+   "r2": "1W",
+   "r3": "1M",
+   "gold": "Gold"
   }
  },
  "fx": {
@@ -2171,6 +2222,22 @@
     "lead": "{brand} tiene gráficos, listas y noticias de mercado en un solo lugar: la revisión matinal lleva minutos, no una hora.",
     "note": "Cada módulo explica qué mide y por qué importa, sin jerga innecesaria."
    }
+  },
+  "_pulse": {
+   "eyebrows": [
+    "SIMULACIÓN DE MERCADO",
+    "PULSO DE LOS MERCADOS"
+   ],
+   "h2": [
+    "El pulso del mercado, ante tus ojos",
+    "Lee el mercado mientras se mueve"
+   ],
+   "title": "Pulso del mercado / simulador",
+   "note": "Datos ilustrativos · no cotizaciones en vivo",
+   "r1": "1D",
+   "r2": "1S",
+   "r3": "1M",
+   "gold": "Oro"
   }
  }
 }

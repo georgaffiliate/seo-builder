@@ -49,7 +49,8 @@ def free_port(preferred):
 SIGNS = ["id=\"countdown\"", "data-unit", "tape-track", "live-latency", "live-orders",
          "data-widget=", "id=\"calculator\"", "demo-svg", "demo-bars", "rating-bars",
          "qa-list", "progress-intake", "stats-band", "heatmap", "tile-flip",
-         "odometer", "flip-clock", "sentiment", "book-row", "pi-bar"]
+         "odometer", "flip-clock", "sentiment", "book-row", "pi-bar",
+         "id=\"pulse-sim\"", "ps-plot", "ps-asset"]
 
 
 def fetch(url):

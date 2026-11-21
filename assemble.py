@@ -253,6 +253,7 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
     "trust-band": "blk-cta", "faq": "blk-faq", "office": "blk-office",
     "brand-note": "blk-brandnote",
     "device": "blk-device",
+    "pulse-sim": "blk-pulse-sim",
     "numbers": "blk-numbers",
     "mini-faq": "blk-mini-faq",
     "portal": "blk-portal",
@@ -314,6 +315,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 {INC_FOOT}
 <script src="app.js?v={BUILD_V}"></script>
 <script src="calculator.js?v={BUILD_V}"></script>
+<script src="pulse-sim.js?v={BUILD_V}"></script>
 </body>
 </html>"""
 
@@ -330,6 +332,7 @@ CANON = {  # canonical blk-* fragment per slot (authored clean, contract-safe)
     "trust-band": "blk-cta", "faq": "blk-faq", "office": "blk-office",
     "brand-note": "blk-brandnote",
     "device": "blk-device",
+    "pulse-sim": "blk-pulse-sim",
     "numbers": "blk-numbers",
     "mini-faq": "blk-mini-faq",
     "portal": "blk-portal",
@@ -363,6 +366,9 @@ def R(name: str, plan, C, **kw) -> str:
         "{{REVIEWS}}": f"{plan['numbers'].get('reviews', 641):,}".replace(",", "."),
         "{{USERS}}": f"{plan['numbers'].get('users', 12500):,}".replace(",", "."),
     }
+    if name == "pulse-sim":
+        for k, v in ((plan.get("pulse_sim") or {}).get("subs") or {}).items():
+            subs["{{" + k + "}}"] = v
     if name == "livebar":
         for k, v in ((plan.get("livebar") or {}).get("subs") or {}).items():
             subs["{{" + k + "}}"] = v
@@ -446,6 +452,7 @@ def build_header_footer(plan, C):
 <nav>{fnav}</nav><span>{esc(C.get('footer', {}).get('tagline', ''))}</span></div>
 <p class="footer-disclaimer">{esc(C.get('footer', {}).get('disclaimer', ''))}</p>
 <div class="footer-bottom"><span>© 2026 {esc(brand)}. {esc(rights)}</span>
+<span class="pay-chips">VISA · Mastercard · Bank transfer</span>
 <span>{esc(C.get('footer', {}).get('risk_line', ''))}</span></div></footer>"""
     return livebar, header, footer
 
@@ -685,6 +692,33 @@ onReady(function(){
 var mt=document.querySelector('.menu-toggle');if(mt){mt.addEventListener('click',function(){
 var n=document.querySelector('.blk-nav');var ex=n.classList.toggle('open');mt.setAttribute('aria-expanded',ex)});
 }
+/* sticky header: elevated state after a small scroll */
+var hd=document.querySelector('.blk-header');
+if(hd){var hUpd=function(){hd.classList.toggle('is-scrolled',window.scrollY>18)};
+window.addEventListener('scroll',hUpd,{passive:true});hUpd();}
+/* floating mobile CTA: appears deep into the page, points at the form */
+if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&!document.querySelector('.blk-float-cta')){
+var fEl=document.createElement('div');fEl.className='blk-float-cta';
+var fSrc=document.querySelector('.blk-header .blk-btn');
+var fTgt=document.getElementById('claim')?'#claim':'index.php#claim';
+fEl.innerHTML='<a class="blk-btn" href="'+fTgt+'">'+(fSrc?fSrc.textContent:'Open account')+'</a>';
+document.body.appendChild(fEl);
+var fUpd=function(){fEl.classList.toggle('is-on',window.scrollY>700)};
+window.addEventListener('scroll',fUpd,{passive:true});fUpd();}
+/* reveal on scroll: sections fade in once (skipped for reduced motion / no IO) */
+var secs=[].slice.call(document.querySelectorAll('main > .sec'));
+var still=function(){document.documentElement.classList.add('has-anim')};
+if('IntersectionObserver' in window&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+still();
+var io=new IntersectionObserver(function(es){es.forEach(function(e){
+if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target)}})},
+{threshold:.08,rootMargin:'0px 0px -36px'});
+secs.forEach(function(s,i){s.style.setProperty('--reveal-order',i%4);io.observe(s)});
+}else{secs.forEach(function(s){s.classList.add('is-in')});}
+/* editorial numbering: 01/ 02/ ... chips inside each section eyebrow */
+var sn=0;secs.forEach(function(s){var ey=s.querySelector('.eyebrow');if(!ey)return;
+sn++;var chip=document.createElement('i');chip.className='sec-num';chip.setAttribute('aria-hidden','true');
+chip.textContent=(sn<10?'0':'')+sn;ey.insertBefore(chip,ey.firstChild)});
 var ll=document.getElementById('live-latency'),lo=document.getElementById('live-orders');
 if(ll&&!window.__noLiveTick){setInterval(function(){ll.textContent=(38+Math.floor(Math.random()*24))+' ms'},4000)}
 if(lo){setInterval(function(){lo.textContent=(1200+Math.floor(Math.random()*400)).toLocaleString()},5000)}
@@ -778,10 +812,13 @@ onReady(function(){
 def write_assets(out: pathlib.Path, plan):
     lf = BLOCKS / "lead-form.js"
     cf = BLOCKS / "calculator.js"
+    ps = BLOCKS / "pulse-sim.js"
     if not lf.exists(): die("blocks/lead-form.js missing (canonical lead form logic)")
     if not cf.exists(): die("blocks/calculator.js missing (canonical calculator engine)")
+    if not ps.exists(): die("blocks/pulse-sim.js missing (canonical pulse-sim engine)")
     (out / "app.js").write_text(ASSETS_JS_APP, encoding="utf-8")
     (out / "calculator.js").write_text(cf.read_text(encoding="utf-8"), encoding="utf-8")
+    (out / "pulse-sim.js").write_text(ps.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "lead-form.js").write_text(lf.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css") if (out / "blocks").exists() else \
         ((out / "blocks").mkdir(parents=True, exist_ok=True), shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css"))
@@ -865,7 +902,8 @@ def cmd_build(a):
     BUILD_V = hashlib.sha1((BLOCKS / "blocks.css").read_bytes() +
                            (SKINS / f"skin-{plan['design'].get('skin')}.css").read_bytes() +
                            (BLOCKS / "lead-form.js").read_bytes() +
-                           (BLOCKS / "calculator.js").read_bytes()).hexdigest()[:8]
+                           (BLOCKS / "calculator.js").read_bytes() +
+                           (BLOCKS / "pulse-sim.js").read_bytes()).hexdigest()[:8]
     has_calc = "calculator" in plan["layout"]["section_order"]
     pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme)}
     for which in ("about", "who", "contact", "register"):

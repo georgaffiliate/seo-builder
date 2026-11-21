@@ -31,7 +31,8 @@ WIDGET_GROUPS = {
     "G1": ["ticker-static", "livebar-counter", "tape-marquee", "markets-strip",
             "price-board", "listino-rows", "heatmap", "tile-flip", "odometer"],
     "G2": ["countdown-plates", "countdown-bar", "countdown-ring", "flip-clock", "progress-intake"],
-    "G3": ["none", "demo-line", "demo-bars", "sentiment-gauge", "book-ladder", "calculator"],
+    "G3": ["none", "demo-line", "demo-bars", "sentiment-gauge", "book-ladder",
+            "pulse-sim", "calculator"],
     "G4": ["faq-accordion", "faq-list", "faq-grid", "faq-split"],
     "G5": ["stats-band", "quick-answer", "rating-summary", "rating-band"],
 }
@@ -70,6 +71,9 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
 LIVEBAR_L10N = {lg: b["_livebar"] for lg, b in json.loads(
     (ROOT / "resources" / "content-l10n.json").read_text(encoding="utf-8")).items()
     if isinstance(b, dict) and b.get("_livebar")}
+PULSE_L10N = {lg: b["_pulse"] for lg, b in json.loads(
+    (ROOT / "resources" / "content-l10n.json").read_text(encoding="utf-8")).items()
+    if isinstance(b, dict) and b.get("_pulse")}
 
 NAME_BANK = {
     "it": ["Giulia F.", "Marco T.", "Elena B.", "Luca R.", "Chiara M.", "Davide S.", "Sara P.",
@@ -298,7 +302,11 @@ def build_plan(rng, args, hist)->dict|None:
 
     if getattr(args, "calculator", "auto") == "on":
         widgets["G3"] = "calculator"
+    elif getattr(args, "pulse", "auto") == "on":
+        widgets["G3"] = "pulse-sim"
     elif getattr(args, "calculator", "auto") == "off" and widgets["G3"] == "calculator":
+        widgets["G3"] = "demo-line"
+    elif getattr(args, "pulse", "auto") == "off" and widgets["G3"] == "pulse-sim":
         widgets["G3"] = "demo-line"
 
     # section order: prefer slot TYPES unused by neighbours and same-brand siblings,
@@ -325,8 +333,9 @@ def build_plan(rng, args, hist)->dict|None:
         fillers=novel + (stale if relax else [])
         form_band=rng.choice(FORM_BANDS)
         od=["hero", form_band]
-        # calculator is a G3 widget: present only when G3 drew it
+        # calculator / pulse-sim are G3 widgets: present only when G3 drew them
         if widgets["G3"] == "calculator": od.append("calculator")
+        elif widgets["G3"] == "pulse-sim": od.append("pulse-sim")
         want=rng.randint(5,8)
         fresh_n=min(len(novel),max(novel_need(hist),rng.randint(3,5)))
         picked=novel[:fresh_n]+rng.sample(stale,k=min(len(stale),want-fresh_n)) if relax \
@@ -447,7 +456,7 @@ def build_plan(rng, args, hist)->dict|None:
     if any(p=="" for p in photos):
         photos=sorted(rng.sample(free,k=min(len(people),len(free))))
 
-    return {
+    plan = {
         "seed":args.seed, "product":"static-create-sites",
         "params":{"brand":args.brand,"geo":args.geo,"geo_short":(args.cc or LANG2CC.get(args.lang,"")).upper(),
             "lang":args.lang,"locale":f"{args.lang}-{(args.cc or LANG2CC.get(args.lang,args.lang.upper())).upper()}",
@@ -464,6 +473,9 @@ def build_plan(rng, args, hist)->dict|None:
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }
+    if widgets["G3"] == "pulse-sim":
+        plan["pulse_sim"] = build_pulse_sim(rng, args.lang)
+    return plan
 
 # --------------------------------------------------------------- livebar ------
 def _fmt_num(v: float, lang: str, dec: int = 2) -> str:
@@ -710,6 +722,43 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     return {"variant": variant, "subs": subs}
 
 
+# ------------------------------------------------------------- pulse-sim -----
+# Instruments for the G3 market-pulse simulator. Prices are illustrative,
+# seeded per plan (JS redraws from data-price/data-seed; nothing is live).
+PULSE_ASSETS = [  # (tag, symbol, lo, hi, decimals)
+    ("SPX", "S&P 500", 5_700, 6_300, 2),
+    ("FX", "EUR / USD", 1.05, 1.12, 4),
+    ("XAU", "GOLD", 2_120, 2_680, 2),
+    ("CRYPTO", "BTC / USD", 57_000, 98_000, 2),
+]
+
+def build_pulse_sim(rng, lang: str) -> dict:
+    """Token subs for blk-pulse-sim.html: localized words + seeded instrument prices.
+
+    Token contract: {{PS_EYEBROW}} {{PS_H2}} {{PS_TITLE}} {{PS_LIVE_NOTE}}
+      {{PS_R1..R3}} range tabs, {{PS_A1..A4_{SYM,TAG,NAME,PRICE,DEC,SEED}}}.
+    data-price stays dot-formatted so JS parseFloat always parses it.
+    """
+    L = PULSE_L10N.get(lang) or PULSE_L10N["en"]
+    seeds = rng.sample(range(3, 99), len(PULSE_ASSETS))
+    subs = {
+        "PS_EYEBROW": rng.choice(sorted(L["eyebrows"])),
+        "PS_H2": rng.choice(sorted(L["h2"])),
+        "PS_TITLE": L["title"],
+        "PS_NOTE": L["note"], "PS_LIVE_NOTE": L["note"],
+        "PS_R1": L["r1"], "PS_R2": L["r2"], "PS_R3": L["r3"],
+    }
+    for i, (tag, sym, lo, hi, dec) in enumerate(PULSE_ASSETS, start=1):
+        name = L["gold"] if tag == "XAU" else sym
+        subs[f"PS_A{i}_SYM"] = name
+        subs[f"PS_A{i}_TAG"] = tag
+        subs[f"PS_A{i}_NAME"] = name
+        subs[f"PS_A{i}_PRICE"] = f"{rng.uniform(lo, hi):.{dec}f}"
+        subs[f"PS_A{i}_DEC"] = str(dec)
+        subs[f"PS_A{i}_SEED"] = str(seeds[i - 1])
+    return {"subs": subs}
+
+
 # ---------------------------------------------------------------- validate ---
 def validate(plan,hist)->list[str]:
     errs=[]; last2=hist[-2:]
@@ -848,6 +897,8 @@ def main():
     ap.add_argument("--force",action="store_true")
     ap.add_argument("--calculator",choices=("auto","on","off"),default="auto",
                     help="calculator (G3 widget): on/off forces it, auto follows the G3 draw")
+    ap.add_argument("--pulse",choices=("auto","on","off"),default="auto",
+                    help="pulse-sim (G3 market simulator): on/off forces it, auto follows the G3 draw")
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--with-llm",action="store_true",
                     help="model writes the content pack (and picks personas/numbers); implies --build")
