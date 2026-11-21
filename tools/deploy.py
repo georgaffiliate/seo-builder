@@ -57,6 +57,9 @@ def _request(url: str, key: str, *, method: str = "GET", data: bytes | None = No
              content_type: str | None = None, timeout: int = 60) -> tuple[int, bytes]:
     req = urllib.request.Request(url, data=data, method=method)
     req.add_header("Authorization", f"Bearer {key}")
+    # panel sits behind Cloudflare: default "Python-urllib/x" UA trips error 1010
+    req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                                 "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
     if content_type:
         req.add_header("Content-Type", content_type)
     try:
