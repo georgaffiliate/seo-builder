@@ -100,6 +100,12 @@ if (function_exists('fastcgi_finish_request')) {
     @flush();
 }
 
+// --- Lead in Web Console (panel). Only here: blocked leads exited above; simply opening the thank-you page does not count ---
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/_postback.php')) {
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/_postback.php';
+    send_postback(['buyer' => $buyerKey, 'funnel' => $offerId, 'crm_ok' => $crmSuccess ? 1 : 0]);
+}
+
 // --- After the response is sent: Keitaro sub_id → Telegram ---
 if ($crmSuccess && !empty($config['keitaro'])) {
     keitaro_update_after_crm($lead, $session, $server, $rawClick);
