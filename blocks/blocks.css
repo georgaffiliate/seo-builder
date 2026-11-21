@@ -236,10 +236,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-visual{position:relative;min-height:480px;display:grid;place-items:center}
 .blk-orb{position:absolute;width:min(430px,90%);aspect-ratio:1;border-radius:50%;
   background:var(--bg-soft);top:40px;z-index:0}
-/* tags hang off the DEVICE frame, not the column — wide labels can no longer
-   drift across the card or stick out of the hero column */
-.device-frame{position:relative;z-index:1;width:min(320px,86%)}
-.blk-device{position:relative;z-index:1;width:100%;background:var(--card);color:var(--card-ink);border:1px solid var(--line);
+.blk-device{position:relative;z-index:1;width:min(320px,86%);background:var(--card);color:var(--card-ink);border:1px solid var(--line);
   border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:20px}
 .blk-device .bal{font-size:26px;font-weight:800;letter-spacing:-.02em}
 .blk-device .delta{font-size:11px;color:var(--up-text)}
@@ -247,12 +244,8 @@ button,input,textarea,select{font:inherit;color:inherit}
   padding:11px 0;border-top:1px solid var(--line);font-size:12px}
 .blk-device .row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .blk-device .row b{flex:none;min-width:0;text-align:right;white-space:nowrap}
-.float-tag{position:absolute;z-index:2;background:var(--card);border:1px solid var(--line);
-  border-radius:12px;box-shadow:var(--shadow-card);padding:10px 14px;font-size:11px;line-height:1.4;
-  color:var(--muted-text);max-width:62%;overflow-wrap:break-word}
-.float-tag b{display:block;margin-top:2px;color:var(--ink);font-size:12px}
-.float-tag.tl{top:-16px;left:-16px}
-.float-tag.br{bottom:-16px;right:-16px}
+.dev-risk{display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--up-text)}
 .demo-label{position:absolute;bottom:-6px;font-size:10px;color:var(--muted-text)}
 
 /* ------------------------------ bands/forms ----------------------------- */
@@ -631,7 +624,6 @@ button,input,textarea,select{font:inherit;color:inherit}
   .blk-hero{padding:30px 20px 44px}
   .blk-visual{min-height:0}
   .blk-visual .blk-device{width:min(320px,100%)}
-  .float-tag{display:none}
   .blk-grid2,.blk-grid3,.review-grid,.faq-grid{grid-template-columns:minmax(0,1fr)}
   .stats-band{grid-template-columns:1fr 1fr}
   .stats-band>div+div{border-left:0}

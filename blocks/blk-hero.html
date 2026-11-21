@@ -16,21 +16,18 @@
   </div>
   <div class="blk-visual">
     <div class="blk-orb" aria-hidden="true"></div>
-    <div class="device-frame">
-      <div class="float-tag tl">◉ {{c:hero.device_tag1}}<b>{{c:hero.device_rows.0.n}}</b></div>
-      <div class="blk-device" role="img" aria-label="{{c:hero.device_aria}}">
-        <small>{{c:hero.device_label}}</small>
-        <div class="bal">{{c:hero.device_bal}}</div>
-        <div class="delta">{{c:hero.device_delta}}</div>
-        <svg viewBox="0 0 320 120" aria-hidden="true">
-          <defs><linearGradient id="hg" x2="0" y2="1"><stop stop-color="var(--acc)" stop-opacity=".25"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>
-          <path d="M0 100L25 88 50 96 75 70 100 82 125 55 150 66 175 42 200 54 225 30 250 40 275 20 320 8V120H0Z" fill="url(#hg)"/>
-          <path d="M0 100L25 88 50 96 75 70 100 82 125 55 150 66 175 42 200 54 225 30 250 40 275 20 320 8" fill="none" stroke="var(--acc)" stroke-width="2.5"/>
-        </svg>
-        <div class="row"><span>{{c:hero.device_rows.0.n}} <small>{{c:hero.device_rows.0.s}}</small></span><b>{{c:hero.device_rows.0.v}} <em class="up">{{c:hero.device_rows.0.d}}</em></b></div>
-        <div class="row"><span>{{c:hero.device_rows.1.n}} <small>{{c:hero.device_rows.1.s}}</small></span><b>{{c:hero.device_rows.1.v}} <em class="up">{{c:hero.device_rows.1.d}}</em></b></div>
-      </div>
-      <div class="float-tag br">{{c:hero.device_risk}}<b>{{c:hero.device_safe}}</b></div>
+    <div class="blk-device" role="img" aria-label="{{c:hero.device_aria}}">
+      <small>{{c:hero.device_label}}</small>
+      <div class="bal">{{c:hero.device_bal}}</div>
+      <div class="delta">{{c:hero.device_delta}}</div>
+      <svg viewBox="0 0 320 120" aria-hidden="true">
+        <defs><linearGradient id="hg" x2="0" y2="1"><stop stop-color="var(--acc)" stop-opacity=".25"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0 100L25 88 50 96 75 70 100 82 125 55 150 66 175 42 200 54 225 30 250 40 275 20 320 8V120H0Z" fill="url(#hg)"/>
+        <path d="M0 100L25 88 50 96 75 70 100 82 125 55 150 66 175 42 200 54 225 30 250 40 275 20 320 8" fill="none" stroke="var(--acc)" stroke-width="2.5"/>
+      </svg>
+      <div class="row"><span>{{c:hero.device_rows.0.n}} <small>{{c:hero.device_rows.0.s}}</small></span><b>{{c:hero.device_rows.0.v}} <em class="up">{{c:hero.device_rows.0.d}}</em></b></div>
+      <div class="row"><span>{{c:hero.device_rows.1.n}} <small>{{c:hero.device_rows.1.s}}</small></span><b>{{c:hero.device_rows.1.v}} <em class="up">{{c:hero.device_rows.1.d}}</em></b></div>
+      <small class="dev-risk">✓ {{c:hero.device_safe}}</small>
     </div>
     <p class="demo-label">{{c:hero.device_note}}</p>
   </div>
