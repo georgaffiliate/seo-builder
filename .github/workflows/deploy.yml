@@ -1,0 +1,22 @@
+name: deploy
+
+# Auto-deploy: on every push to main, SSH to the server and run the deploy script
+# (git pull + docker compose up -d --build + health check).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: APP_DIR=/opt/seo-builder/app bash /opt/seo-builder/app/scripts/deploy.sh

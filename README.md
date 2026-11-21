@@ -185,6 +185,29 @@ DEPLOY=1 WAIT=1 ./client/example.sh                       # збірка + де�
 
 ---
 
+## Сервер і автодеплой
+
+Разова підготовка сервера (напр. `84.200.80.37`):
+
+```bash
+curl -fsSL https://get.docker.com | sh          # docker + compose plugin
+ufw allow OpenSSH && ufw allow 8443/tcp && ufw enable
+
+mkdir -p /opt/seo-builder
+git clone https://github.com/georgaffiliate/seo-builder.git /opt/seo-builder/app
+cd /opt/seo-builder/app
+cp .env.example .env && nano .env               # API_TOKEN / ключі
+docker compose up -d --build
+```
+
+Автодеплой: push у `main` запускає GitHub Actions, який по SSH виконує
+`scripts/deploy.sh` (git pull → `docker compose up -d --build` → health check).
+У **Settings → Secrets and variables → Actions** репо додати:
+`SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY` (приватний ключ доступу до сервера;
+`SSH_PORT` — опційно, якщо не 22).
+
+---
+
 ## Змінні середовища (`.env`)
 
 | Змінна | Навіщо |
