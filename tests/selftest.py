@@ -22,10 +22,10 @@ need_frag = {"blk-hero", "blk-band-access", "blk-faq", "blk-reviews", "blk-scarc
               "blk-pulse-sim"}
 names = {b.stem for b in blks}
 chk(need_frag <= names, f"critical fragments: {sorted(need_frag - names) or 'all present'}")
-# form contract inside fragments
+# form contract inside fragments (hidden identity fields live server-side in api.php)
 fa = (ROOT / "blocks" / "blk-band-access.html").read_text()
 for token in ("lead-form", "api_local/integration/api.php", "js-lead-phone",
-               "{{HIDDEN_INC}}", "form-submit", "form-error", "form-status"):
+              "form-submit", "form-error", "form-status"):
     chk(token in fa, f"form contract: {token}")
 
 for _of in (ROOT / "blocks").glob("blk-office*.html"):

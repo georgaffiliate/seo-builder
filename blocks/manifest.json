@@ -599,7 +599,7 @@
     ".form-error"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "index"
   },
@@ -777,7 +777,7 @@
     "textarea"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "contact"
   },
@@ -793,7 +793,7 @@
     "label.check"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "register"
   },
@@ -921,7 +921,7 @@
     ".pay-chips"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "index"
   },
@@ -1017,7 +1017,7 @@
     "label.check"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "register"
   },
@@ -1084,7 +1084,7 @@
     "form.compact.lead-form"
    ],
    "requires_js": [
-    "api_local/integration/hidden.php (PHP include kept inline)"
+    "lead-form.js (footer include)"
    ],
    "slot": "index"
   }

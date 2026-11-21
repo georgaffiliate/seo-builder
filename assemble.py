@@ -281,7 +281,6 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
 }
 INC_HEAD = "<?php include __DIR__ . '/api_local/integration/header.php'; ?>"
 INC_FOOT = "<?php include __DIR__ . '/api_local/integration/footer.php'; ?>"
-INC_HIDDEN = "<?php include __DIR__ . '/api_local/integration/hidden.php'; ?>"
 
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
                theme_color, body, og_desc="", jsonld="", noindex=False):
@@ -511,7 +510,6 @@ def build_index(plan, C, css_vars, fonts_import, theme):
     locale = plan["params"].get("locale") or \
         plan["params"]["lang"] + "-" + plan["params"]["lang"].upper()
     livebar, header, footer = build_header_footer(plan, C)
-    # insert hidden.php before form submit in any form fragment
     body_parts = [livebar, header, "<main>"]
     SLOT_REMAP = {  # sections sharing schema intro key -> distinct content paths
         "stats-intro": "sections.stats.", "intro-center": "sections.ladder.",
@@ -520,8 +518,6 @@ def build_index(plan, C, css_vars, fonts_import, theme):
         html = R(slot, plan, C)
         if slot in SLOT_REMAP:
             html = html.replace("c:sections.intro.", SLOT_REMAP[slot])
-        html = html.replace("{{HIDDEN_INC}}", INC_HIDDEN) if "{{HIDDEN_INC}}" in html else \
-               html.replace('<button class="button form-submit"', INC_HIDDEN + '\n<button class="blk-btn form-submit"')
         body_parts.append(html)
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
@@ -594,9 +590,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
                       if x in plan["layout"]["section_order"]), "access-band")
 
     def inner_slot(slot):
-        html = R(slot, plan, C)
-        return html.replace("{{HIDDEN_INC}}", INC_HIDDEN) if "{{HIDDEN_INC}}" in html else \
-            html.replace('<button class="button form-submit"', INC_HIDDEN + '\n<button class="blk-btn form-submit"')
+        return R(slot, plan, C)
 
     SLOT_FOR = {"office": "office", "hours": "office", "contact-grid": "office",
                 "map": "office", "core": form_slot, "form": form_slot,

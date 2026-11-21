@@ -93,7 +93,7 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   попереднього плану та сиблінгів того ж бренду (спільних якорів ≤1; fillers сиблінга теж під баном).
 - **Форма не привʼязана до 2-го екрана:** позиція ротується (35% одразу після hero, 65% — на 2–4 екрани
   глибше); варіанти form-band b/c/d/e (d — форма-first із ledger-точками, e — центрована картка з chips).
-  Контракт форми (`lead-form`, `js-lead-phone`, `{{HIDDEN_INC}}`, consent-депозит) незмінний в усіх варіантах.
+  Контракт форми (`lead-form`, `js-lead-phone`, consent-депозит) незмінний в усіх варіантах.
 - **Персони — через ЛЛМ:** для будь-якого ГЕО модель придумує імена/міста/ролі/стаж (поле `g`: f|m
   звіряється з фото; імена з історії не повторюються). `NAME_BANK` — лише style-reference/fallback;
   банки імен під кожне ГЕО не створюємо. Бін латентності тепер теж враховує історію (не повторює сусідів).
@@ -119,7 +119,9 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
 
 ## Жорсткі правила
 - `h1 .brand-line` + бренд-first `<title>` + 1 h1/сторінка — audit ловить.
-- Контракт форми/інтеграції незмінний: `form.lead-form`, `js-lead-phone` без name, `{{HIDDEN_INC}}`,
+- Контракт форми/інтеграції незмінний: `form.lead-form`, `js-lead-phone` без name,
+  base-поля (country/lang/funnel/domain/buyer) інжектить server-side `api.php` з `config.php`
+  (у HTML їх НІКОЛИ не рендеримо — анти-фінгерпринт),
   `crm.php aff_sub11='google.com'` НЕ чіпати (Telegram бере реальний хост).
 - 0 inline `<script>`; 0 кириличних коментарів у ship-файлах; числа без обіцянок.
 - `thanks.php` рядок 1 = `require _postback.php; send_postback();`; serve-js (`calculator.js`/
