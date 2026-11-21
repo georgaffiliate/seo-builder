@@ -413,6 +413,13 @@ def R(name: str, plan, C, **kw) -> str:
                 except Exception: return m.group(0)
         return str(node) if node is not None else ""
     out = re.sub(r"\{\{c:([\w.]+)\}\}", fill, out)
+    # a content pack with empty strings left blank <p>/<h2> blocks that rendered as
+    # pure whitespace sections on live sites — strip elements that stayed empty.
+    # Elements carrying role/data/id/aria (e.g. form-status container) are intentional
+    # empty and must survive.
+    out = re.sub(
+        r"<(p|h2|h3|li)((?:(?!role=|data-|id=|aria-)[^>])*)>\s*(?:<br\s*/?>\s*)*</\1>",
+        "", out)
     return out
 
 def logo_html(plan) -> str:

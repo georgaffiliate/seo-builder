@@ -107,7 +107,18 @@
     "email": "giulia@email.it",
     "phone": "333 000 0000"
    },
-   "submit": "Invia richiesta"
+   "submit": "Invia richiesta",
+   "side_stats": [
+    "3 passi",
+    "≤ 1 ora",
+    "24/5"
+   ],
+   "side_labels": [
+    "durata della registrazione",
+    "verifica dell’identità tipica",
+    "assistenza nei giorni lavorativi"
+   ],
+   "side_note": "L’account viene attivato solo dopo la verifica dei dati: nessun abbonamento né rinnovo automatico."
   },
   "ui": {
    "calc_eyebrow": "SIMULAZIONE",
@@ -354,6 +365,60 @@
    "notes": {
     "lead": "{brand} tiene grafici, liste e notizie di mercato in un unico posto: il controllo del mattino richiede minuti, non un'ora.",
     "note": "Ogni modulo spiega cosa misura e perché importa, senza gergo inutile."
+   },
+   "facts": {
+    "eyebrow": [
+     "COSA TROVI",
+     "DOPO LA REGISTRAZIONE",
+     "PRIMO ACCESSO"
+    ],
+    "h2": [
+     "Cosa vedi subito dopo il primo accesso",
+     "I primi minuti nella piattaforma, senza tentativi",
+     "Avvio step by step"
+    ],
+    "lead": [
+     "Ogni modulo si apre con una spiegazione breve: il primo accesso non richiede un manuale.",
+     "Dopo la verifica dell’identità la piattaforma si apre con le panoramiche già pronte."
+    ],
+    "points": [
+     "Panoramica dei mercati in una pagina",
+     "Watchlist per gruppi personalizzati",
+     "Storico ordini con export",
+     "Modalità demo su dati reali"
+    ]
+   },
+   "portal": {
+    "eyebrow": [
+     "PIATTAFORMA",
+     "COSA OFFRE",
+     "STRUMENTI"
+    ],
+    "h2": [
+     "Cosa offre la piattaforma nel lavoro quotidiano",
+     "I moduli che usi ogni giorno",
+     "La piattaforma come postazione"
+    ],
+    "lead": [
+     "Tre moduli che coprono la maggior parte delle attività quotidiane senza cambiare servizio."
+    ],
+    "cards": [
+     {
+      "k": "Panoramiche e dati",
+      "v": "Mercati",
+      "d": "Quotazioni, profondità di mercato e notizie in una sola pagina, senza cambiare scheda."
+     },
+     {
+      "k": "Gestione dell’account",
+      "v": "Account",
+      "d": "Dati, limiti e documenti si aggiornano da solo: nessuna richiesta all’assistenza."
+     },
+     {
+      "k": "Storico e report",
+      "v": "Report",
+      "d": "Registro ordini con commissioni, export per la dichiarazione dei redditi in pochi clic."
+     }
+    ]
    }
   },
   "reviews": {
@@ -792,7 +857,18 @@
     "email": "petra@email.cz",
     "phone": "774 000 000"
    },
-   "submit": "Odeslat žádost"
+   "submit": "Odeslat žádost",
+   "side_stats": [
+    "3 kroky",
+    "≤ 1 hodina",
+    "24/5"
+   ],
+   "side_labels": [
+    "jak dlouho registrace trvá",
+    "typické ověření identity",
+    "podpora ve všední dny"
+   ],
+   "side_note": "Účet se aktivuje až po ověření údajů — žádná předplatná ani automatická obnovení."
   },
   "ui": {
    "calc_eyebrow": "RYCHLÝ PROPOČET",
@@ -1039,6 +1115,60 @@
    "notes": {
     "lead": "{brand} má grafy, watchlisty i tržní zprávy na jednom místě: ranní kontrola zabere minuty, ne hodinu.",
     "note": "Každý modul vysvětluje, co měří a proč to má význam — bez zbytečného žargonu."
+   },
+   "facts": {
+    "eyebrow": [
+     "CO VÁS ČEKÁ",
+     "PO REGISTRACI",
+     "PRVNÍ VSTUP"
+    ],
+    "h2": [
+     "Co uvidíte hned po prvním přihlášení",
+     "První minuty v rozhraní bez hádání",
+     "Start v rozhraní krok za krokem"
+    ],
+    "lead": [
+     "Každý modul se otevře s krátkým vysvětlením, takže první přihlášení nepotřebuje manuál.",
+     "Po ověření identity se rozhraní otevře s hotovými přehledy."
+    ],
+    "points": [
+     "Přehled trhů na jedné stránce",
+     "Watchlisty ve vlastních skupinách",
+     "Historie obchodů s exportem",
+     "Demo režim na živých datech"
+    ]
+   },
+   "portal": {
+    "eyebrow": [
+     "ROZHRANÍ",
+     "CO ROZHRANÍ DÁ",
+     "NÁSTROJE"
+    ],
+    "h2": [
+     "Co rozhraní dává v každodenní práci",
+     "Moduly, které použijete každý den",
+     "Rozhraní jako pracovní místo"
+    ],
+    "lead": [
+     "Tři moduly, které pokryjí většinu denních úkolů bez přepínání mezi službami."
+    ],
+    "cards": [
+     {
+      "k": "Přehledy a data",
+      "v": "Trhy",
+      "d": "Kotace, hloubka trhu a zprávy na jedné stránce, bez přepínání záložek."
+     },
+     {
+      "k": "Správa účtu",
+      "v": "Účet",
+      "d": "Údaje, limity i dokumenty měníte sami — žádosti do podpory nejsou potřeba."
+     },
+     {
+      "k": "Historie a sestavy",
+      "v": "Sestavy",
+      "d": "Deník obchodů s poplatky, export pro daňové přiznání za pár kliků."
+     }
+    ]
    }
   },
   "reviews": {
@@ -1482,7 +1612,18 @@
     "email": "jane@email.com",
     "phone": "077 000 0000"
    },
-   "submit": "Send request"
+   "submit": "Send request",
+   "side_stats": [
+    "3 steps",
+    "≤ 1 hour",
+    "24/5"
+   ],
+   "side_labels": [
+    "how long registration takes",
+    "typical identity check",
+    "support on business days"
+   ],
+   "side_note": "The account is activated only after your details are verified — no subscriptions or auto-renewals."
   },
   "ui": {
    "calc_eyebrow": "QUICK ESTIMATE",
@@ -1749,6 +1890,60 @@
    "notes": {
     "lead": "{brand} keeps charts, watchlists and market news in one place, so the morning check takes minutes, not an hour.",
     "note": "Every module explains what it measures and why it matters — no jargon required."
+   },
+   "facts": {
+    "eyebrow": [
+     "WHAT YOU GET",
+     "AFTER REGISTRATION",
+     "FIRST LOGIN"
+    ],
+    "h2": [
+     "What you see right after the first login",
+     "Your first minutes on the platform, no guesswork",
+     "A step-by-step start"
+    ],
+    "lead": [
+     "Every module opens with a short explanation, so the first login needs no manual.",
+     "Once identity is verified, the platform opens with overviews already set up."
+    ],
+    "points": [
+     "One-page market overview",
+     "Watchlists in your own groups",
+     "Trade history with export",
+     "Demo mode on live data"
+    ]
+   },
+   "portal": {
+    "eyebrow": [
+     "PLATFORM",
+     "WHAT IT GIVES",
+     "TOOLS"
+    ],
+    "h2": [
+     "What the platform gives you day to day",
+     "The modules you will use every day",
+     "The platform as a workspace"
+    ],
+    "lead": [
+     "Three modules that cover most daily tasks without switching between services."
+    ],
+    "cards": [
+     {
+      "k": "Overviews and data",
+      "v": "Markets",
+      "d": "Quotes, market depth and news on one page, no tab switching."
+     },
+     {
+      "k": "Account management",
+      "v": "Account",
+      "d": "You change details, limits and documents yourself — no support tickets."
+     },
+     {
+      "k": "History and reports",
+      "v": "Reports",
+      "d": "Trade log with fees, export for tax filing in a couple of clicks."
+     }
+    ]
    }
   },
   "reviews": {
