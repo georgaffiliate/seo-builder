@@ -61,9 +61,10 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
-    "livebar": ["b", "c", "d", "e", "f", "g", "h", "i", "j",
-                "k", "l", "m", "n", "o", "p", "q", "r", "s",
-                "t", "u", "v", "w", "x", "y"],
+    "livebar": ["b", "d", "f", "g", "h", "i", "j",
+                "k", "l", "m", "n", "o", "p", "r",
+                "t", "u", "v", "w", "x", "y",
+                "z", "aa", "ab", "ac"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
     "header": ["b", "c", "d", "e", "f", "g"],
 }
@@ -523,6 +524,16 @@ def _livebar_data(variant: str) -> list:
     return sets
 
 
+def _spark_points(rng, up: bool) -> str:
+    """Polyline points for a tiny livebar sparkline (viewBox 0 0 54 16)."""
+    y = 11 if up else 5
+    pts = []
+    for x in range(0, 55, 9):
+        y = max(2, min(14, y + rng.randint(-3, 3) + (-1 if up else 1)))
+        pts.append(f"{x},{y}")
+    return " ".join(pts)
+
+
 def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     """Content for the top strip variant; words are localised, numbers are seeded.
 
@@ -530,6 +541,8 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
       {{LB_LIVE}}                    strip label next to the marker
       {{LB_S1K}}..{{LB_S3K}} / V    up to three static stats (key/value)
       {{LB1S}}..{{LB6S}} / V / C / D six tape items (label, value, change, dir class)
+      {{LB1SP}}..{{LB6SP}}            sparkline polyline points (variant z only)
+      {{LB1VOL}}..{{LB6VOL}}          volume tag (variant ab only)
       {{LB_NEWS1}}..{{LB_NEWS4}}     news headlines (content pack may override)
       {{GEO_SHORT}}                  global token (plan param)
     """
@@ -709,6 +722,21 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
         for nm in picked:
             items.append((nm, f"★ {num(4.5, 5.0, 1)}", L["verified"], "up"))
         stats = [(L["media"], num(4.6, 4.9, 1)), (L["recensioni"], f"{rng.randint(480, 980):,}".replace(",", ".")), ("", "")]
+
+    elif variant in ("z", "aa", "ab", "ac"):
+        # structural 2.0 family (searched production patterns): z = TradingView-style
+        # sparkline tape, aa = Beamline-style flash tape (app.js nudges prices),
+        # ab = Bloomberg-style volume + arrows, ac = static chip strip (no motion).
+        items = q_six(_livebar_data("b" if variant in ("z", "aa") else "k"))
+        live = L["fx"] if variant != "ac" else L["movers"]
+        stats = [(L["spread"], f"{num(0.0, 0.8, 1)} pip"), ("API", "99,9%d%%" % rng.randint(1, 9)),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
+        if variant == "z":
+            for i, it in enumerate(items):
+                extra[f"LB{i+1}SP"] = _spark_points(rng, it[3] == "up")
+        elif variant == "ab":
+            for i in range(6):
+                extra[f"LB{i+1}VOL"] = f"Vol {rng.choice([12, 24, 38, 46, 61, 87])}M"
 
     subs = {"LB_LIVE": live, "GEO_SHORT": geo_short}
     for i in range(3):

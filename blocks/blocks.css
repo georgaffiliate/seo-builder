@@ -128,6 +128,31 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-livebar[data-var="i"] .lb-bar{flex:0 0 110px}
 .blk-livebar[data-var="j"]{justify-content:center;gap:12px}
 .blk-livebar[data-var="j"] .lbt{flex:0 1 auto;max-width:660px}
+/* every tape pauses on hover — WCAG 2.2.2: moving content needs a pause mechanism */
+.blk-livebar .lbt:hover .lbt-track{animation-play-state:paused}
+/* z: sparkline tape — a chart inside every quote item */
+.blk-livebar[data-var="z"] .lb-pair{display:inline-flex;align-items:center;gap:8px}
+.blk-livebar[data-var="z"] svg{width:50px;height:15px;flex:none;opacity:.9}
+.blk-livebar[data-var="z"] .up polyline{stroke:var(--up-ondark,#7ddca0)}
+.blk-livebar[data-var="z"] .dn polyline{stroke:var(--down-ondark,#f08a8a)}
+/* aa: flash when app.js nudges a price (both track copies stay in sync) */
+.blk-livebar .flash-up{animation:lbfu .6s ease-out}
+.blk-livebar .flash-dn{animation:lbfd .6s ease-out}
+@keyframes lbfu{0%{background:color-mix(in srgb,var(--up-ondark,#7ddca0) 35%,transparent)}}
+@keyframes lbfd{0%{background:color-mix(in srgb,var(--down-ondark,#f08a8a) 35%,transparent)}}
+/* ab: volume tag + direction arrows instead of bare deltas */
+.blk-livebar[data-var="ab"] .lb-vol{opacity:.65;margin-right:2px}
+.blk-livebar[data-var="ab"] em.up::before{content:'▲ '}
+.blk-livebar[data-var="ab"] em.dn::before{content:'▼ '}
+/* ac: static chip strip — no motion, horizontally swipeable on small screens */
+.blk-livebar[data-var="ac"]{gap:16px}
+.blk-livebar[data-var="ac"] .lb-chips{display:flex;gap:10px;overflow-x:auto;min-width:0;scrollbar-width:none}
+.blk-livebar[data-var="ac"] .lb-chips::-webkit-scrollbar{display:none}
+.blk-livebar[data-var="ac"] .lb-chip-q{display:inline-flex;align-items:center;gap:7px;flex:none;
+  border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 12px;white-space:nowrap}
+.blk-livebar[data-var="ac"] .lb-chip-q i{width:7px;height:7px;border-radius:2px;background:var(--acc-ondark,#e6c34a)}
+.blk-livebar[data-var="ac"] .lb-chip-q:nth-child(3n) i{background:var(--up-ondark,#7ddca0)}
+.blk-livebar[data-var="ac"] .lb-chip-q:nth-child(3n+1) i{background:var(--down-ondark,#f08a8a)}
 /* family L (k–y): ledger — light editorial panel, same type language */
 .blk-livebar.ledger{background:var(--panel);color:var(--muted);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);

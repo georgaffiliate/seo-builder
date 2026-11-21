@@ -825,6 +825,27 @@ onReady(function(){
   });
   draw();
 });
+/* livebar-aa: nudge one price in the flash tape every few seconds; both
+   duplicated track copies must show identical values or the loop seam
+   would display different numbers after an update */
+var fTapes=document.querySelectorAll('.lbt-flash');
+if(fTapes.length){
+var fNudge=function(el){
+var t=el.textContent,m=t.match(/\\d+([.,]\\d+)?/);if(!m)return;
+var sep=t.indexOf(',')>-1?',':'.';
+var val=parseFloat(m[0].replace(',','.'));
+if(!isFinite(val))return;
+var step=(Math.random()-0.5)*Math.max(val,1)*0.0012;
+var dec=(m[0].indexOf(sep)>-1?m[0].split(sep)[1].length:0);
+var out=(val+step).toFixed(dec);if(sep===',')out=out.replace('.',',');
+el.textContent=t.replace(m[0],out);
+el.classList.remove('flash-up','flash-dn');void el.offsetWidth;
+el.classList.add(step>=0?'flash-up':'flash-dn');
+};
+setInterval(function(){Array.prototype.forEach.call(fTapes,function(tp){
+var bs=tp.querySelectorAll('b');if(!bs.length)return;
+fNudge(bs[Math.floor(Math.random()*bs.length)]);});},2600);
+}
 });"""
 # NOTE: the literal above kept the historic broken IIFE closer `});` (missing "(") —
 # that made the whole IIFE a no-op expression and calculator.js dead. Do not use it.
