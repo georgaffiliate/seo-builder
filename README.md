@@ -185,26 +185,32 @@ DEPLOY=1 WAIT=1 ./client/example.sh                       # збірка + де�
 
 ---
 
-## Сервер і автодеплой
+## Сервер і автодеплой (deploy key — без SSH-секретів у GitHub)
 
-Разова підготовка сервера (напр. `84.200.80.37`):
+Разова підготовка сервера — **один скрипт** (напр. на `84.200.80.37`):
 
 ```bash
-curl -fsSL https://get.docker.com | sh          # docker + compose plugin
-ufw allow OpenSSH && ufw allow 8443/tcp && ufw enable
-
-mkdir -p /opt/seo-builder
-git clone https://github.com/georgaffiliate/seo-builder.git /opt/seo-builder/app
-cd /opt/seo-builder/app
-cp .env.example .env && nano .env               # API_TOKEN / ключі
-docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/georgaffiliate/seo-builder/main/scripts/bootstrap_server.sh | sh
 ```
 
-Автодеплой: push у `main` запускає GitHub Actions, який по SSH виконує
-`scripts/deploy.sh` (git pull → `docker compose up -d --build` → health check).
-У **Settings → Secrets and variables → Actions** репо додати:
-`SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY` (приватний ключ доступу до сервера;
-`SSH_PORT` — опційно, якщо не 22).
+(або так само, але з уже склонованого репо: `bash scripts/bootstrap_server.sh`).
+
+Скрипт зробить: docker → згенерує read-only deploy key і **надрукує публічний
+ключ** → склонує репо в `/opt/seo-builder/app` → поставить cron (кожні 5 хв).
+
+Далі руками два кроки:
+
+1. Скопіюй надрукований публічний ключ у **GitHub → repo → Settings →
+   Deploy keys → Add deploy key** (read-only, без write-прав).
+2. `nano /opt/seo-builder/app/.env` (секрети) і
+   `cd /opt/seo-builder/app && docker compose up -d --build`.
+
+Як це працює: cron кожні 5 хвилин виконує `scripts/poll_deploy.sh` — якщо
+`origin/main` зсунувся, робить `git reset --hard` → `docker compose up -d
+--build` → health check. Лог: `/var/log/seo-builder-deploy.log`. Приватний
+ключ не покидає сервер, GitHub не має доступу до сервера (ні SSH, ні webhook).
+Швидкість автодеплою = інтервал cron (5 хв); хочеш швидше — зменш інтервал
+у crontab.
 
 ---
 
