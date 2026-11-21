@@ -410,8 +410,10 @@ def R(name: str, plan, C, **kw) -> str:
             if isinstance(node, dict): node = node.get(p)
             elif isinstance(node, list):
                 try: node = node[int(p)]
-                except Exception: return m.group(0)
-        return str(node) if node is not None else ""
+                except Exception: return ""
+            else: return ""
+            if node is None: return ""
+        return str(node)
     out = re.sub(r"\{\{c:([\w.]+)\}\}", fill, out)
     # a content pack with empty strings left blank <p>/<h2> blocks that rendered as
     # pure whitespace sections on live sites — strip elements that stayed empty.

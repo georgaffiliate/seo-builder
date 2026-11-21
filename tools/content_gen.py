@@ -236,7 +236,8 @@ def build(plan: dict, bank_all: dict) -> dict:
             "sections.security.cards": 3, "sections.streams.cards": 3,
             "hero.stats": 3, "hero.device_rows": 2, "bands.mid_points": 4,
             "reviews.items": 3, "scarcity.units": 4, "inner_about.blocks": 4,
-            "sections.facts.points": 4, "sections.portal.cards": 3}
+            "sections.facts.points": 4, "sections.portal.cards": 3,
+            "bands.side_stats": 3, "bands.side_labels": 3}
     for path, n in mins.items():
         node = content
         for part in path.split("."):
@@ -282,6 +283,18 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
         if not str(nt.get(k, "")).strip():
             nt[k] = src.get(k, "")
             fixed.append(f"sections.notes.{k}")
+    # band-side stats: packs generated before these keys existed would render the
+    # filler empty (or worse, leave raw {{c:...}} in the HTML)
+    bd = content.setdefault("bands", {})
+    bsrc = bank.get("bands", {}) or {}
+    for k in ("side_stats", "side_labels"):
+        val = bd.get(k) or []
+        if not isinstance(val, list) or len([x for x in val if str(x).strip()]) < 3:
+            bd[k] = [str(x) for x in (bsrc.get(k) or [])][:3]
+            fixed.append(f"bands.{k}")
+    if not str(bd.get("side_note", "")).strip():
+        bd["side_note"] = str(bsrc.get("side_note", ""))
+        fixed.append("bands.side_note")
     return fixed
 
 
