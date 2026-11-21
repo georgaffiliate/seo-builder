@@ -79,6 +79,7 @@
     "streams":{"eyebrow":"…","h2":"…",
                 "cards":[{"ic":"⟡","t":"…","d":"…"}]},
     "cta":    {"eyebrow":"…","h2":"…","lead":"…","btn":"…"},
+    "notes":  {"lead":"…","note":"…"},
     "stats":  {"_doc":"підписи метрик для numbers/stats-intro (rating, reviews, orders, api)","rating":"…","reviews":"…","orders":"…","api":"…"},
     "demo":   {"eyebrow":"…","h2":"…","lead":"…","disclaimer":"ілюстрація, без обіцянок"}
   },

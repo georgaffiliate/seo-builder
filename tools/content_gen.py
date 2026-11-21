@@ -63,11 +63,9 @@ def fmt_amount(value: float, cur: str, decimals: bool = False) -> str:
                 .replace("T", thousands).replace("D", ","))
 
 
-def build(plan: dict, bank_all: dict) -> dict:
-    p = plan["params"]
-    lang = p["lang"]
-    # deep merge: lang bank wins per key, en fills everything missing
-    # (thin/partial banks must never crash the fallback path)
+def merged_bank(bank_all: dict, lang: str) -> dict:
+    """deep merge: lang bank wins per key, en fills everything missing
+    (thin/partial banks must never crash the fallback path)"""
     def _merge(en: dict, loc: dict) -> dict:
         out = {**en, **loc}
         for k, v in loc.items():
@@ -76,7 +74,13 @@ def build(plan: dict, bank_all: dict) -> dict:
         return out
     _en = bank_all.get("en") or {}
     _src = bank_all.get(lang) or {}
-    bank = _merge(_en, _src) if _src else _en
+    return _merge(_en, _src) if _src else _en
+
+
+def build(plan: dict, bank_all: dict) -> dict:
+    p = plan["params"]
+    lang = p["lang"]
+    bank = merged_bank(bank_all, lang)
     cc = (p.get("cc") or "").upper()
     cur = (p.get("currency") or "EUR").upper()
     sym = {"EUR": "€", "CZK": "Kč", "PLN": "zł", "HUF": "Ft", "NOK": "kr",
@@ -218,9 +222,13 @@ def build(plan: dict, bank_all: dict) -> dict:
 
     # sections not present in a bank section set get defaults so any order builds
     for slot in ("intro", "ladder", "features", "steps", "markets", "security", "risk",
-                 "streams", "cta", "demo"):
+                 "streams", "cta", "demo", "glance", "stats", "notes"):
         if slot not in content["sections"]:
             content["sections"][slot] = deep(rng, bank["sections"][slot], ctx)
+
+    # newer fragment keys (glance, stats labels) must exist even in packs that were
+    # generated before they were introduced — top up from the merged bank
+    topup_new_keys(content, bank)
 
     # every array used by fragments must be long enough
     mins = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
@@ -239,6 +247,22 @@ def build(plan: dict, bank_all: dict) -> dict:
     return content
 
 
+def topup_new_keys(content: dict, bank: dict) -> list[str]:
+    """Fill content keys that older packs / partial LLM answers may miss."""
+    fixed = []
+    stats = content.setdefault("sections", {}).setdefault("stats", {})
+    for k in ("rating", "reviews", "orders", "api"):
+        if not str(stats.get(k, "")).strip():
+            stats[k] = (bank.get("sections", {}).get("stats", {}) or {}).get(k, k)
+            fixed.append(f"sections.stats.{k}")
+    gl = content.setdefault("sections", {}).setdefault("glance", {})
+    for k in ("eyebrow", "h2"):
+        if not str(gl.get(k, "")).strip():
+            gl[k] = (bank.get("sections", {}).get("glance", {}) or {}).get(k, "")
+            fixed.append(f"sections.glance.{k}")
+    return fixed
+
+
 def main():
     ap = argparse.ArgumentParser(description="plan → content pack")
     ap.add_argument("--plan", required=True)
@@ -249,7 +273,15 @@ def main():
     dom = plan["params"]["domain"]
     out = pathlib.Path(a.out) if a.out else ROOT / "content" / f"{dom}-content.json"
     if out.exists() and not a.force:
-        print(f"· content exists, kept: {out.relative_to(ROOT)} (use --force to rewrite)")
+        pack = json.loads(out.read_text(encoding="utf-8"))
+        bank_all = json.loads(L10N.read_text(encoding="utf-8"))
+        bank = merged_bank(bank_all, plan["params"]["lang"])
+        fixed = topup_new_keys(pack, bank)
+        if fixed:
+            out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"· content kept, topped up missing keys: {', '.join(fixed)}")
+        else:
+            print(f"· content exists, kept: {out.relative_to(ROOT)} (use --force to rewrite)")
         return
     bank_all = json.loads(L10N.read_text(encoding="utf-8"))
     if plan["params"]["lang"] not in bank_all:

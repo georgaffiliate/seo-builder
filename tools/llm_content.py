@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import gen_plan  # NAME_BANK / FEMALE_FIRST
 import assemble   # validate_content
+import content_gen  # merged_bank / topup_new_keys (migration of older packs)
 
 CFG_F = ROOT / "resources" / "llm.json"
 SCHEMA_F = ROOT / "content" / "content-pack.schema.json"
@@ -509,6 +510,16 @@ def main():
             pack = json.loads(out.read_text(encoding="utf-8"))
         except Exception as e:
             die(f"model wrote invalid JSON: {e}")
+
+    try:   # newer fragment keys (glance, stats labels) — top up from the bank
+        _l10n = ROOT / "resources" / "content-l10n.json"
+        _bank = content_gen.merged_bank(json.loads(_l10n.read_text(encoding="utf-8")),
+                                        plan["params"]["lang"])
+        _fixed = content_gen.topup_new_keys(pack, _bank)
+        if _fixed:
+            print("· topped up missing keys: " + ", ".join(_fixed))
+    except Exception:
+        pass
 
     errs = validate(pack, plan, data)
     for attempt in (1, 2):

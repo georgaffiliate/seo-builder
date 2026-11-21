@@ -323,6 +323,33 @@ if p1 and p2:
     chk(p1["layout"].get("variants") != p2["layout"].get("variants"), "variant maps differ")
     chk(set(p1["layout"]["slugs"].values()) != set(p2["layout"]["slugs"].values()), "slug sets differ")
 
+print("== 10. anchors and form position rotate")
+FORM_SLOTS = ("access-band", "claim-band", "enroll-band")
+ANCHORS = {"people", "faq", "numbers", "cta", "office", "compare"}
+forms_at, anchor_sets = [], []
+for _s in range(6):
+    _f = ROOT / "plans" / f"rot-test-{_s}.site.json"
+    subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "RotTest",
+                    "--lang", "it", "--domain", f"rot-test-{_s}.site", "--seed", str(7000 + _s)],
+                   capture_output=True, cwd=ROOT)
+    _pl = json.loads(_f.read_text()) if _f.exists() else {}
+    if not _pl:
+        continue
+    _o = _pl["layout"]["section_order"]
+    _band = next((s for s in _o if s in FORM_SLOTS), None)
+    if _band:
+        forms_at.append(_o.index(_band))
+    _m = {"cta-band": "cta", "trust-band": "cta"}
+    anchor_sets.append({_m.get(s, s) for s in _o if _m.get(s, s) in ANCHORS})
+for _s in range(6):   # cleanup after the whole chain: siblings must see each other
+    _f = ROOT / "plans" / f"rot-test-{_s}.site.json"
+    if _f.exists(): _f.unlink()
+chk(len(forms_at) >= 4 and len(set(forms_at)) > 1,
+    f"form band position rotates across plans (positions: {forms_at})")
+_ov = [len(a & b) for a, b in zip(anchor_sets, anchor_sets[1:])]
+chk(len(anchor_sets) >= 4 and max(_ov, default=0) <= 1,
+    f"anchor screens rotate between consecutive plans (max overlap {max(_ov, default=0)})")
+
 # cleanup
 import shutil
 out = ROOT / "sites" / "selftest-e2e.site"

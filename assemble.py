@@ -131,6 +131,8 @@ def validate_plan(plan: dict) -> None:
     anchors = {"people", "faq", "numbers", "cta", "office", "compare"}
     if len(anchors & set(order)) < 2:
         die("section_order needs >= 2 rotating anchor screens (people/faq/numbers/cta/office/compare)")
+    if "numbers" in order and "stats-intro" in order:
+        die("numbers and stats-intro are the same stat screen — keep only one")
     if not any(s in order for s in ("access-band", "claim-band", "enroll-band")):
         die("section_order must contain a form band")
     if "hero" not in order: die("section_order must start with hero-ish block")

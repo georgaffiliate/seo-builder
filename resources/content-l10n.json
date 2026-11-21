@@ -350,6 +350,10 @@
    "glance": {
     "eyebrow": "IN SINTESI",
     "h2": "Due strumenti che il motore tiene d'occhio adesso"
+   },
+   "notes": {
+    "lead": "{brand} tiene grafici, liste e notizie di mercato in un unico posto: il controllo del mattino richiede minuti, non un'ora.",
+    "note": "Ogni modulo spiega cosa misura e perché importa, senza gergo inutile."
    }
   },
   "reviews": {
@@ -1014,6 +1018,10 @@
    "glance": {
     "eyebrow": "PŘEHLED",
     "h2": "Dva instrumenty, které motor sleduje právě teď"
+   },
+   "notes": {
+    "lead": "{brand} má grafy, watchlisty i tržní zprávy na jednom místě: ranní kontrola zabere minuty, ne hodinu.",
+    "note": "Každý modul vysvětluje, co měří a proč to má význam — bez zbytečného žargonu."
    }
   },
   "reviews": {
@@ -1703,6 +1711,10 @@
    "glance": {
     "eyebrow": "AT A GLANCE",
     "h2": "Two instruments the engine is watching right now"
+   },
+   "notes": {
+    "lead": "{brand} keeps charts, watchlists and market news in one place, so the morning check takes minutes, not an hour.",
+    "note": "Every module explains what it measures and why it matters — no jargon required."
    }
   },
   "reviews": {
@@ -2154,6 +2166,10 @@
    "glance": {
     "eyebrow": "EN RESUMEN",
     "h2": "Dos activos que el motor mira ahora"
+   },
+   "notes": {
+    "lead": "{brand} tiene gráficos, listas y noticias de mercado en un solo lugar: la revisión matinal lleva minutos, no una hora.",
+    "note": "Cada módulo explica qué mide y por qué importa, sin jerga innecesaria."
    }
   }
  }

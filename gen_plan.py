@@ -348,11 +348,11 @@ def build_plan(rng, args, hist)->dict|None:
         for a in picked_a:
             if a not in {TYPE_OF.get(x,x) for x in od}:
                 od.append(rng.choice(pool_types[a]) if a in pool_types else a)
-        # trust proof: keep at least one of people/faq unless neighbours took both
+        # trust proof: every offer keeps at least one of people/faq — a site with
+        # neither reads as a thin template (overlap of 1 with a neighbour is allowed)
         have={TYPE_OF.get(x,x) for x in od}
         if not ({"people","faq"} & have):
-            both=[t for t in ("people","faq") if t in anchor_pool or relax]
-            if both: od.append(rng.choice(both))
+            od.append(rng.choice(("people","faq")))
         if "scarcity" not in od and rng.random()<0.8: od.insert(rng.randrange(3,len(od)-2),"scarcity")
         # numbers and stats-intro are the same "stat screen" family: never both
         if "numbers" in od and "stats-intro" in od: od.remove("stats-intro")
