@@ -216,13 +216,17 @@ INNER_SKELETONS = {
 MENU_POOLS = {
     "cs": [["Domů", "Program", "Technologie", "Kontakt"], ["Start", "Jak to funguje", "Motor", "Napište nám"], ["Domů", "O projektu", "Metoda", "Kontakt"]],
     "it": [["Home", "Panoramica", "Strumenti", "Aiuto"], ["Start", "Come funziona", "Motore", "Scrivici"], ["Home", "Metodo", "Piattaforma", "Supporto"], ["Home", "Programma", "Tecnologia", "Contatti"]],
-    "es": [["Home", "Program", "Technology", "Contacts"]],
+    "es": [["Inicio", "Programa", "Tecnología", "Contacto"], ["Inicio", "Cómo funciona", "Método", "Escríbenos"],
+           ["Inicio", "Quiénes somos", "Plataforma", "Soporte"], ["Inicio", "Proyecto", "Motor", "Contáctanos"]],
     "fallback": [["Home","About","Tech","Contact"],["Home","Method","Platform","Support"],["Home","About","Tools","Contact"]]
 }
 SLUG_POOLS = {
     "cs": {"about": ["o-nas", "o-projektu", "pribeh"], "contact": ["kontakt", "podpora", "spojeni"], "register": ["registrace", "ucet", "zalozit-ucet"], "who": ["jak-pracujeme", "jak-to-funguje", "metoda"]},
     "it": {"about": ["chi-siamo", "progetto", "programma", "redazione"], "contact": ["contatti", "parliamo", "scrivici", "supporto"], "register": ["accesso", "inizia", "iscrizione", "registrati"], "who": ["come-lavoriamo", "metodo", "motore", "piattaforma"]},
-    "es": {"about": ["team"], "contact": ["talk-to-us"], "register": ["get-started"], "who": ["method"]},
+    "es": {"about": ["equipo", "quienes-somos", "sobre-nosotros", "proyecto"],
+           "contact": ["contacto", "hablanos", "escribenos", "soporte"],
+           "register": ["registro", "empezar", "crear-cuenta", "unete"],
+           "who": ["metodo", "como-funciona", "como-trabajamos", "plataforma"]},
     "fallback": {"about": ["about","project"], "who": ["how-it-works","method"],
                  "contact": ["contact","contacts"], "register": ["register","open-account"]}
 }
