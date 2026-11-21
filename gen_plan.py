@@ -57,7 +57,7 @@ def types_of(order): return {TYPE_OF.get(t, t) for t in order}
 VARIANTS = {  # structural fragment variants per slot ("" = canonical file, always allowed)
     "hero": ["b", "c"], "claim-band": ["b", "c", "d", "e"], "access-band": ["b", "c", "d", "e"],
     "enroll-band": ["b", "c", "d", "e"],
-    "features": ["b", "c"], "people": ["b", "c"], "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
+    "features": ["b", "c"], "people": ["b", "c", "d", "e", "f", "g", "h"], "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
@@ -400,6 +400,8 @@ def build_plan(rng, args, hist)->dict|None:
     variants["header"]=rng.choice(hdr_pool)
     livebar=build_livebar(rng, variants["livebar"], args.lang,
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
+    # people-e is a rating-summary screen: same stat family as the numbers screen — never both
+    if variants.get("people")=="e" and "numbers" in order: order.remove("numbers")
 
     inner={pg:rng.choice(v) for pg,v in sorted(INNER_SKELETONS.items())}
     for _ in range(10):
