@@ -63,6 +63,7 @@
 
   "sections": {
     "intro":  {"eyebrow":"…","h2":"…","lead":"…"},
+    "glance": {"eyebrow":"…","h2":"…"},
     "ladder": {"eyebrow":"…","h2":"…","lead":"…",
                 "rows":[{"k":"категорія","v":"значення·число","d":"пояснення"}]},
     "features":{"eyebrow":"…","h2":"…","lead":"…",
@@ -78,6 +79,7 @@
     "streams":{"eyebrow":"…","h2":"…",
                 "cards":[{"ic":"⟡","t":"…","d":"…"}]},
     "cta":    {"eyebrow":"…","h2":"…","lead":"…","btn":"…"},
+    "stats":  {"_doc":"підписи метрик для numbers/stats-intro (rating, reviews, orders, api)","rating":"…","reviews":"…","orders":"…","api":"…"},
     "demo":   {"eyebrow":"…","h2":"…","lead":"…","disclaimer":"ілюстрація, без обіцянок"}
   },
 

@@ -34,7 +34,11 @@ chk("{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets.html"
     and "{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets-b.html").read_text(),
     "markets disclaimer comes from content (no English caption)")
 chk("{{c:hero.device_label}}" in (ROOT / "blocks" / "blk-hero.html").read_text(), "hero ledger label from content")
-chk("{{c:sections.stats.rating}}" in (ROOT / "blocks" / "blk-intro-stats.html").read_text(), "stats labels from content")
+chk("{{c:sections.stats.}}" not in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
+    and "{{c:sections.stats.reviews}}" in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
+    and all(f"{{{{c:sections.stats.{k}}}}}" in (ROOT / "blocks" / "blk-numbers.html").read_text()
+            for k in ("rating", "reviews", "orders", "api")),
+    "stats labels from content")
 
 print("== 1b. structural variant coverage")
 import re as _re

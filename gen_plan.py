@@ -44,7 +44,7 @@ SECTION_POOL = ["intro-center", "features", "steps", "steps-live", "markets", "l
                  "streams", "security", "demo", "risk", "cta-band", "trust-band",
                  "ticker", "timeline", "stats-intro",
                  "numbers", "portal", "compare", "glance",
-                 "facts", "notes", "mini-faq", "device"]
+                 "facts", "notes", "mini-faq"]
 # Recognisable "screens" that rotate between offers: a plan picks 2-3 of them and
 # never repeats the ones the previous plan / same-brand sibling already shows, so
 # two offers of one factory visibly have DIFFERENT screens (human and Google view).
@@ -354,6 +354,8 @@ def build_plan(rng, args, hist)->dict|None:
             both=[t for t in ("people","faq") if t in anchor_pool or relax]
             if both: od.append(rng.choice(both))
         if "scarcity" not in od and rng.random()<0.8: od.insert(rng.randrange(3,len(od)-2),"scarcity")
+        # numbers and stats-intro are the same "stat screen" family: never both
+        if "numbers" in od and "stats-intro" in od: od.remove("stats-intro")
         if rng.random()<0.6: od.append("brand-note")
         seen=set(); od=[x for x in od if not (x in seen or seen.add(x))][:16]
         if len(od)<10: continue

@@ -376,6 +376,27 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     news = lbw.get("news") or []
     if not isinstance(news, list) or len(news) < 3:
         errs.append("livebar.news needs >= 3 headlines")
+    # no duplicated headings anywhere on the page (h1/h2 reused across sections)
+    heads = []
+
+    def _collect(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k in ("h2", "h1") and isinstance(v, str) and v.strip():
+                    heads.append(" ".join(v.split()).lower())
+                else:
+                    _collect(v)
+        elif isinstance(node, list):
+            for v in node:
+                _collect(v)
+
+    _collect({k: pack[k] for k in pack
+              if k not in ("meta", "ui", "bands", "legal", "footer", "thanks", "livebar")})
+    dup = sorted({h for h in heads if heads.count(h) > 1})
+    if dup:
+        errs.append("duplicate headings across sections: " + "; ".join(dup[:3]))
+    if not isinstance(news, list) or len(news) < 3:
+        errs.append("livebar.news needs >= 3 headlines")
     if plan["params"]["lang"] not in gen_plan.LIVEBAR_L10N:
         ref = (brief_data.get("livebar") or {}).get("reference_en") or {}
         if ref and lbw.get("bull") == ref.get("bull") and lbw.get("session") == ref.get("session"):

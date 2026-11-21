@@ -1,0 +1,518 @@
+{
+ "meta": {
+  "title_home": "DupeTest2 — piattaforma per investire con metodo",
+  "description": "DupeTest2: listini, strumenti e area personale in italiano. Percorso di accesso in pochi passaggi, senza promesse di rendimento.",
+  "keywords": "DupeTest2, dupetest2 login, dupetest2 registrazione, dupe2-22.site, DupeTest2 Roma, DupeTest2 opinioni",
+  "og_description": "Apri l'area DupeTest2: listini, strumenti e assistenza in italiano.",
+  "email": "info@dupe2-22.site",
+  "telephone": "+39 494 682 1715"
+ },
+ "hero": {
+  "eyebrow": "DUPETEST2 · IT",
+  "h1_rest": "Accesso ordinato agli strumenti",
+  "h1_accent": "con metodo",
+  "lead": "DupeTest2 riunisce listini, strumenti di analisi e area personale in un'unica interfaccia in italiano. Il percorso di accesso è guidato e si controlla passo per passo.",
+  "secondary": "Per chi preferisce un'interfaccia sobria a una sala di comandi rumorosa.",
+  "cta_primary": "Inizia ora",
+  "cta_secondary": "Il metodo",
+  "stats": [
+   {
+    "v": "4,5",
+    "l": "valutazione utenti"
+   },
+   {
+    "v": "17 967",
+    "l": "utenti registrati"
+   },
+   {
+    "v": "56 ms",
+    "l": "risposta piattaforma"
+   }
+  ],
+  "device_label": "Conto operativo",
+  "device_bal": "€15.217,48",
+  "device_aria": "Anteprima del portafoglio",
+  "device_note": "Illustrazione · dati di esempio",
+  "device_delta": "↗ 1,9% negli ultimi 30 giorni",
+  "device_rows": [
+   {
+    "n": "Indice europeo allargato",
+    "s": "MIX-GL",
+    "v": "€3.159,23",
+    "d": "+1,1%"
+   },
+   {
+    "n": "Obbligazionario a breve",
+    "s": "BND-EU",
+    "v": "€1.165,42",
+    "d": "+0,3%"
+   }
+  ]
+ },
+ "bands": {
+  "mid_eyebrow": "ACCESSO",
+  "mid_h2": "Apri l'accesso a DupeTest2 in pochi passaggi",
+  "mid_lead": "Lascia i contatti: richiamiamo in orario di ufficio e completiamo la verifica insieme.",
+  "mid_points": [
+   "Richiamo entro 30 minuti lavorativi",
+   "Percorso di accesso in tre passaggi",
+   "Documenti caricati dall'area personale",
+   "Assistenza in italiano, anche dopo l'apertura",
+   "Nessun costo di gestione mensile",
+   "Dati modificabili in autonomia"
+  ],
+  "form_title": "Richiesta di accesso",
+  "form_sub": "Modulo breve, il resto lo vediamo al telefono.",
+  "form_consent": "Inviando accetti il trattamento dei dati secondo l'informativa privacy. L'area si attiva dopo il primo versamento <small>€250</small>; condizioni complete nella documentazione contrattuale.",
+  "submit_nav": "Apri l'accesso",
+  "labels": {
+   "first": "Nome",
+   "last": "Cognome",
+   "email": "Email",
+   "phone": "Telefono"
+  },
+  "placeholders": {
+   "first": "Giulia",
+   "last": "Bianchi",
+   "email": "giulia@email.it",
+   "phone": "333 000 0000"
+  },
+  "submit": "Invia richiesta"
+ },
+ "ui": {
+  "calc_eyebrow": "SIMULAZIONE",
+  "calc_initial": "Versamento iniziale",
+  "calc_init_note": "EUR · da €250",
+  "calc_monthly": "Versamento mensile",
+  "calc_cur_note": "EUR",
+  "calc_years": "Orizzonte",
+  "calc_rate": "Ipotesi annua",
+  "calc_value_after": "VALORE ORIENTATIVO DOPO",
+  "calc_contributed": "Versato in totale",
+  "calc_gain": "Differenza (orientativa)",
+  "calc_now": "Oggi",
+  "cur_code": "EUR",
+  "cur_sym": "€",
+  "year_full": "ANNI",
+  "year_short": "ANNI",
+  "min_init": "250",
+  "status_sending": "Invio in corso…",
+  "status_fix": "Controlla i campi evidenziati.",
+  "status_fail": "Invio non riuscito, riprova.",
+  "status_ok": "Fatto, ti stiamo reindirizzando…"
+ },
+ "sections": {
+  "intro": {
+   "eyebrow": "COSA TROVI",
+   "h2": "Tutto quello che serve, nello stesso posto",
+   "lead": "Listini, strumenti di analisi e area personale convivono in una sola schermata. Ogni sezione ha un compito preciso, senza riquadri decorativi."
+  },
+  "ladder": {
+   "eyebrow": "LIVELLI",
+   "h2": "Profili di accesso e cosa cambia",
+   "lead": "I livelli si differenziano per strumenti disponibili e frequenza dei dati, non per promesse di resa.",
+   "rows": [
+    {
+     "k": "Base",
+     "v": "Consultazione",
+     "d": "Listini in differita, area personale, assistenza via email."
+    },
+    {
+     "k": "Plus",
+     "v": "Analisi",
+     "d": "Aggiornamento più frequente, strumenti di confronto, note salvate."
+    },
+    {
+     "k": "Pro",
+     "v": "Operatività",
+     "d": "Listini in tempo reale, più mercati monitorabili, avvisi su soglia."
+    },
+    {
+     "k": "Desk",
+     "v": "Supporto",
+     "d": "Canale diretto con l'assistenza e revisione periodica del profilo."
+    }
+   ]
+  },
+  "features": {
+   "eyebrow": "STRUMENTI",
+   "h2": "Cosa trovi dentro DupeTest2",
+   "lead": "Funzioni concrete, ognuna con un compito identificabile.",
+   "cards": [
+    {
+     "ic": "▤",
+     "t": "Listini leggibili",
+     "d": "Prezzi e variazioni con colonne allineate e unità dichiarate."
+    },
+    {
+     "ic": "◷",
+     "t": "Storico consultabile",
+     "d": "Serie storiche per periodo, con scala e intervallo visibili."
+    },
+    {
+     "ic": "⌗",
+     "t": "Confronto strumenti",
+     "d": "Due o più strumenti affiancati sulla stessa finestra temporale."
+    },
+    {
+     "ic": "⚑",
+     "t": "Avvisi su soglia",
+     "d": "Una notifica quando un valore supera il livello scelto."
+    },
+    {
+     "ic": "▦",
+     "t": "Note e promemoria",
+     "d": "Annotazioni per strumento, richiamate nella scheda."
+    },
+    {
+     "ic": "⛨",
+     "t": "Accesso protetto",
+     "d": "Verifica in due passaggi e sessioni separati per dispositivo."
+    }
+   ]
+  },
+  "steps": {
+   "eyebrow": "IL PERCORSO",
+   "h2": "Tre passaggi per aprire l'accesso",
+   "steps": [
+    {
+     "t": "Richiesta",
+     "d": "Compila il modulo con nome, email e telefono."
+    },
+    {
+     "t": "Verifica",
+     "d": "Richiamo in orario di ufficio e controllo dei dati."
+    },
+    {
+     "t": "Documenti",
+     "d": "Caricamento dall'area personale, in formato digitale."
+    },
+    {
+     "t": "Primo versamento",
+     "d": "Solo dopo l'approvazione, con le coordinate indicate in area."
+    },
+    {
+     "t": "Accesso attivo",
+     "d": "Credenziali attive e assistenza disponibile."
+    }
+   ]
+  },
+  "markets": {
+   "eyebrow": "LISTINI",
+   "h2": "Dati di mercato in evidenza",
+   "lead": "Valori indicativi, aggiornati nell'interfaccia secondo il livello di accesso.",
+   "rows": [
+    {
+     "sym": "BTC/EUR",
+     "v": "87.450",
+     "chg": "+2,4%"
+    },
+    {
+     "sym": "ETH/EUR",
+     "v": "3.120",
+     "chg": "-0,8%"
+    },
+    {
+     "sym": "INDICE EU",
+     "v": "4.986",
+     "chg": "+0,6%"
+    },
+    {
+     "sym": "ORO/EUR",
+     "v": "2.284",
+     "chg": "+0,3%"
+    }
+   ],
+   "disclaimer": "Valori illustrativi."
+  },
+  "security": {
+   "eyebrow": "SICUREZZA",
+   "h2": "Come sono protetti dati e accessi",
+   "cards": [
+    {
+     "ic": "⛨",
+     "t": "Cifratura in transito",
+     "d": "Collegamenti in HTTPS su tutte le pagine dell'area."
+    },
+    {
+     "ic": "⌘",
+     "t": "Verifica in due passaggi",
+     "d": "Codice aggiuntivo richiesto ai nuovi dispositivi."
+    },
+    {
+     "ic": "◫",
+     "t": "Sessioni tracciate",
+     "d": "Elenco degli accessi con data e dispositivo, revocabili."
+    }
+   ]
+  },
+  "risk": {
+   "eyebrow": "RISCHI",
+   "h2": "Cosa può andare diversamente",
+   "lead": "Tre punti da tenere presenti prima di operare.",
+   "rows": [
+    {
+     "ic": "↕",
+     "t": "Prezzo variabile",
+     "d": "Il valore degli strumenti sale e scende; il capitale non è garantito."
+    },
+    {
+     "ic": "◷",
+     "t": "Tempi di esecuzione",
+     "d": "In fasi di volatilità l'ordine può essere eseguito a prezzo diverso."
+    },
+    {
+     "ic": "€",
+     "t": "Costi e cambio",
+     "d": "Commissioni e differenze di cambio incidono sul risultato finale."
+    }
+   ]
+  },
+  "streams": {
+   "eyebrow": "DATI",
+   "h2": "Da dove arrivano i numeri",
+   "cards": [
+    {
+     "ic": "⟡",
+     "t": "Fonti dichiarate",
+     "d": "Ogni listino indica la fonte e l'orario di aggiornamento."
+    },
+    {
+     "ic": "⌁",
+     "t": "Ritardo visibile",
+     "d": "Il differimento dei dati è scritto accanto al prezzo, non nascosto."
+    },
+    {
+     "ic": "⧉",
+     "t": "Esportazione",
+     "d": "Serie e tabelle scaricabili in formato tabellare dall'area."
+    }
+   ]
+  },
+  "cta": {
+   "eyebrow": "PROSSIMO PASSO",
+   "h2": "Apri l'accesso a DupeTest2",
+   "lead": "Modulo breve, richiamo in orario di ufficio.",
+   "btn": "Inizia ora"
+  },
+  "demo": {
+   "eyebrow": "ANDAMENTO",
+   "h2": "Il grafico si legge a colpo d'occhio",
+   "lead": "Asse del tempo orizzontale, valori in verticale, intervallo scritto sopra il grafico.",
+   "disclaimer": "Tracciato illustrativo, non è una previsione di rendimento."
+  },
+  "stats": {
+   "rating": "Valutazione media",
+   "reviews": "Recensioni verificate",
+   "orders": "Ordini al secondo",
+   "api": "Uptime API"
+  },
+  "glance": {
+   "eyebrow": "IN SINTESI",
+   "h2": "Due strumenti che il motore tiene d'occhio adesso"
+  }
+ },
+ "reviews": {
+  "eyebrow": "PERSONE",
+  "h2": "Chi usa DupeTest2",
+  "lead": "Nomi illustrativi; contenuti indicati dagli utenti in fase di test.",
+  "items": [
+   {
+    "name": "Alessia D.",
+    "city": "Roma",
+    "role": "Ricercatrice",
+    "tenure": "1 anno",
+    "gain": "+€855 questo mese",
+    "photo": "p-women-96.jpg",
+    "quote": "Il confronto tra due strumenti sulla stessa finestra temporale mi ha risparmiato diversi passaggi."
+   },
+   {
+    "name": "Sara P.",
+    "city": "Roma",
+    "role": "Tecnico",
+    "tenure": "3 mesi",
+    "gain": "+€1.585 questo mese",
+    "photo": "p-women-70.jpg",
+    "quote": "Ho trovato subito il listino che mi serviva e il ritardo dei dati era scritto accanto al prezzo."
+   },
+   {
+    "name": "Valentina A.",
+    "city": "Roma",
+    "role": "Grafico",
+    "tenure": "7 mesi",
+    "gain": "+€835 questo mese",
+    "photo": "p-women-97.jpg",
+    "quote": "Uso l'area più che altro per le note: ritrovo tutto nella scheda dello strumento."
+   }
+  ]
+ },
+ "scarcity": {
+  "eyebrow": "SESSIONE",
+  "h2": "La prossima verifica si chiude a breve",
+  "lead": "Le richieste arrivano in coda e vengono richiamate in orario di ufficio.",
+  "btn": "Entra in coda",
+  "units": [
+   "giorni",
+   "ore",
+   "min",
+   "sec"
+  ]
+ },
+ "faq": {
+  "eyebrow": "DOMANDE",
+  "h2": "Risposte brevi, prima di iniziare",
+  "items": [
+   {
+    "q": "Serve un versamento per registrarsi?",
+    "a": "No, la richiesta è gratuita. Il versamento serve solo per attivare l'area."
+   },
+   {
+    "q": "Quanto dura la verifica?",
+    "a": "In genere lo stesso giorno lavorativo, se i dati sono completi."
+   },
+   {
+    "q": "L'assistenza è in italiano?",
+    "a": "Sì, il supporto risponde in italiano in orario di ufficio."
+   },
+   {
+    "q": "Posso cambiare i dati dopo l'apertura?",
+    "a": "Sì, dall'area personale, con conferma via email."
+   },
+   {
+    "q": "I dati dei listini sono in tempo reale?",
+    "a": "Dipende dal livello: il ritardo è indicato accanto al prezzo."
+   }
+  ]
+ },
+ "office": {
+  "eyebrow": "UFFICIO",
+  "h2": "Uffici a Roma",
+  "lead": "Il percorso si completa online; per vedere l'interfaccia su uno schermo reale basta un appuntamento.",
+  "addr_label": "Indirizzo",
+  "addr": "Corso Buenos Aires 99, 79698 Roma",
+  "hours_label": "Aperti",
+  "hours": "Lun–Ven 8:30–17:00",
+  "contact_label": "Scrivici"
+ },
+ "brand_note": {
+  "h2": "DupeTest2 — cosa indica il nome",
+  "p1": "Si cerca dupetest2 login, dupetest2 registrazione e DupeTest2 Roma per arrivare all'area personale. Il dominio ufficiale resta dupe2-22.site.",
+  "p2": "Nelle pagine interne trovi il metodo di lavoro, la struttura degli strumenti e i recapiti diretti; le condizioni sono nella pagina termini."
+ },
+ "livebar": {
+  "crypto": "CRIPTO",
+  "commod": "MATERIE PRIME",
+  "session": "Sessione UE",
+  "bull": "Rialzisti",
+  "bear": "Ribassisti",
+  "queue": "In coda",
+  "wait": "Attesa media",
+  "slots": "Posti liberi",
+  "payouts": "Pagamenti",
+  "news": [
+   "Borse europee in rialzo in apertura",
+   "Dati inflazione attesi nel pomeriggio",
+   "Bund decennale stabile sopra il 2,3%",
+   "Petrolio in calo dopo le scorte USA"
+  ]
+ },
+ "inner_about": {
+  "title": "Chi siamo — DupeTest2",
+  "h1": "Come è costruito DupeTest2",
+  "lead": "Il punto di partenza è semplice: listini leggibili e passaggi verificabili.",
+  "blocks": [
+   {
+    "t": "Origine",
+    "d": "DupeTest2 nasce dall'idea di ridurre il rumore attorno ai dati di mercato."
+   },
+   {
+    "t": "Metodo",
+    "d": "Ogni sezione ha un compito dichiarato e un ordine di lettura."
+   },
+   {
+    "t": "Confini",
+    "d": "Nessuna promessa di resa: si descrive cosa fa l'interfaccia."
+   },
+   {
+    "t": "Controllo",
+    "d": "Le revisioni periodiche verificano coerenza tra pagine e area personale."
+   }
+  ]
+ },
+ "inner_tech": {
+  "title": "Interfaccia e strumenti",
+  "h1": "Come funziona l'interfaccia",
+  "lead": "Ogni funzione ha un limite scritto e un uso previsto.",
+  "blocks": [
+   {
+    "t": "Listini",
+    "d": "Colonne allineate, fonte in calce alla tabella, ritardo indicato."
+   },
+   {
+    "t": "Grafici",
+    "d": "Asse del tempo orizzontale e intervallo sopra il tracciato."
+   },
+   {
+    "t": "Avvisi",
+    "d": "Soglie impostate dall'utente, modificabili in ogni momento."
+   },
+   {
+    "t": "Esportazione",
+    "d": "Tabelle scaricabili per uso personale, senza elaborazioni."
+   }
+  ]
+ },
+ "inner_who": {
+  "title": "A chi serve",
+  "h1": "A chi serve davvero",
+  "lead": "Strumenti per chi vuole leggere i dati prima di decidere.",
+  "blocks": [
+   {
+    "t": "Principianti",
+    "d": "Percorso guidato e lessico spiegato nelle pagine interne."
+   },
+   {
+    "t": "Autonomi",
+    "d": "Chi conosce i mercati trova le funzioni senza passaggi in più."
+   },
+   {
+    "t": "Prudenti",
+    "d": "Note, promemoria e avvisi su soglia restano salvati."
+   },
+   {
+    "t": "Non adatto",
+    "d": "A chi cerca indicazioni personalizzate di investimento."
+   }
+  ]
+ },
+ "inner_contact": {
+  "title": "Contatti — DupeTest2",
+  "h1": "Parliamo prima di aprire l'area",
+  "lead": "Rispondiamo in orario di ufficio, in italiano."
+ },
+ "inner_register": {
+  "title": "Apri l'accesso",
+  "h1": "La richiesta in tre campi",
+  "lead": "Compila il modulo in home: il resto si completa al telefono.",
+  "points": [
+   "Richiamo in orario di ufficio",
+   "Documenti caricati online",
+   "Nessun costo di apertura"
+  ]
+ },
+ "legal": {
+  "terms": "<p>Il presente documento riassume le condizioni d'uso del sito dupe2-22.site, gestito da DupeTest2. L'accesso all'area personale richiede verifica dei dati e primo versamento secondo le coordinate indicate in area.</p><p>I dati di mercato mostrati hanno natura informativa e possono essere differiti; non costituiscono sollecitazione all'investimento. I termini completi sono forniti in fase contrattuale.</p><p>Autorità di vigilanza di riferimento: CONSOB. Foro competente e legge applicabile sono indicati nel contratto.</p>",
+  "privacy": "<p>Titolare del trattamento: DupeTest2, Roma. Base giuridica: consenso ed esecuzione del contratto. Dati trattati: identificativi, contatti, dati di utilizzo dell'area.</p><p>Conservazione per il tempo necessario agli obblighi contrattuali e di legge. Diritti di accesso, rettifica, cancellazione e portabilità esercitabili scrivendo a info@dupe2-22.site.</p><p>Reclami all'autorità di controllo competente; per il settore finanziario: CONSOB.</p>"
+ },
+ "footer": {
+  "tagline": "Dati leggibili, passaggi verificabili.",
+  "risk_line": "Gli investimenti possono salire e scendere; il rendimento passato non è garanzia.",
+  "disclaimer": "DupeTest2 pubblica materiali informativi e non fornisce consulenza personalizzata. Il sito è gestito da DupeTest2 con sede in Roma. Autorità di vigilanza: CONSOB. Condizioni complete nella documentazione contrattuale."
+ },
+ "thanks": {
+  "eyebrow": "RICEVUTO",
+  "h1": "Richiesta registrata",
+  "lead": "Ti richiamiamo in orario di ufficio, entro 30 minuti lavorativi.",
+  "warn": "Se non rispondiamo, riprova il giorno successivo o scrivi a info@dupe2-22.site."
+ }
+}

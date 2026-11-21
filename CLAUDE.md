@@ -107,7 +107,10 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
 - Стрічка в хедері (`livebar`) — окрема вісь поза `section_order`: 10 варіантів (b–j: валюти,
   крипта, індекси, сировина, новини, статус сервісів, сесія, сентимент, черга) + канон;
   вибір у плані (`layout.variants.livebar`) + дані в `plan.livebar.subs`, assemble рендерить їх.
-- `SECTION_POOL` ×24 типи; `VARIANTS` ×21 слот. Додаєш тип → додай фрагмент `blk-<type>.html` і (для слотів з варіантами)
+- `SECTION_POOL` ×22 типи (`device` виведений з пулу — він дублював hero-мокап; `VARIANTS` ×21 слот). Стат-екрани
+  не дублюють значення hero: `numbers` = rating/5·reviews·orders/s·API, `stats-intro` = reviews·orders·API
+  (labels з `sections.stats`), `glance` = власні `sections.glance` + rows з markets; numbers і stats-intro
+  взаємовиключні в одному плані. Додаєш тип → додай фрагмент `blk-<type>.html` і (для слотів з варіантами)
   по файлу на кожен варіант, інакше `assemble.py` впаде на валідації.
 - Новий варіант = інша структура (rail/таблиця/чips/рядки/акордеон), не інший колір. Контракт форми/калькулятора зберігати.
 - `twin_check.py` падає на: однаковий inventory/variant-map/slug-set, ≥72% inventory, positional ≥60% проти 2+ планів,
