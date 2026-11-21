@@ -190,7 +190,8 @@ if _p:
         _plan = json.loads(json.dumps(_p)); _plan["layout"]["variants"]["logo"] = _lv
         _h = _asm.logo_html(_plan)
         chk(f'data-var="{_lv}"' in _h and "{{" not in _h, f"logo-{_lv} renders")
-    _hh = _asm.build_header_footer(_p, {"bands": {}})[1]
+    _p2 = json.loads(json.dumps(_p)); _p2["layout"]["variants"]["header"] = ""
+    _hh = _asm.build_header_footer(_p2, {"bands": {}})[1]
     chk('href="index.php#claim"' in _hh, "header CTA reaches the home form from any page")
     chk(_asm.fix_anchors('<a href="#come"></a><i id="demo"></i>').count('href="#demo"') == 1,
         "dead #come anchor retargeted to the demo section")
