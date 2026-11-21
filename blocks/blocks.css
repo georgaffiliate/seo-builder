@@ -187,12 +187,12 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-header[data-var="f"] .blk-logo{grid-area:logo}
 .blk-header[data-var="f"] .blk-btn{grid-area:cta;justify-self:end}
 .blk-header[data-var="f"] .blk-nav{grid-area:nav;padding-top:14px;border-top:1px solid var(--line)}
-.blk-header[data-var="g"]{position:relative}
-.blk-header[data-var="g"] .blk-nav{display:none;position:absolute;left:22px;right:22px;top:calc(100% - 6px);
-  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-card);padding:16px 18px;
-  flex-direction:column;gap:14px;z-index:30}
-.blk-header[data-var="g"] .blk-nav.open{display:flex}
-.blk-header[data-var="g"] .menu-toggle{display:block}
+/* header-g: inline nav on desktop, burger only on mobile — hiding a 4-item
+   menu behind a burger on a wide screen wastes free navigation */
+.blk-header[data-var="g"]{position:relative;justify-content:flex-start}
+.blk-header[data-var="g"] .blk-nav{order:1;margin-left:auto}
+.blk-header[data-var="g"] .blk-btn{order:2}
+.blk-header[data-var="g"] .menu-toggle{display:none}
 
 /* ------------------------------ hero ------------------------------------ */
 .blk-hero{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;
@@ -542,7 +542,9 @@ button,input,textarea,select{font:inherit;color:inherit}
   .blk-header[data-var="c"],.blk-header[data-var="f"]{display:flex;flex-wrap:nowrap}
   .blk-header[data-var="c"] .blk-logo{justify-self:auto}
   .blk-header[data-var="f"] .blk-nav{grid-area:auto;padding-top:0;border-top:0}
-  .blk-header[data-var="g"] .blk-nav{display:none}
+  .blk-header[data-var="g"] .blk-nav{left:0;right:0;top:calc(100% - 6px);border-radius:0;
+    border-bottom:1px solid var(--line)}
+  .blk-header[data-var="g"] .menu-toggle{display:block}
   .blk-header .blk-btn{margin-left:auto;font-size:11px;padding:10px 14px}
   .blk-hero{padding:30px 20px 44px}
   .blk-visual{min-height:0}
