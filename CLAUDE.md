@@ -40,7 +40,7 @@ python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltrek
 #   іконки  → favicon.svg/.ico/.png + apple-touch-icon.png + og-image.png з палітри бренду
 #   гейти   → node --check усіх JS + tools/mobile_lint.py (viewport/tbl-scroll/inline grid)
 #   профіль → profiles/<domain>.json (+ взаємні siblings)
-# ALL GREEN = готово; інакше exit≠0 і нічого не деплоїться.
+# ALL GREEN = готово (WARN по дублях не ламає GREEN); інакше exit≠0.
 
 # Варіант з LLM-контентом (унікальні тексти, персони й числа обирає модель):
 python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltreksc.site --with-llm
@@ -148,7 +148,9 @@ tools/profile_write.py  реєстрація profiles/<domain>.json + взаєм
 resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
 assemble.py             конструктор: plan(+content) → sites/<domain> + gates
 tools/seo_audit.py      SEO/форма/помилки gate (порт сам обирає)
-tools/twin_check.py     анти-близнюк gate: inventory/порядок/варіанти/слаги/класи (проти plans/*)
+tools/twin_check.py     анти-близнюк gate: inventory/порядок/варіанти/слаги/класи (проти plans/*);
+                        ПОЛІТИКА ДУБЛІВ: twin_check і повтор комбо палітра×скін = WARN у лозі,
+                        а не блок збірки (валідатор контенту лишается жорстким)
 blocks/blocks.css       єдина geometric-мова (responsive, 700/1000)
 blocks/blk-*.html       канонічні фрагменти + варіанти blk-<slot>-b/-c ({{PLACEHOLDER}}, {{c:path}})
 skins/ ×6               geometric character (радиуси/тіні/щільність/типографіка)

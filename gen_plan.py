@@ -272,7 +272,18 @@ def build_plan(rng, args, hist)->dict|None:
             if (s,p["id"]) not in used_combo:
                 chosen=(p,s); break
         if chosen: break
-    if not chosen: return None
+    if not chosen:
+        # paint budget (all skin+palette combos) is used up: reuse, but stay away
+        # from the two neighbours — the caller logs this as a WARN, not a failure
+        reused=True
+        pool=[p for p in pals if p["id"] not in used_pal] or pals
+        rng.shuffle(pool)
+        for p in pool:
+            s_opts=[s for s in p["good_skins"] if s not in {h["skin"] for h in last2}] or list(p["good_skins"]) or SKINS
+            chosen=(p, s_opts[0]); break
+        if not chosen: return None
+    else:
+        reused=False
     pal, skin=chosen
 
     # hero ≠ neighbours
@@ -406,6 +417,11 @@ def build_plan(rng, args, hist)->dict|None:
     # two of them on one page read as a duplicated block (seen live)
     for extra in [s for s in ("faq", "compare", "mini-faq") if s in order][1:]:
         order.remove(extra)
+    # exclusions above may shorten the order below the structural minimum — top up
+    if len(order)<10:
+        for s in ("notes","ticker","streams","glance","timeline"):
+            if s not in order: order.append(s)
+            if len(order)>=10: break
 
     inner={pg:rng.choice(v) for pg,v in sorted(INNER_SKELETONS.items())}
     for _ in range(10):
@@ -469,6 +485,7 @@ def build_plan(rng, args, hist)->dict|None:
             "lang":args.lang,"locale":f"{args.lang}-{(args.cc or LANG2CC.get(args.lang,args.lang.upper())).upper()}",
             "domain":args.domain,"currency":args.currency,"cc":(args.cc or LANG2CC.get(args.lang,"")).upper()},
         "identity":{"archetype":rng.choice(sorted(ARCHETYPES)),"tone":rng.choice(sorted(TONES))},
+        "_combo_reused":reused,
         "regulator":regulator(args.lang, args.cc or ""),
         "design":{"palette_id":pal["id"],"theme":pal["theme"],"skin":skin,
                    "font_pair":pal["font_pair"],"fonts":{"head":pal["font_head"],"body":pal["font_body"]}},
@@ -802,8 +819,8 @@ def validate(plan,hist)->list[str]:
             errs.append(f"widget set equals {h['domain']}"); break
     if any(h["palette"]==plan["design"]["palette_id"] for h in last2): errs.append("palette repeats neighbour")
     if any(h["skin"]==plan["design"]["skin"] for h in last2): errs.append("skin repeats neighbour")
-    if any(h["combo"]==(plan["design"]["skin"],plan["design"]["palette_id"]) for h in hist):
-        errs.append("skin+palette combo used before")
+    # NOTE: skin+palette combo reuse is NOT an error any more (paint budget of
+    # 90 combos exhausts at site #91) — gen_plan logs it as a WARN instead
     if last2 and all(seq_overlap(plan["layout"]["section_order"],h["order"])>=0.6 for h in last2):
         errs.append("section order too close")
     used_people={n for h in hist for n in h["people"]}
@@ -943,17 +960,27 @@ def main():
     if not a.seed:
         a.seed=int(hashlib.sha256((a.domain+a.brand).encode()).hexdigest()[:8],16)%10_000_000
     hist0=[h for h in load_history() if h["domain"]!=a.domain]
-    chosen=None; first_errs=[]
+    chosen=None; first_errs=[]; fallback=None
     for bump in range(200):
         rng=rng_from(a.seed+bump)
         cand=build_plan(rng,a,hist0)
         if not cand: continue
+        if bump==0 or not fallback: fallback=(cand,first_errs or validate(cand,hist0))
         errs=validate(cand,hist0)
         if not errs: chosen=cand; chosen["seed"]=a.seed+bump; break
         if bump==0: first_errs=errs
     if not chosen:
-        if a.force and cand: chosen=cand; chosen["_warnings"]=first_errs
-        else: print(f"FAILED: no valid plan in 200 retries; {first_errs}"); sys.exit(1)
+        if fallback:
+            chosen=fallback[0]; chosen["seed"]=a.seed
+            chosen["_warnings"]=[f"validation not fully satisfied (duplicate-pattern policy: warn, not block): {'; '.join(fallback[1]) or '—'}"]
+            print("WARN: no candidate passed every uniqueness check after 200 retries —")
+            print(f"WARN: proceeding with best-effort plan (warnings: {first_errs})")
+        else:
+            print(f"FAILED: no valid plan in 200 retries; {first_errs}"); sys.exit(1)
+    if chosen.pop("_combo_reused",False):
+        w="paint combo (skin+palette) already used in history — reused per duplicates-warn policy"
+        chosen.setdefault("_warnings",[]).append(w)
+        print("WARN: "+w)
     content_f = ROOT / "content" / f"{a.domain}-content.json"
     if content_f.exists() and not a.force:
         sync = sync_plan_from_content(chosen, content_f)
