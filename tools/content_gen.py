@@ -66,7 +66,17 @@ def fmt_amount(value: float, cur: str, decimals: bool = False) -> str:
 def build(plan: dict, bank_all: dict) -> dict:
     p = plan["params"]
     lang = p["lang"]
-    bank = bank_all.get(lang) or bank_all["en"]
+    # deep merge: lang bank wins per key, en fills everything missing
+    # (thin/partial banks must never crash the fallback path)
+    def _merge(en: dict, loc: dict) -> dict:
+        out = {**en, **loc}
+        for k, v in loc.items():
+            if isinstance(v, dict) and isinstance(en.get(k), dict):
+                out[k] = _merge(en[k], v)
+        return out
+    _en = bank_all.get("en") or {}
+    _src = bank_all.get(lang) or {}
+    bank = _merge(_en, _src) if _src else _en
     cc = (p.get("cc") or "").upper()
     cur = (p.get("currency") or "EUR").upper()
     sym = {"EUR": "€", "CZK": "Kč", "PLN": "zł", "HUF": "Ft", "NOK": "kr",
