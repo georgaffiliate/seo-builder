@@ -100,7 +100,9 @@ def load(p: pathlib.Path, default=None):
     try: return json.loads(p.read_text(encoding="utf-8"))
     except FileNotFoundError: return default
 
-def esc(s): return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
+def esc(s):
+    if isinstance(s, (list, dict)): s = ""  # never print python repr into HTML
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
 
 def _on_dark(hex_color: str, min_l: float = 0.62) -> str:
     """Lift a palette color to a readable-on-dark lightness (keeps the hue).
@@ -155,10 +157,24 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     dep_pat = re.compile(r"(€\s?250\b|250\s?€|\b\d{2,3}\s?(000|k)\s?(NOK|zł|Kč|Ft)\b)", re.I)
     meta_blob = " ".join(str(v) for v in (content.get("meta") or {}).values())
     if dep_pat.search(meta_blob): errs.append("deposit-like amount in meta fields")
-    # hero strings non-empty in strict mode
+    # hero strings non-empty in strict mode (and never lists/dicts — a stray
+    # LLM list would otherwise reach esc()/fill() and render as junk)
     if strict:
         for k, v in (content.get("hero") or {}).items():
+            if isinstance(v, (list, dict)) and k not in ("stats", "device_rows"):
+                errs.append(f"hero.{k} is a list/dict"); continue
             if isinstance(v, str) and not v.strip(): errs.append(f"hero.{k} empty")
+        for grp, keys in (("bands", ("mid_eyebrow", "mid_h2", "mid_lead", "form_title",
+                                     "form_sub", "form_consent", "submit", "submit_nav")),
+                          ("footer", ("tagline", "disclaimer", "risk_line"))):
+            node = content.get(grp) or {}
+            for k in keys:
+                v = node.get(k)
+                if v is None: continue
+                if isinstance(v, (list, dict)): errs.append(f"{grp}.{k} is a list/dict")
+                elif isinstance(v, str) and not v.strip(): errs.append(f"{grp}.{k} empty")
+        for k, v in (content.get("meta") or {}).items():
+            if isinstance(v, (list, dict)): errs.append(f"meta.{k} is a list/dict")
     # reviews consistency with plan numbers
     n = plan.get("numbers", {})
     rv = content.get("reviews", {})

@@ -63,7 +63,11 @@
    ],
    "device_aria": "Anteprima del portafoglio",
    "device_note": "Illustrazione · dati di esempio",
-   "device_label": "Conto operativo"
+   "device_label": "Conto operativo",
+   "device_tag1": "Segnale AI",
+   "device_risk": "Rischio",
+   "device_safe": "Sotto controllo",
+   "trust_label": "recensioni verificate"
   },
   "bands": {
    "mid_eyebrow": [
@@ -813,7 +817,11 @@
    ],
    "device_aria": "Ukázka přehledu",
    "device_note": "Ilustrace · ukázková data",
-   "device_label": "Účet v provozu"
+   "device_label": "Účet v provozu",
+   "device_tag1": "AI signál",
+   "device_risk": "Riziko",
+   "device_safe": "Pod kontrolou",
+   "trust_label": "ověřených recenzí"
   },
   "bands": {
    "mid_eyebrow": [
@@ -1568,7 +1576,11 @@
    ],
    "device_aria": "Portfolio preview",
    "device_note": "Illustration · sample data",
-   "device_label": "Trading account"
+   "device_label": "Trading account",
+   "device_tag1": "AI signal",
+   "device_risk": "Risk",
+   "device_safe": "Under control",
+   "trust_label": "verified reviews"
   },
   "bands": {
    "mid_eyebrow": [
