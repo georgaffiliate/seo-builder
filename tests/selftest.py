@@ -64,6 +64,10 @@ _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img
 chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
     "audit flags the same review portrait used twice")
 # the same instrument written differently must still be recognised (strip vs ticker)
+chk(_sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>87.450</td>") == {}
+    and _sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>5.320,50</td>") != {}
+    and _sa2.audit_market_prices("EUR/USD 500 miliardi e EUR/USD 1,0842") == {},
+    "price gate: same symbol twice is caught, prose numbers are not a quote")
 chk(bool(set(_asm3._sym_keys("BTC / EUR")) & set(_asm3._sym_keys("BTC/EUR"))) and
     bool(set(_asm3._sym_keys("XAU/EUR")) & set(_asm3._sym_keys("GOLD/EUR"))) and
     bool(set(_asm3._sym_keys("DAX 40")) & set(_asm3._sym_keys("DAX40"))),

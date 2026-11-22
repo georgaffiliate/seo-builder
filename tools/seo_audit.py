@@ -316,12 +316,20 @@ def audit_market_prices(html):
     seen = defaultdict(set)
     sym_re = re.compile(r"\b([A-Z]{2,5}\s?/\s?[A-Z]{3}|DAX\s?40|FTSE\s?MIB|IBEX\s?35|Brent|WTI)\b")
     for m in sym_re.finditer(text):
-        tail = text[m.end():m.end() + 40]
-        num = re.search(r"\d[\d.,]{1,12}\d", tail)
+        # the figure must sit right next to the symbol (quote rows, tables). A wider
+        # window paired a symbol with a number from the surrounding sentence, e.g.
+        # "EUR/USD … 500 miliardi" looked like a second price for the pair.
+        tail = text[m.end():m.end() + 22]
+        num = re.match(r"[\s:+=~\u2013\u2014-]*(\d[\d.,]{0,12}\d)", tail)
         if not num:
             continue
+        token = num.group(1)
+        # a bare integer ("500 miliardi", "3 giorni") is not a quote: prices in these
+        # templates always carry a decimal or a thousands separator
+        if "." not in token and "," not in token and len(token) < 4:
+            continue
         sym = re.sub(r"\s+", "", m.group(1)).upper()
-        seen[sym].add(num.group(0).strip(".,"))
+        seen[sym].add(token.strip(".,"))
     return {s: sorted(v) for s, v in seen.items() if len(v) > 1}
 
 
