@@ -192,6 +192,10 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         if slot not in order: continue
         arr = ((content.get("sections") or {}).get(slot) or {}).get(key) \
               if slot != "reviews" else (rv.get("items") or [])
+        if not isinstance(arr, list):
+            # a model that answers "null" here used to crash the validator
+            errs.append(f"sections.{slot}.{key} is not an array ({type(arr).__name__})")
+            arr = []
         good = [x for x in arr if _nonempty(x)]
         if len(good) < need:
             errs.append(f"sections.{slot}.{key} empty or shorter than {need} ({len(good)} valid)")
@@ -201,7 +205,11 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
                 if isinstance(v, list) or not str(v or "").strip():
                     errs.append(f"sections.{slot}.{k} missing or a raw list")
     # faq answers shorter than ~2 sentences read as stubs on live pages
-    for it in ((content.get("faq") or {}).get("items") or []):
+    faq_items = ((content.get("faq") or {}).get("items") or [])
+    if not isinstance(faq_items, list):
+        errs.append("faq.items is not an array")
+        faq_items = []
+    for it in faq_items:
         a = it.get("a") if isinstance(it, dict) else ""
         if not isinstance(a, str) or not a.strip():
             errs.append("faq answer empty")

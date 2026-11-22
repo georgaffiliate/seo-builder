@@ -49,6 +49,18 @@ for _f in (ROOT / "blocks").glob("blk-*.html"):
     if _left:
         _hard[_f.name] = sorted(_left)[:4]
 chk(not _hard, f"no hardcoded copy in fragments ({'; '.join(f'{k}: {v}' for k, v in list(_hard.items())[:3]) or 'clean'})")
+# a model that answers null for an array must produce a repair instruction, not a traceback
+_broken = {"sections": {"facts": {"points": None}, "portal": {"cards": None}},
+           "reviews": {"items": None}, "faq": {"items": None},
+           "hero": {}, "bands": {}, "meta": {}}
+_broken_plan = {"numbers": {}, "params": {"brand": "X", "domain": "x.site"},
+                "layout": {"section_order": ["facts", "portal", "reviews"]}}
+sys.path.insert(0, str(ROOT)); import assemble as _asm2
+try:
+    _be = _asm2.validate_content(_broken, _broken_plan, strict=True)
+    chk(any("not an array" in e for e in _be), "validator reports null arrays instead of crashing")
+except Exception as e:
+    chk(False, f"validator crashed on null arrays ({type(e).__name__}: {e})")
 chk("{{c:sections.stats.}}" not in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
     and "{{c:sections.stats.reviews}}" in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
     and all(f"{{{{c:sections.stats.{k}}}}}" in (ROOT / "blocks" / "blk-numbers.html").read_text()

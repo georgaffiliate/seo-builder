@@ -360,7 +360,10 @@ def ledger_errors(hv: dict) -> list[str]:
 
 
 def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
-    errs = list(assemble.validate_content(pack, plan, strict=True))
+    try:
+        errs = list(assemble.validate_content(pack, plan, strict=True))
+    except Exception as e:            # a broken shape must become a repair instruction,
+        errs = [f"content pack structure invalid ({type(e).__name__}: {e})"]   # not a traceback
     # JSON-LD on the home page carries meta.description, faq, brand_note, sections — the
     # audit bans deposit amounts anywhere outside form_consent.
     scanned = {k: v for k, v in pack.items()
