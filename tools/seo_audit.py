@@ -11,6 +11,7 @@ Add to BUILD.sh before deploy step:
   python3 ../../seo_audit.py . || exit 1
 """
 import json, os, re, socket, subprocess, sys, time, urllib.request, urllib.error
+from html import unescape
 from html.parser import HTMLParser
 from collections import defaultdict
 
@@ -260,6 +261,44 @@ def audit_review_avatars(html):
     return dup
 
 
+def audit_duplicate_paragraphs(html):
+    """Copy pasted twice on one page (timeline + card grid of the same four texts).
+
+    Live bug: the inner-page assembler printed the block array once as a numbered
+    timeline and again as a card grid, so half the page was a verbatim repeat.
+    """
+    items = []
+    for raw in re.findall(r"<p[^>]*>(.*?)</p>", html, re.S | re.I):
+        t = " ".join(unescape(re.sub(r"<[^>]+>", " ", raw)).split())
+        if len(t) >= 45:
+            items.append(t)
+    return sorted({t for t in items if items.count(t) > 1})
+
+
+def audit_plain_emails(html):
+    """Plain-text addresses / mailto links in markup.
+
+    The hosting proxy (Cloudflare) rewrites them into an obfuscated span whose decode
+    script the panel does not serve: visitors see "[email protected]" and the link
+    404s. Contacts must be assembled in JS from data-uid/data-domain instead.
+    """
+    without_ld = re.sub(r"<script[^>]+ld\+json[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
+    hits = set(m.lower() for m in re.findall(r'mailto:([^"\'>\s?]+)', without_ld, re.I))
+    text_only = re.sub(r"<[^>]+>", " ", without_ld)
+    hits |= set(m.lower() for m in re.findall(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", text_only, re.I))
+    return sorted(hits)
+
+
+def audit_stats_captions(html):
+    """Numbers band: the caption must be a word, not the figure repeated."""
+    bad = []
+    for chunk in re.findall(r'<div class="wrap stats-band">(.*?)</div>\s*</section>', html, re.S):
+        for cap in re.findall(r"<span>([^<]*)</span>", chunk):
+            if re.search(r"\d", cap):
+                bad.append(cap.strip())
+    return bad
+
+
 def audit_visible_cyrillic(pages):
     """Cyrillic in RENDERED page text (spot offer-language leaks)."""
     out = []
@@ -296,13 +335,25 @@ def main():
     except urllib.error.HTTPError as e:
         print(f"FATAL: index returns {e.code}"); sys.exit(1)
 
-    queue = ["/"]
-    seen_pages, titles, descs, h1_texts = {}, {}, {}, {}
-    site_brand = {"v": ""}
     # canonicalize: "/" and "/index.php" are the same page
     def canon(p):
         return "/" if p in ("/", "/index.php") else p
+    # seed the crawl from sitemap.xml as well: a page nothing links to used to be
+    # invisible to this crawl, so an orphan could ship inside the sitemap unchecked
+    sm_file = os.path.join(folder, "sitemap.xml")
+    sitemap_pages = []
+    if os.path.exists(sm_file):
+        for loc in re.findall(r"<loc>([^<]+)</loc>", open(sm_file, encoding="utf-8").read()):
+            rest = loc.split("://", 1)[-1]
+            path = rest[rest.find("/"):] if "/" in rest else "/"
+            path = canon(path or "/")
+            if path.endswith((".php", "/")) and path not in sitemap_pages:
+                sitemap_pages.append(path)
+    queue = sorted(set(["/"] + sitemap_pages))
+    seen_pages, titles, descs, h1_texts = {}, {}, {}, {}
+    site_brand = {"v": ""}
     internal_links = set()
+    inbound = defaultdict(set)   # target page → pages that link to it
     CSSISH = (".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".gif", ".webp")
 
     while queue:
@@ -321,6 +372,7 @@ def main():
                 il = canon(nu[5:].split("?")[0].split("#")[0])   # drop qs/fragment + unify home
                 if il.endswith(CHK_EXTENSIONS) and not il.endswith(CSSISH):
                     internal_links.add(il)
+                    inbound[il].add(canon(path))
         queue.extend(sorted(internal_links - set(seen_pages)))
         # page-level checks
         brand_hint = (domain_hint.split("-")[0] or domain_hint)[:12]
@@ -456,6 +508,54 @@ def main():
         dup = audit_review_avatars(html)
         chk(not dup, "ERR", f"review cards distinct /{path}",
             f"same review portrait used more than once /{path}: {dup[:3]}")
+
+    # ---- FAQPage schema must describe questions the visitor can actually read ----
+    # (variant renders 2 FAQ cards while the schema listed all 5 → structured-data risk)
+    for path, (code, html) in seen_pages.items():
+        if code != 200:
+            continue
+        visible = unescape(" ".join(_page_text_nodes(html).split()))
+        for node in extract(html, path)["jsonld"]:
+            if not isinstance(node, dict):
+                continue
+            for item in (node.get("@graph") or [node]):
+                if not isinstance(item, dict) or item.get("@type") != "FAQPage":
+                    continue
+                qs = [q.get("name", "") for q in (item.get("mainEntity") or []) if isinstance(q, dict)]
+                missing = [q for q in qs if q and q not in visible]
+                chk(not missing, "ERR", f"FAQ schema matches page /{path}",
+                    f"FAQPage asks questions that are not on /{path}: "
+                    f"{[m[:44] for m in missing[:3]]}")
+
+    # ---- the same paragraph twice on one page (timeline + card grid of one array) ----
+    for path, (code, html) in seen_pages.items():
+        dup = audit_duplicate_paragraphs(html)
+        chk(not dup, "ERR", f"no duplicated copy /{path}",
+            f"same paragraph printed twice on /{path}: “{dup[0][:70]}…”" if dup else None)
+
+    # ---- brand spacing, plain-text contacts, stats captions ----
+    brand_glue = re.compile(rf"[a-zà-ÿ]{re.escape(site_brand['v'])}", re.I) if site_brand["v"] else None
+    for path, (code, html) in seen_pages.items():
+        hits = audit_plain_emails(html)
+        chk(not hits, "ERR", f"no plain-text email /{path}",
+            f"plain-text email/mailto on /{path}: {hits[:3]} — the hosting proxy rewrites it "
+            f"into an undecodable stub; build the address in app.js via class=\"js-mail\"")
+        if brand_glue:
+            m = brand_glue.search(_page_text_nodes(html))
+            chk(not m, "ERR", f"brand spacing /{path}",
+                f"brand glued to the previous word on /{path}: “{m.group(0)[:30]}” (missing space)"
+                if m else None)
+        bad = audit_stats_captions(html)
+        chk(not bad, "ERR", f"stats captions are words /{path}",
+            f"numbers-band captions are figures instead of labels /{path}: {bad[:3]}")
+
+    # ---- no orphan pages: every sitemap URL needs an inbound internal link ----
+    for p in sitemap_pages:
+        if p == "/":
+            continue
+        srcs = inbound.get(p, set()) - {p}
+        chk(bool(srcs), "ERR", f"inbound links {p}",
+            f"ORPHAN page in sitemap — nothing links to it: {p}")
 
     srv.terminate()
 

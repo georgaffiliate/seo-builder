@@ -215,6 +215,10 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-logo .u{border-bottom:3px solid var(--acc);padding-bottom:2px}
 .blk-logo .mono{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;
   background:var(--acc);color:var(--bg);font-size:18px;margin-right:9px}
+/* monogram variant: the badge holds the first letter, the word carries the rest —
+   they must read as one word, so no flex gap between them */
+.blk-logo[data-var="c"]{gap:0}
+.blk-logo[data-var="c"] .mono{margin-right:3px}
 .blk-logo .dot{color:var(--acc);margin-left:2px}
 .blk-logo .circ{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;
   border:1.5px solid var(--acc);color:var(--acc);font-size:13px;margin-left:7px;align-self:center}
@@ -337,7 +341,7 @@ button,input,textarea,select{font:inherit;color:inherit}
   border-block:1px solid var(--line);margin-top:44px;text-align:left}
 .stats-band>div{padding:30px 18px}
 .stats-band>div+div{border-left:1px solid var(--line)}
-.stats-band strong{display:block;font-size:clamp(26px,3vw,42px);color:var(--acc-text);letter-spacing:-.03em}
+.stats-band b,.stats-band strong{display:block;font-size:clamp(26px,3vw,42px);color:var(--acc-text);letter-spacing:-.03em}
 .stats-band span{font-size:12px;font-weight:650;display:block;margin-top:10px}
 .stats-band small{font-size:10px;color:var(--muted-text);display:block;margin-top:5px}
 .fine{font-size:10.5px;color:var(--muted-text);margin-top:16px}
@@ -422,7 +426,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .big-symbol{font-size:200px;line-height:1;opacity:.22;transform:rotate(-8deg)}
 
 /* office + brand note */
-.office-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:36px}
+.office-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px;margin-top:36px}
 .office-grid small{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted-text);margin-bottom:9px}
 .office-grid b{font-size:14px;line-height:1.7}
 .brand-note-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px}

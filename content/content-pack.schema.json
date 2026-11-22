@@ -123,7 +123,7 @@
 
   "office": {"eyebrow":"…","h2":"…","lead":"…",
               "addr_label":"…","addr":"…","hours_label":"…","hours":"…",
-              "contact_label":"…"},
+              "phone_label":"…","email_label":"…","contact_label":"…"},
 
   "brand_note": {"eyebrow":"…","badge":"бейдж бренд-ноти (короткий, верхній регістр)","h2":"Бренд + ключ",
                    "p1":"або-фрази, як шукають (login/geo)","p2":"теми + якорі на внутрішні"},

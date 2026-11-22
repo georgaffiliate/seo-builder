@@ -276,6 +276,10 @@ def brief(plan: dict) -> dict:
             "No deposit amount in meta, hero, or any h2. Deposit only in bands.form_consent inside <small>.",
             "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
             "Numbers: rating exactly as given; reviews/users/latency inside their bins; hero.stats uses rating, users, latency.",
+            "sections.stats.rating/reviews/orders/api are WORD captions for the numbers band (e.g. 'valoración media', 'reseñas verificadas', 'operaciones al día', 'disponibilidad de la API') — never digits, never the figure repeated.",
+            "inner_about/inner_who/inner_tech titles feed the page <title> AND the menu label: name the page's own topic (about = who we are, who = who it is for), not a different section.",
+            "Never glue the brand to the previous word: 'el login de la plataforma o Photon AI opiniones…' needs the space — 'oPhoton AI' is a defect.",
+            "office.* labels are 1–3 word captions ('Dirección', 'Horario', 'Teléfono', 'Escríbenos'), never a sentence. Do not invent e-mail or phone: they are injected from the offer and meta.email/telephone are overwritten.",
             "No return promises; local language only; concrete, plain sentences in the register of the brand.",
             "hero.device_note is the caption under the mocked panel: you write it yourself, in the plan "
             "language, as an illustration / interface-preview phrase. Placeholder wording is rejected: "
@@ -538,6 +542,31 @@ def extract_json(text: str) -> dict:
         raise
 
 
+def normalize_contacts(pack: dict, plan: dict) -> None:
+    """Contacts belong to the offer, not to the model's imagination.
+
+    Older packs can leave another geo's fallbacks (contatti@… / +39… on a .es site);
+    they shipped in both the office block and the Organization JSON-LD. Overwrite with
+    the domain's own address and a phone that matches the plan country.
+    """
+    meta = pack.get("meta")
+    if not isinstance(meta, dict):
+        pack["meta"] = meta = {}
+    c = assemble.contacts_for(plan, pack)
+    if str(meta.get("email") or "").strip().lower() != c["email"]:
+        print(f"· contacts: e-mail set to {c['email']} (pack had {meta.get('email') or '—'})")
+    if str(meta.get("telephone") or "").strip() != c["telephone"]:
+        print(f"· contacts: phone set to {c['telephone']} (pack had {meta.get('telephone') or '—'})")
+    meta["email"], meta["telephone"] = c["email"], c["telephone"]
+    if isinstance(pack.get("office"), dict):
+        assemble.office_defaults(pack, plan)
+
+
+def prepare_and_validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
+    normalize_contacts(pack, plan)
+    return validate(pack, plan, brief_data)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--plan", required=False)
@@ -622,7 +651,7 @@ def main():
     except Exception:
         pass
 
-    errs = validate(pack, plan, data)
+    errs = prepare_and_validate(pack, plan, data)
     for attempt in (1, 2):
         if not errs:
             break
@@ -650,7 +679,7 @@ def main():
                      f"Fix content/{dom}-content.json. Keep schema and language. Errors: "
                      + "; ".join(errs[:12]) + f". Rewrite the whole file. Brief: content/{dom}-brief.json.")
             pack = merge_skeleton(sk, json.loads(out.read_text(encoding="utf-8")))
-        errs = validate(pack, plan, data)
+        errs = prepare_and_validate(pack, plan, data)
 
     if errs and all("device_rows do not add up" in e for e in errs):
         # the copy is fine, only the arithmetic is off — balance the second row locally
@@ -658,9 +687,12 @@ def main():
         if content_gen.reconcile_ledger(pack):
             print("· ledger rows rebalanced against the headline (model arithmetic slip)")
             out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
-            errs = validate(pack, plan, data)
+            errs = prepare_and_validate(pack, plan, data)
     if errs:
         die("LLM pack still invalid: " + "; ".join(errs[:8]))
+    # contacts are deterministic — persist whatever the normalizer settled on
+    normalize_contacts(pack, plan)
+    out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
     items = pack["reviews"]["items"]
     plan["people"] = [it["name"] for it in items]
     plan["photos"] = [it["photo"] for it in items]

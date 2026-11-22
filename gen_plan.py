@@ -247,13 +247,13 @@ MENU_POOLS = {
     "fallback": [["Home","About","Tech","Contact"],["Home","Method","Platform","Support"],["Home","About","Tools","Contact"]]
 }
 SLUG_POOLS = {
-    "cs": {"about": ["o-nas", "o-projektu", "pribeh"], "contact": ["kontakt", "podpora", "spojeni"], "register": ["registrace", "ucet", "zalozit-ucet"], "who": ["jak-pracujeme", "jak-to-funguje", "metoda"]},
-    "it": {"about": ["chi-siamo", "progetto", "programma", "redazione"], "contact": ["contatti", "parliamo", "scrivici", "supporto"], "register": ["accesso", "inizia", "iscrizione", "registrati"], "who": ["come-lavoriamo", "metodo", "motore", "piattaforma"]},
+    "cs": {"about": ["o-nas", "o-projektu", "pribeh"], "contact": ["kontakt", "podpora", "spojeni"], "register": ["registrace", "ucet", "zalozit-ucet"], "who": ["pro-koho", "komu-pomahame", "profily", "uzivatele"]},
+    "it": {"about": ["chi-siamo", "progetto", "programma", "redazione"], "contact": ["contatti", "parliamo", "scrivici", "supporto"], "register": ["accesso", "inizia", "iscrizione", "registrati"], "who": ["per-chi", "a-chi-serve", "profili", "utenti"]},
     "es": {"about": ["equipo", "quienes-somos", "sobre-nosotros", "proyecto"],
            "contact": ["contacto", "hablanos", "escribenos", "soporte"],
            "register": ["registro", "empezar", "crear-cuenta", "unete"],
-           "who": ["metodo", "como-funciona", "como-trabajamos", "plataforma"]},
-    "fallback": {"about": ["about","project"], "who": ["how-it-works","method"],
+           "who": ["para-quien", "a-quien-se-dirige", "perfiles", "usuarios"]},
+    "fallback": {"about": ["about","project"], "who": ["who-its-for","audience","for-whom"],
                  "contact": ["contact","contacts"], "register": ["register","open-account"]}
 }
 

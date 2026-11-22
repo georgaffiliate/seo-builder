@@ -63,7 +63,26 @@ FOOTER_L10N = {
 
 TERMS_L10N = {"it": ("Termini di servizio", "Informativa privacy", "Grazie — richiesta ricevuta"),
                "cs": ("Podmínky služby", "Zásady ochrany osobních údajů", "Děkujeme — žádost přijata"),
+               "sk": ("Podmienky používania", "Zásady ochrany osobných údajov", "Ďakujeme — žiadosť prijatá"),
+               "pl": ("Warunki korzystania", "Polityka prywatności", "Dziękujemy — zgłoszenie przyjęte"),
+               "de": ("Allgemeine Geschäftsbedingungen", "Datenschutzerklärung", "Danke — Anfrage erhalten"),
+               "fr": ("Conditions de service", "Politique de confidentialité", "Merci — demande reçue"),
                "es": ("Términos del servicio", "Política de privacidad", "Gracias — solicitud recibida"),
+               "pt": ("Termos de serviço", "Política de privacidade", "Obrigado — pedido recebido"),
+               "nl": ("Servicevoorwaarden", "Privacybeleid", "Bedankt — aanvraag ontvangen"),
+               "hu": ("Szolgáltatási feltételek", "Adatvédelmi irányelvek", "Köszönjük — kérését megkaptuk"),
+               "ro": ("Termeni și condiții", "Politica de confidențialitate", "Mulțumim — cererea a fost primită"),
+               "bg": ("Условия за ползване", "Политика за поверителност", "Благодарим — заявката е получена"),
+               "el": ("Όροι χρήσης", "Πολιτική απορρήτου", "Ευχαριστούμε — το αίτημα ελήφθη"),
+               "hr": ("Uvjeti korištenja", "Pravila privatnosti", "Hvala — zahtjev je zaprimljen"),
+               "sl": ("Pogoji uporabe", "Politika zasebnosti", "Hvala — povpraševanje prejeto"),
+               "lt": ("Paslaugų sąlygos", "Privatumo politika", "Dėkojame — užklausa gauta"),
+               "lv": ("Pakalpojuma noteikumi", "Privātuma politika", "Paldies — pieprasījums saņemts"),
+               "et": ("Kasutustingimused", "Privaatsuspoliitika", "Aitäh — taotlus on vastu võetud"),
+               "fi": ("Palveluehdot", "Tietosuojakäytäntö", "Kiitos — pyyntö vastaanotettu"),
+               "sv": ("Användarvillkor", "Integritetspolicy", "Tack — förfrågan mottagen"),
+               "da": ("Servicevilkår", "Privatlivspolitik", "Tak — anmodning modtaget"),
+               "nb": ("Vilkår for bruk", "Personvernerklæring", "Takk — forespørselen er mottatt"),
                "en": ("Terms of service", "Privacy policy", "Thank you — request received")}
 
 # 404 headline + back-home label per geo language (fallback English)
@@ -92,6 +111,45 @@ NOTFOUND_L10N = {
     "nb": ("Siden ble ikke funnet", "Tilbake til startsiden"),
 }
 
+# Phone prefixes per country — mirrors tools/content_gen.PHONE_CC (keep in sync).
+# A +39 number on a .es offer is the sort of leak that reads as a copied template,
+# so the phone is checked against the plan country and regenerated when it drifts.
+PHONE_CC = {"IT": "+39", "CZ": "+420", "SK": "+421", "PL": "+48", "DE": "+49",
+            "AT": "+43", "FR": "+33", "BE": "+32", "NL": "+31", "ES": "+34",
+            "PT": "+351", "HU": "+36", "RO": "+40", "BG": "+359", "GR": "+30",
+            "HR": "+385", "SI": "+386", "LT": "+370", "LV": "+371", "EE": "+372",
+            "FI": "+358", "SE": "+46", "DK": "+45", "NO": "+47", "IE": "+353"}
+LANG_CC = {"it": "IT", "cs": "CZ", "sk": "SK", "pl": "PL", "de": "DE", "fr": "FR",
+           "es": "ES", "pt": "PT", "nl": "NL", "hu": "HU", "ro": "RO", "bg": "BG",
+           "el": "GR", "hr": "HR", "sl": "SI", "lt": "LT", "lv": "LV", "et": "EE",
+           "fi": "FI", "sv": "SE", "da": "DK", "nb": "NO", "en": "IE"}
+# office cell labels used when the pack leaves them out (addr/hours/phone/contact/email)
+OFFICE_L10N = {
+    "cs": ("Adresa", "Otevírací doba", "Telefon", "Napište nám", "Napište e-mailem"),
+    "sk": ("Adresa", "Otváracie hodiny", "Telefón", "Napíšte nám", "Napíšte e-mailom"),
+    "pl": ("Adres", "Godziny", "Telefon", "Napisz do nas", "Napisz e-mail"),
+    "de": ("Adresse", "Öffnungszeiten", "Telefon", "Schreiben Sie uns", "E-Mail schreiben"),
+    "fr": ("Adresse", "Horaires", "Téléphone", "Écrivez-nous", "Écrivez un e-mail"),
+    "it": ("Indirizzo", "Orari", "Telefono", "Scrivici", "Scrivici via e-mail"),
+    "es": ("Dirección", "Horario", "Teléfono", "Escríbenos", "Escríbenos por correo"),
+    "pt": ("Endereço", "Horário", "Telefone", "Escreva-nos", "Envie um e-mail"),
+    "nl": ("Adres", "Openingstijden", "Telefoon", "Mail ons", "E-mail ons"),
+    "hu": ("Cím", "Nyitvatartás", "Telefonszám", "Írjon nekünk", "Írjon e-mailt"),
+    "ro": ("Adresă", "Program", "Telefon", "Scrieți-ne", "Scrieți un e-mail"),
+    "bg": ("Адрес", "Работно време", "Телефон", "Пишете ни", "Пишете имейл"),
+    "el": ("Διεύθυνση", "Ώρες", "Τηλέφωνο", "Επικοινωνήστε", "Στείλτε email"),
+    "hr": ("Adresa", "Radno vrijeme", "Telefon", "Pišite nam", "Pošaljite e-mail"),
+    "sl": ("Naslov", "Delovni čas", "Telefon", "Pišite nam", "Pišite po e-pošti"),
+    "lt": ("Adresas", "Darbo laikas", "Telefonas", "Rašykite mums", "Rašykite el. paštu"),
+    "lv": ("Adrese", "Darba laiks", "Tālrunis", "Rakstiet mums", "Rakstiet e-pastu"),
+    "et": ("Aadress", "Lahtiolekuajad", "Telefon", "Kirjutage meile", "Kirjutage e-kiri"),
+    "fi": ("Osoite", "Aukioloajat", "Puhelin", "Ota yhteyttä", "Lähetä sähköpostia"),
+    "sv": ("Adress", "Öppettider", "Telefon", "Skriv till oss", "Skicka e-post"),
+    "da": ("Adresse", "Åbningstider", "Telefon", "Skriv til os", "Send e-mail"),
+    "nb": ("Adresse", "Åpningstider", "Telefon", "Skriv til oss", "Send e-post"),
+    "en": ("Address", "Hours", "Phone", "Contact us", "Email us"),
+}
+
 # ---------------------------------------------------------------- utilities --
 def die(msg, code=1): print(f"✗ {msg}"); sys.exit(code)
 def ok(msg): print(f"✓ {msg}")
@@ -116,6 +174,82 @@ def _on_dark(hex_color: str, min_l: float = 0.62) -> str:
     return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
 
 def php_str(s): return (s or "").replace("'", "\\'")
+
+def clamp_meta(text, limit: int = 155) -> str:
+    """Meta description that never ends mid-word or on a dangling connective.
+
+    content packs carry a long `lead`; slicing it at 155 chars produced snippets like
+    "…ni ter" in the SERP. Prefer the last sentence that fits, then the last whole word,
+    and never leave a trailing "…sin hojas ni".
+    """
+    t = " ".join(str(text or "").split())
+    if len(t) <= limit:
+        return t.strip(" .,;:—-")
+    cut = t[:limit]
+    body = ""
+    for sep in (". ", "! ", "? ", "; "):
+        i = cut.rfind(sep)
+        if i >= 70:
+            body = cut[:i + 1]
+            break
+    if not body:
+        i = cut.rfind(" ")
+        body = cut[:i] if i >= 70 else cut
+        words = body.split()
+        while words and words[-1].lower().strip(".,") in WEAK_TAIL:
+            words.pop()
+        body = " ".join(words)
+    return body.strip(" .,;:—-")
+
+def contacts_for(plan, C: dict) -> dict:
+    """Email + phone that belong to this offer's domain and country.
+
+    Older/LLM packs can leave a foreign fallback (contatti@… / +39… on a .es site);
+    the visible office block and the Organization JSON-LD both read from here so the
+    two can never disagree.
+    """
+    dom = plan["params"]["domain"]
+    cc = (plan["params"].get("cc") or LANG_CC.get(plan["params"].get("lang", ""), "")).upper()
+    meta = C.get("meta") or {}
+    # the address always belongs to the offer, with a locale-neutral local part:
+    # a pack that copies "contatti@…" onto a .es site reads as a copy-paste template
+    email = f"info@{dom}"
+    tel = str(meta.get("telephone") or "").strip()
+    pref = PHONE_CC.get(cc, "")
+    valid = bool(re.fullmatch(r"\+[\d][\d\s().-]{6,}", tel))
+    if valid and pref and not tel.replace(" ", "").startswith(pref):
+        valid = False  # right format, wrong country
+    if not valid:
+        rng = random.Random(f"{plan.get('seed', 0)}:{dom}:contact")
+        digits = " ".join(str(rng.randint(100, 999)) for _ in range(2)) + f" {rng.randint(1000, 9999)}"
+        tel = f"{pref} {digits}".strip() if pref else f"+00 {digits}"
+    return {"email": email, "telephone": tel}
+
+def office_defaults(C: dict, plan) -> None:
+    """Fill contact cells the pack may omit and reject sentence-style labels."""
+    lang = plan["params"].get("lang", "en")
+    addr_l, hours_l, phone_l, contact_l, email_l = OFFICE_L10N.get(lang, OFFICE_L10N["en"])
+    office = C.setdefault("office", {})
+    for key, val in (("addr_label", addr_l), ("hours_label", hours_l),
+                     ("phone_label", phone_l), ("contact_label", contact_l),
+                     ("email_label", email_l)):
+        cur = str(office.get(key) or "").strip()
+        # a label is a label: "Correo de contacto disponible en tu panel de usuario"
+        # rendered as a <small> caption and broke the office grid rhythm
+        if not cur or len(cur.split()) > 4:
+            office[key] = val
+    if not str(office.get("addr") or "").strip():
+        office["addr"] = str(plan["params"].get("geo") or "").strip()
+
+def finish_page(page: str, plan, C: dict) -> str:
+    """Shared final pass: domain/brand + contact placeholders used by blocks."""
+    dom = plan["params"]["domain"]; brand = plan["params"]["brand"]
+    c = contacts_for(plan, C)
+    return (page.replace("{DOM}", dom).replace("{BRAND}", brand)
+                .replace("{{PHONE_TEL}}", re.sub(r"[^\d+]", "", c["telephone"]))
+                .replace("{{PHONE}}", c["telephone"])
+                .replace("{{EMAIL}}", c["email"]))
+
 
 # ---------------------------------------------------------------- validation -
 def validate_plan(plan: dict) -> None:
@@ -228,6 +362,54 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
             errs.append("faq answer empty")
         elif len(a.strip()) < 120:
             errs.append(f"faq answer too short ({len(a.strip())} chars): {a[:40]}…")
+    # ---- stats captions are WORDS, never the numbers they describe -----------
+    # (live bug: 4,7/5 → caption "4,7", 1.405 → caption "1.280": the numbers band
+    #  shipped as a wall of duplicated figures with no meaning)
+    stats = ((content.get("sections") or {}).get("stats") or {})
+    if isinstance(stats, dict):
+        seen_lbl = {}
+        for key in ("rating", "reviews", "orders", "api"):
+            v = str(stats.get(key) or "").strip()
+            if not v:
+                continue
+            if re.search(r"\d", v):
+                errs.append(f"sections.stats.{key} must be a word label, got a number: {v[:24]}")
+            low = v.casefold()
+            if low in seen_lbl:
+                errs.append(f"sections.stats.{key} repeats the {seen_lbl[low]} label")
+            seen_lbl[low] = key
+    # ---- contacts must belong to this offer ---------------------------------
+    dom = plan["params"]["domain"]
+    cc = (plan["params"].get("cc") or LANG_CC.get(plan["params"].get("lang", ""), "")).upper()
+    meta = content.get("meta") or {}
+    email = str(meta.get("email") or "").strip()
+    if email and not re.fullmatch(rf"[a-z0-9._%+-]+@{re.escape(dom)}", email, re.I):
+        errs.append(f"meta.email {email} does not belong to {dom}")
+    tel = str(meta.get("telephone") or "").strip()
+    pref = PHONE_CC.get(cc, "")
+    if tel and pref and not tel.replace(" ", "").startswith(pref):
+        errs.append(f"meta.telephone {tel} is not a {cc} number")
+    # ---- office captions are labels, not sentences ---------------------------
+    office = content.get("office") or {}
+    for key in ("addr_label", "hours_label", "phone_label", "contact_label", "email_label"):
+        v = str(office.get(key) or "").strip()
+        if v and (len(v.split()) > 4 or v.endswith(".")):
+            errs.append(f"office.{key} is a sentence, use a short label: {v[:40]}")
+    # ---- the brand must never be glued to the previous word ------------------
+    brand = plan["params"]["brand"]
+    glue = re.compile(rf"[a-zà-ÿ]{re.escape(brand)}", re.I)
+
+    def _scan(node, path=""):
+        if isinstance(node, str):
+            hit = glue.search(node)
+            if hit:
+                errs.append(f"{path or 'pack'}: brand glued to a word (missing space): "
+                            f"{hit.group(0)[:24]}")
+        elif isinstance(node, dict):
+            for k, v in node.items(): _scan(v, f"{path}.{k}".strip("."))
+        elif isinstance(node, list):
+            for i, v in enumerate(node): _scan(v, f"{path}.{i}")
+    _scan(content)
     return errs
 
 # ---------------------------------------------------------------- content ----
@@ -346,8 +528,38 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
 INC_HEAD = "<?php include __DIR__ . '/api_local/integration/header.php'; ?>"
 INC_FOOT = "<?php include __DIR__ . '/api_local/integration/footer.php'; ?>"
 
+def safe_emails(html: str) -> str:
+    """No plain-text address may reach the markup.
+
+    The hosting proxy rewrites addresses into an obfuscated span whose decoder the
+    panel does not serve: visitors see "[email protected]" and the link 404s. Copy that
+    names the address (legal pages, thanks) keeps it, but as a JS-assembled link.
+    """
+    def _anchor(u: str, d: str) -> str:
+        return (f'<a class="js-mail" href="index.php#claim" data-u="{esc(u)}" '
+                f'data-d="{esc(d)}">{esc(u)}<span aria-hidden="true"> [at] </span>{esc(d)}</a>')
+
+    def _from_href(m):
+        u, _, d = m.group(1).strip().partition("@")
+        return _anchor(u, d) if d else m.group(0)
+
+    html = re.sub(r'<a\b[^>]*\bhref="mailto:([^"?]+)[^"]*"[^>]*>.*?</a>', _from_href, html,
+                  flags=re.I | re.S)
+
+    def _swap(segment: str) -> str:
+        return re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+                      lambda m: _anchor(*m.group(0).partition("@")[::2]), segment)
+    out, pos = [], 0
+    for tag in re.finditer(r"<[^>]+>", html):
+        out.append(_swap(html[pos:tag.start()]))
+        out.append(tag.group(0))
+        pos = tag.end()
+    out.append(_swap(html[pos:]))
+    return "".join(out)
+
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
                theme_color, body, og_desc="", jsonld="", noindex=False):
+    body = safe_emails(body)
     dom_css = f"<style>{esc(css_vars)}</style>"
     rob = "noindex,follow" if noindex else "index,follow"
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
@@ -494,14 +706,18 @@ def R(name: str, plan, C, **kw) -> str:
 def logo_html(plan) -> str:
     """Brand mark: the word stays lowercase (CLAUDE rule), the treatment varies per plan."""
     brand = plan["params"]["brand"]
-    word = esc(brand.split()[0].lower())
-    initial = esc(brand.split()[0][0].upper())
+    raw = brand.split()[0]
+    word = esc(raw.lower())
+    initial = esc(raw[0].upper())
+    # the mono badge carries the FIRST LETTER, so the word after it must start with
+    # the second one — "P" + "photon" read as "Pphoton" on live pages
+    tail = esc(raw[1:].lower()) if len(raw) > 2 else ""
     tld = esc(plan["params"]["domain"].rsplit(".", 1)[-1])
     v = (plan["layout"].get("variants") or {}).get("logo", "")
     inner = {
         "": f"{word}<span>↗</span>",
         "b": f'<span class="u">{word}</span>',
-        "c": f'<span class="mono">{initial}</span>{word}',
+        "c": f'<span class="mono">{initial}</span>{tail}' if tail else word,
         "d": f'{word}<span class="dot">·</span>',
         "e": f'{word}<span class="circ">↗</span>',
         "f": f'<span class="caps">{word}</span>',
@@ -509,6 +725,28 @@ def logo_html(plan) -> str:
         "h": f'<span class="stack">{word}<small>.{tld}</small></span>',
     }.get(v, f"{word}<span>↗</span>")
     return f'<a class="blk-logo" data-var="{v or "a"}" href="index.php" aria-label="{esc(brand)}">{inner}</a>'
+
+
+def page_nav_label(plan, C, which: str) -> str:
+    """Nav/footer wording comes from the destination page itself.
+
+    The plan's menu words are a rotation axis, so they drifted away from what the
+    pages say ("Cómo funciona" sat over a company-history page, "Método" over an
+    audience page). A page's own title is coherent by construction.
+    """
+    brand = plan["params"]["brand"]
+    labels = PAGE_LABELS.get(plan["params"].get("lang", "en"), PAGE_LABELS["en"])
+    cp = C.get(f"inner_{which}") or {}
+    raw = str(cp.get("title") or "").strip()
+    if raw:
+        cand = re.sub(rf"\b{re.escape(brand)}\b", " ", raw, flags=re.I)
+        cand = re.sub(r"\s{2,}", " ", cand).strip(" .,;:—–|")
+        words = cand.split()
+        head = " ".join(words[:4])
+        if (2 <= len(words) <= 4 and len(head) <= 26
+                and words[-1].lower().strip(".,") not in WEAK_TAIL):
+            return head
+    return labels.get(which, which.title())
 
 
 def footer_html(plan, C):
@@ -532,8 +770,13 @@ def footer_html(plan, C):
     pays = ft.get("pay_chips") or "VISA · Mastercard · Bank transfer"
     slugs = plan["layout"].get("slugs", {})
     menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
-    pairs = [(menu[0], "index.php"), (menu[1], f"{slugs.get('about','about')}.php"),
-             (menu[2], f"{slugs.get('who','who')}.php"), (menu[3], f"{slugs.get('contact','contact')}.php")]
+    pairs = [(menu[0] if str(menu[0]).strip() else "Home", "index.php"),
+             (page_nav_label(plan, C, "about"), f"{slugs.get('about','about')}.php"),
+             (page_nav_label(plan, C, "who"), f"{slugs.get('who','who')}.php"),
+             (page_nav_label(plan, C, "contact"), f"{slugs.get('contact','contact')}.php"),
+             # the registration page carries the same form; linking it from every footer
+             # keeps it from being an orphan that only the sitemap knows about
+             (page_nav_label(plan, C, "register"), f"{slugs.get('register','register')}.php")]
     logo = logo_html(plan)
 
     def links(items):
@@ -589,9 +832,14 @@ def footer_html(plan, C):
 
 def build_header_footer(plan, C):
     brand = plan["params"]["brand"]; slugs = plan["layout"].get("slugs", {})
+    lang = plan["params"].get("lang", "en")
     menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
-    pairs = [(menu[0], "index.php"), (menu[1], f"{slugs.get('about','about')}.php"),
-              (menu[2], f"{slugs.get('who','who')}.php"), (menu[3], f"{slugs.get('contact','contact')}.php")]
+    labels = PAGE_LABELS.get(lang, PAGE_LABELS["en"])
+
+    pairs = [(menu[0] if str(menu[0]).strip() else labels.get("home", "Home"), "index.php"),
+             (page_nav_label(plan, C, "about"), f"{slugs.get('about','about')}.php"),
+             (page_nav_label(plan, C, "who"), f"{slugs.get('who','who')}.php"),
+             (page_nav_label(plan, C, "contact"), f"{slugs.get('contact','contact')}.php")]
     nav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs)
     livebar = R("livebar", plan, C)
     ui = C.get("ui") or {}
@@ -660,28 +908,34 @@ def build_index(plan, C, css_vars, fonts_import, theme):
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
     m = C["meta"]
-    jsonld = build_jsonld(plan, C)
+    jsonld = build_jsonld(plan, C, body)
     title = m["title_home"].replace("{Brand}", brand)
     descr = m["description"]; kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
     page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme,
                       body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld)
     page = fix_anchors(page).replace('href="index.php#claim"', 'href="#claim"')
-    page = page.replace("{DOM}", dom).replace("{BRAND}", brand)
+    page = finish_page(page, plan, C)
     return page
 
-def build_jsonld(plan, C):
+def build_jsonld(plan, C, body: str = ""):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     n = plan["numbers"]; reg = plan.get("regulator", {})
-    fq = (C.get("faq") or {}).get("items", [])[:6]
+    # FAQPage must describe questions a visitor can actually read: variants render
+    # 2–5 FAQ items (compare/mini-faq/faq), so the schema follows the rendered body
+    # instead of the raw pack length (mismatch = structured-data risk).
+    fq = [q for q in ((C.get("faq") or {}).get("items") or [])[:6]
+          if isinstance(q, dict) and q.get("q") and q.get("a")
+          and (q["q"] in body or esc(q["q"]) in body)]
     faq_entities = ",".join(json.dumps({"@type": "Question", "name": q["q"],
         "acceptedAnswer": {"@type": "Answer", "text": q["a"]}}, ensure_ascii=False) for q in fq)
-    email = (C.get("meta") or {}).get("email") or f"contatti@{dom}"
-    tel = (C.get("meta") or {}).get("telephone") or "+390200000000"
+    contacts = contacts_for(plan, C)
+    geo = plan["params"].get("geo") or plan["params"].get("geo_short") or ""
+    alt = [brand.lower(), f"{brand} {geo}".strip(), dom, f"{brand} login"]
     org = {"@type": "FinancialService", "@id": f"https://{dom}/#org", "name": brand,
-        "alternateName": [brand.lower(), f"{brand} {plan['params'].get('geo','')}", dom, f"{brand} login"],
+        "alternateName": [a for a in alt if a],
         "url": f"https://{dom}/", "logo": f"https://{dom}/favicon.svg", "image": f"https://{dom}/og-image.png",
-        "description": C["meta"]["description"], "email": email,
-        "telephone": tel, "areaServed": plan["params"].get("geo", ""),
+        "description": C["meta"]["description"], "email": contacts["email"],
+        "telephone": contacts["telephone"], "areaServed": geo,
         "currenciesAccepted": plan["params"].get("currency", "EUR"),
         "aggregateRating": {"@type": "AggregateRating", "ratingValue": str(n.get("rating", "4,7")),
             "bestRating": "5", "worstRating": "1", "reviewCount": str(n.get("reviews", 641))}}
@@ -693,21 +947,42 @@ def build_jsonld(plan, C):
     if fq: graph.append({"@type": "FAQPage", "@id": f"https://{dom}/#faq", "mainEntity": json.loads(f"[{faq_entities}]")})
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
 
-PAGE_LABELS = {"it": {"about": "Chi siamo", "who": "Metodo", "contact": "Contatti", "register": "Registrazione"},
-                "cs": {"about": "O nás", "who": "Metoda", "contact": "Kontakt", "register": "Registrace"},
-                "es": {"about": "Quiénes somos", "who": "Método", "contact": "Contacto", "register": "Registro"},
-                "en": {"about": "About", "who": "Method", "contact": "Contact", "register": "Registration"}}
+PAGE_LABELS = {"it": {"about": "Chi siamo", "who": "Per chi", "contact": "Contatti", "register": "Registrazione"},
+                "cs": {"about": "O nás", "who": "Pro koho", "contact": "Kontakt", "register": "Registrace"},
+                "es": {"about": "Quiénes somos", "who": "Para quién", "contact": "Contacto", "register": "Registro"},
+                "en": {"about": "About", "who": "Who it's for", "contact": "Contact", "register": "Registration"}}
+
+
+TITLE_CONNECTORS = {"a", "al", "and", "auf", "bei", "con", "da", "das", "de", "del", "della",
+                    "der", "des", "di", "do", "dos", "du", "e", "en", "for", "für", "fur",
+                    "im", "in", "la", "le", "mit", "na", "ni", "o", "of", "on", "or", "para",
+                    "per", "su", "sul", "the", "to", "u", "und", "v", "y", "zu"}
+# connectives plus short verbs: a title/caption must not end on one of these
+WEAK_TAIL = TITLE_CONNECTORS | {"es", "son", "est", "sont", "ist", "are", "is", "era", "eran",
+                                "was", "were", "był", "była"}
 
 
 def brand_first(title: str, brand: str, fallback: str = "Home") -> str:
     """Brand-first title without the brand repeated twice."""
-    parts = [x.strip() for x in re.split(r"\s+[—|–]\s+", (title or "").strip()) if x.strip()]
-    parts = [re.sub(re.escape(brand), "", x, flags=re.I).strip(" .,—-") for x in parts]
-    parts = [x for x in parts if x]
-    body = " — ".join(parts) or fallback
-    body = re.sub(r"\s+(es|en|de|di|del|da|a|na|v)$", "", body, flags=re.I)
-    body = re.sub(r"\s+([?!.,])", r"\1", body).strip(" .,—-")
-    return f"{brand} — {body or fallback}"
+    parts = [x.strip() for x in re.split(r"\s+[—–|]\s+", (title or "").strip()) if x.strip()]
+    cleaned = []
+    for p in parts:
+        # whole-word removal only: "Contacto con Photon AI" keeps its "con"…
+        p = re.sub(rf"\b{re.escape(brand)}\b", " ", p, flags=re.I)
+        p = re.sub(r"\s{2,}", " ", p).strip(" .,;:—-")
+        words = p.split()
+        # …but a connector left dangling by the removal must go, otherwise the title
+        # ships as "Photon AI — Contacto con" (truncated tail on live pages)
+        while words and words[-1].lower().strip(".,") in WEAK_TAIL:
+            words.pop()
+        p = " ".join(words).strip(" .,;:—-")
+        if len(p) >= 3:
+            cleaned.append(p)
+    body = " — ".join(cleaned).strip(" .,;:—-")
+    if len(body) < 3:
+        body = fallback
+    body = re.sub(r"\s+([?!.,])", r"\1", body)
+    return f"{brand} — {body}"
 
 
 def build_inner(plan, C, css_vars, fonts_import, theme, which):
@@ -758,9 +1033,17 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     if which in ("contact", "register") and not rendered_form:
         body_parts.append(inner_slot(form_slot)); rendered_form = True
 
+    # the timeline/milestones fragment already renders cp["blocks"] (01–04), so the
+    # trailing grid printed the same four cards twice on the about page
     blocks_html = ""
+    seen_text = set()
     for b in cp.get("blocks", []):
-        blocks_html += f'<article class="blk-card"><h3>{esc(b.get("t",""))}</h3><p>{esc(b.get("d",""))}</p></article>'
+        t, d = str(b.get("t", "")).strip(), str(b.get("d", "")).strip()
+        key = (t.casefold(), d.casefold())
+        if "timeline" in done or not t or key in seen_text:
+            continue
+        seen_text.add(key)
+        blocks_html += f'<article class="blk-card"><h3>{esc(t)}</h3><p>{esc(d)}</p></article>'
     if blocks_html:
         body_parts.append(f'<section class="section"><div class="wrap"><div class="blk-grid3">{blocks_html}</div></div></section>')
     if "cta" in skeleton:
@@ -771,12 +1054,13 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     label = PAGE_LABELS.get(plan["params"]["lang"], PAGE_LABELS["en"]).get(which, which.title())
     title = brand_first(cp.get("title") or label, brand, label)
     if "{Brand}" in title: title = title.replace("{Brand}", brand)
-    page = page_shell(f"{title}", cp.get("lead", title)[:155], m["keywords"].replace("{Brand}", brand).replace("{dom}", dom),
+    descr = clamp_meta(cp.get("lead") or cp.get("h1") or label)
+    page = page_shell(f"{title}", descr, m["keywords"].replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        "\n".join(body_parts), jsonld=build_inner_jsonld(plan, C, which))
     page = page.replace('href="#claim"', 'href="index.php#claim"')
-    page = page.replace("{DOM}", dom).replace("{BRAND}", brand)
+    page = finish_page(page, plan, C)
     return page
 
 def build_inner_jsonld(plan, C, which):
@@ -804,13 +1088,14 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
     terms_l = {"terms": tl[0], "privacy": tl[1]}
     title_map = {"terms": brand_first(tl[0], brand), "privacy": brand_first(tl[1], brand)}
     body = f"""{livebar}{header}<main>
-<section class="page-intro"><div class="eyebrow">{which.upper()}</div>
+<section class="page-intro"><div class="eyebrow">{esc(terms_l[which])}</div>
 <h1>{brand}<br><span class="brand-line">{esc(terms_l[which])}</span></h1></section>
 <section class="legal">{bodyLegal}</section></main>{footer}"""
-    page = page_shell(title_map[which], f"{which.title()} of {brand}.", f"{brand}, {which}", f"/{which}.php",
+    page = page_shell(title_map[which], f"{terms_l[which]} — {brand}.",
+                       f"{brand}, {terms_l[which]}", f"/{which}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        body, jsonld=build_inner_jsonld(plan, C, which))
-    page = page.replace("{DOM}", dom).replace("{BRAND}", brand)
+    page = finish_page(page, plan, C)
     return page
 
 def build_thanks(plan, C, css_vars, fonts_import, theme):
@@ -827,7 +1112,7 @@ def build_thanks(plan, C, css_vars, fonts_import, theme):
     page = page_shell(brand_first(tl[2], brand), th.get("lead", "")[:155], "", "/thanks.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        body, noindex=True)
-    page = page.replace("{DOM}", dom).replace("{BRAND}", brand)
+    page = finish_page(page, plan, C)
     postback_head = "<?php require __DIR__ . '/_postback.php'; send_postback(); ?>\n"
     return postback_head + page
 
@@ -842,7 +1127,7 @@ def build_404(plan, C, css_vars, fonts_import, theme):
     page = page_shell(brand_first(f"404 — {nf[0]}", brand), nf[0], "", "/404.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        body, noindex=True)
-    page = page.replace("{DOM}", dom).replace("{BRAND}", brand)
+    page = finish_page(page, plan, C)
     return page
 
 ASSETS_JS_APP = """function onReady(fn){if(document.readyState!=='loading'){fn();}else{document.addEventListener('DOMContentLoaded',fn);}}
@@ -850,6 +1135,12 @@ onReady(function(){
 var mt=document.querySelector('.menu-toggle');if(mt){mt.addEventListener('click',function(){
 var n=document.querySelector('.blk-nav');var ex=n.classList.toggle('open');mt.setAttribute('aria-expanded',ex)});
 }
+/* contact e-mail: built here so the hosting proxy never rewrites a plain-text
+   mailto into an undecodable "[email protected]" stub (broken link on live pages) */
+[].slice.call(document.querySelectorAll('.js-mail')).forEach(function(a){
+var u=a.getAttribute('data-u'),d=a.getAttribute('data-d');
+if(!u||!d){return}
+var mail=u+'@'+d;a.textContent=mail;a.setAttribute('href','mailto:'+mail)});
 /* sticky header: elevated state after a small scroll */
 var hd=document.querySelector('.blk-header');
 if(hd){var hUpd=function(){hd.classList.toggle('is-scrolled',window.scrollY>18)};
@@ -1090,8 +1381,18 @@ def cmd_build(a):
     if not content_path.exists():
         content_path = ROOT / "content" / f"{dom}-content.json"
     C = load(content_path)
-    if C: errs = validate_content(C, plan, strict=True); errs and die("; ".join(errs))
-    else: C = seed_content(plan); ok("content: seeded placeholders")
+    if C:
+        # contacts belong to the offer, not to the model's mood: normalize before the
+        # gate so a foreign fallback (contatti@/+39 on a .es site) can never ship
+        office_defaults(C, plan)
+        _cnt = contacts_for(plan, C)
+        C.setdefault("meta", {})["email"] = _cnt["email"]
+        C["meta"]["telephone"] = _cnt["telephone"]
+        errs = validate_content(C, plan, strict=True); errs and die("; ".join(errs))
+    else:
+        C = seed_content(plan); office_defaults(C, plan); ok("content: seeded placeholders")
+        _cnt = contacts_for(plan, C)
+        C["meta"]["email"], C["meta"]["telephone"] = _cnt["email"], _cnt["telephone"]
     css_vars, fonts_import, theme = css_link_block(plan)
     ok(f"design: {plan['design']['palette_id']} × skin-{plan['design'].get('skin','rounded-air')}")
     C.setdefault("meta", {})["keywords"] = C["meta"].get("keywords", "{Brand}, {dom}")

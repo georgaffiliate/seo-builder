@@ -6,7 +6,8 @@
     <div class="chip-row center">
       <span class="mkt-chip"><small>{{c:office.addr_label}}</small> {{c:office.addr}}</span>
       <span class="mkt-chip"><small>{{c:office.hours_label}}</small> {{c:office.hours}}</span>
-      <span class="mkt-chip"><small>{{c:office.contact_label}}</small> <a href="mailto:info@{{DOMAIN}}">info@{{DOMAIN}}</a></span>
+      <span class="mkt-chip"><small>{{c:office.phone_label}}</small> <a href="tel:{{PHONE_TEL}}">{{PHONE}}</a></span>
+      <span class="mkt-chip"><small>{{c:office.contact_label}}</small> <a class="js-mail" href="index.php#claim" data-u="info" data-d="{{DOMAIN}}">{{c:office.email_label}}</a></span>
     </div>
   </div>
 </section>
