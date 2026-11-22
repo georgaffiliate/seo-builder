@@ -506,7 +506,11 @@ def merge_skeleton(sk: dict, got: dict) -> dict:
     """Keep skeleton shape, overlay whatever the model returned."""
     def merge(a, b):
         if isinstance(a, dict) and isinstance(b, dict):
-            return {k: (merge(v, b[k]) if k in b else v) for k, v in a.items()}
+            merged = {k: (merge(v, b[k]) if k in b else v) for k, v in a.items()}
+            for k, v in b.items():
+                if k not in merged:        # keep model slots the skeleton does not know
+                    merged[k] = v
+            return merged
         if isinstance(a, list) and isinstance(b, list) and b:
             return [merge(a[i], b[i]) if i < len(b) and i < len(a) else
                     (b[i] if i < len(b) else a[i]) for i in range(max(len(a), len(b)))]
@@ -515,6 +519,11 @@ def merge_skeleton(sk: dict, got: dict) -> dict:
     for k, v in got.items():
         if k in out:
             out[k] = merge(out[k], v)
+        else:
+            # the model answered a slot the skeleton has no shape for: keep it instead
+            # of dropping it (that is how a whole portal section used to disappear
+            # between repair passes). validation reports the shape if it is wrong.
+            out[k] = v
     return out
 
 

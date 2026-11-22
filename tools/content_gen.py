@@ -329,9 +329,13 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
     # LLM packs may return the arrays filled with empty strings / empty dicts:
     # those pass a naive presence check but render as blank chips and cards.
     def _nonempty(x):
+        if x is None: return False          # str(None) == "None" is not content
         if isinstance(x, str): return bool(x.strip())
-        if isinstance(x, dict): return any(str(v).strip() for v in x.values())
+        if isinstance(x, dict): return any(_nonempty(v) for v in x.values())
         return True
+
+    def _blank(x):
+        return x is None or (isinstance(x, str) and not x.strip())
     sec_bank = bank.get("sections", {})
     SCALAR_KEYS = ("eyebrow", "h2", "lead")
     for slot in ("facts", "portal"):
@@ -346,7 +350,7 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
                     node[k] = cur[0] if cur else ""
                     if node[k] != cur: fixed.append(f"sections.{slot}.{k}")
                     cur = node[k]
-                if not str(cur).strip():
+                if _blank(cur):
                     node[k] = default[0] if isinstance(default, list) and default else default
                     fixed.append(f"sections.{slot}.{k}")
                 continue
@@ -356,7 +360,7 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
                     node[k] = cur[0] if cur else ""
                     if node[k] != cur: fixed.append(f"sections.{slot}.{k}")
                     cur = node[k]
-                if not str(cur).strip():
+                if _blank(cur):
                     node[k] = default
                     fixed.append(f"sections.{slot}.{k}")
                 continue

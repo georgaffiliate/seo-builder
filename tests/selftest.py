@@ -56,7 +56,7 @@ _clone = {"reviews": {"items": [{"name": "Pedro M.", "photo": "img/p-men-63.jpg"
 _clone_plan = {"numbers": {}, "params": {"brand": "X", "domain": "x.site"},
                "layout": {"section_order": []}}
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "tools"))
-import assemble as _asm3, seo_audit as _sa2
+import assemble as _asm3, seo_audit as _sa2, llm_content as _lc
 chk(any("reviews.photo repeated" in e for e in _asm3.validate_content(_clone, _clone_plan, strict=True)),
     "validator rejects cloned review cards")
 _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img/p-men-63.jpg">'
@@ -93,6 +93,11 @@ for _f in (ROOT / "blocks").glob("blk-*.html"):
             _missing_schema.add(_base)
 chk(not _missing_schema,
     f"schema covers every fragment key ({sorted(_missing_schema)[:4] if _missing_schema else 'complete'})")
+# a repair pass must not drop sections the skeleton happens to miss
+_sk = {"sections": {"stats": {"rating": "x"}}, "hero": {}}
+_got = {"sections": {"stats": {"rating": "4,6"}, "portal": {"cards": ["a", "b", "c"]}}, "hero": {}}
+chk(_lc.merge_skeleton(_sk, _got)["sections"].get("portal", {}).get("cards") == ["a", "b", "c"],
+    "repair merge keeps model slots the skeleton lacks")
 # a long plan history must not shrink the persona trio to one
 sys.path.insert(0, str(ROOT)); import gen_plan as _gp
 _worn = [{"people": ["Anna K.", "Peter M.", "Sofia L.", "David R.", "Emma S."]},
