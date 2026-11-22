@@ -436,10 +436,21 @@ def build_plan(rng, args, hist)->dict|None:
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
     # people-e is a rating-summary screen: same stat family as the numbers screen — never both
     if variants.get("people")=="e" and "numbers" in order: order.remove("numbers")
+    def drop_slot(slot):
+        """Remove a screen AND its variant — a variant for a missing slot fails assembly."""
+        if slot in order:
+            order.remove(slot)
+        variants.pop(slot, None)
+
+    # calculator prints the intro heading (sections.intro.h2/lead): two intro screens
+    # on one page would repeat the same paragraph verbatim
+    if "calculator" in order:
+        for extra in [s for s in ("intro-center", "intro", "stats-intro") if s in order]:
+            drop_slot(extra)
     # one Q/A screen per page: faq, mini-faq and compare all bind faq.items —
     # two of them on one page read as a duplicated block (seen live)
     for extra in [s for s in ("faq", "compare", "mini-faq") if s in order][1:]:
-        order.remove(extra)
+        drop_slot(extra)
     # exclusions above may shorten the order below the structural minimum — top up
     if len(order)<10:
         for s in ("notes","ticker","streams","glance","timeline"):

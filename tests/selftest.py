@@ -117,6 +117,19 @@ chk(len(_gp.VARIANTS["header"]) >= 9 and len(_gp.VARIANTS["footer"]) >= 5,
 chk(_gp.pick_variant(__import__("random").Random(1), "header", ["b", "c", "d"], 
                      [{"variants": {"header": "b"}}] * 5, 5) in ("c", "d"),
     "header variant avoids the last five plans")
+# a removed screen must take its variant with it, or assembly dies on "unknown slot"
+_calc_plan = ROOT / "plans" / "selftest-calc-dup.site.json"
+_rc = __import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "CalcDup",
+                                    "--lang", "it", "--domain", "selftest-calc-dup.site",
+                                    "--calculator", "on", "--seed", "71", "--force"],
+                                   capture_output=True, cwd=ROOT)
+_pd = json.loads(_calc_plan.read_text()) if _calc_plan.exists() else {}
+_lay = _pd.get("layout", {})
+_stray = [k for k in (_lay.get("variants") or {}) if k not in ("logo", "header", "footer", "livebar")
+          and k not in (_lay.get("section_order") or [])]
+chk(_rc.returncode == 0 and _pd and not _stray,
+    f"no variant left behind for a dropped screen ({_stray or 'clean'})")
+_calc_plan.unlink(missing_ok=True)
 chk(_gp.content_route(_pp) == "invent" and
     _gp.content_route(_pp, translate=True) == "localize" and
     _gp.content_route(_pp, offline=True) == "bank",
