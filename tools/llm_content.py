@@ -277,6 +277,12 @@ def brief(plan: dict) -> dict:
             "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
             "Numbers: rating exactly as given; reviews/users/latency inside their bins; hero.stats uses rating, users, latency.",
             "No return promises; local language only; concrete, plain sentences in the register of the brand.",
+            "hero.device_note is the caption under the mocked panel: you write it yourself, in the plan "
+            "language, as an illustration / interface-preview phrase. Placeholder wording is rejected: "
+            "never 'sample data', 'demo data', 'dati di esempio', 'datos de ejemplo'.",
+            "hero.device_rows are the parts of the headline hero.device_bal: the two row values MUST add up "
+            "exactly to that balance. Row labels are neutral holding categories in the plan language — "
+            "never promise yield ('interest-bearing cash' and the like).",
             "reviews.lead must say the names and quotes are illustrative; office/footer may mention the regulator as reference only.",
             "Treat every number as demo data: never write 'to be verified' or leave a value blank.",
             "Arrays need full length: faq.items 5, features.cards 6, steps.steps 5, ladder.rows 4, markets.rows 4, risk.rows 3, security.cards 3, streams.cards 3, reviews.items 3, hero.stats 3, hero.device_rows 2, bands.mid_points 4, scarcity.units 4, inner_about.blocks 4.",
@@ -328,6 +334,31 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
     return sk
 
 
+def ledger_errors(hv: dict) -> list[str]:
+    """Hero mock panel: the model writes the caption and the numbers; these checks only
+    verify it did not forget them or leave them out of balance."""
+    errs = []
+    note = str(hv.get("device_note", "") or "").strip()
+    if not note:
+        errs.append("hero.device_note is empty — write the caption that marks the mock panel "
+                    "as an illustration, in the plan language")
+    elif content_gen.PLACEHOLDER_NOTE.search(note):
+        errs.append("hero.device_note reads as placeholder data ('sample data'/'demo data'/…) — "
+                    "phrase it as an illustration of the interface in the plan language")
+    elif len(note) < 6:
+        errs.append(f"hero.device_note is too short ('{note}') — one clear caption line")
+    rows = [r for r in (hv.get("device_rows") or []) if isinstance(r, dict)]
+    if len(rows) != 2:
+        errs.append(f"hero.device_rows has {len(rows)} entries, need 2")
+    else:
+        bal = content_gen.parse_money(hv.get("device_bal_v") or hv.get("device_bal") or "")
+        vals = [content_gen.parse_money(r.get("vv") or r.get("v") or "") for r in rows]
+        if bal and all(v is not None for v in vals) and abs(sum(vals) - bal) > 0.02:
+            errs.append(f"hero.device_rows do not add up: {vals[0]:,.2f} + {vals[1]:,.2f} != "
+                        f"hero.device_bal {bal:,.2f} — make the two rows sum to the headline balance")
+    return errs
+
+
 def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     errs = list(assemble.validate_content(pack, plan, strict=True))
     # JSON-LD on the home page carries meta.description, faq, brand_note, sections — the
@@ -345,6 +376,10 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
         errs.append(f"title_home longer than 70 chars ({len(title)})")
     if not title.lower().startswith(plan["params"]["brand"].lower()):
         errs.append("meta.title_home must start with the brand")
+    # hero ledger mock: the model authors the caption and the numbers, the gate only
+    # checks it did not forget — a placeholder caption or rows that do not add up go
+    # straight back as a repair instruction
+    errs += ledger_errors(pack.get("hero") or {})
     # deposit rule: keep in sync with tools/seo_audit.py dep_pat — meta/og/JSON-LD text
     # (meta.description feeds the JSON-LD org.description) must never mention a deposit
     dep_pat = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|min(?:imální|minimāl)|100\s?000\s?Ft|100000\s?Ft)")
@@ -600,6 +635,13 @@ def main():
             pack = merge_skeleton(sk, json.loads(out.read_text(encoding="utf-8")))
         errs = validate(pack, plan, data)
 
+    if errs and all("device_rows do not add up" in e for e in errs):
+        # the copy is fine, only the arithmetic is off — balance the second row locally
+        # instead of throwing away a pack the model otherwise wrote well
+        if content_gen.reconcile_ledger(pack):
+            print("· ledger rows rebalanced against the headline (model arithmetic slip)")
+            out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+            errs = validate(pack, plan, data)
     if errs:
         die("LLM pack still invalid: " + "; ".join(errs[:8]))
     items = pack["reviews"]["items"]

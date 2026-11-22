@@ -59,10 +59,10 @@
    "asset_2": [
     "Titoli di Stato area euro",
     "Obbligazionario a breve",
-    "Liquidità remunerata"
+    "Liquidità in euro"
    ],
    "device_aria": "Anteprima del portafoglio",
-   "device_note": "Illustrazione · dati di esempio",
+   "device_note": "Illustrazione · anteprima dell'interfaccia",
    "device_label": "Conto operativo",
    "device_tag1": "Segnale AI",
    "device_risk": "Rischio",
@@ -813,10 +813,10 @@
    "asset_2": [
     "Státní dluhopisy eurozóny",
     "Krátký dluhopisový mix",
-    "Úročená hotovost"
+    "Hotovost v eurech"
    ],
    "device_aria": "Ukázka přehledu",
-   "device_note": "Ilustrace · ukázková data",
+   "device_note": "Ilustrace · náhled rozhraní",
    "device_label": "Účet v provozu",
    "device_tag1": "AI signál",
    "device_risk": "Riziko",
@@ -1572,10 +1572,10 @@
    "asset_2": [
     "Euro area government bonds",
     "Short bond mix",
-    "Interest-bearing cash"
+    "Euro cash balance"
    ],
    "device_aria": "Portfolio preview",
-   "device_note": "Illustration · sample data",
+   "device_note": "Illustration · interface preview",
    "device_label": "Trading account",
    "device_tag1": "AI signal",
    "device_risk": "Risk",
@@ -2406,14 +2406,97 @@
    ]
   },
   "office": {
-   "eyebrow": "OFICINA"
+   "eyebrow": "OFICINA",
+   "h2": "Oficina en {city}",
+   "lead": "El recorrido es online; para ver la interfaz en una pantalla real, reserva una visita.",
+   "addr_label": "Dirección",
+   "hours_label": "Horario",
+   "contact_label": "Escríbenos"
   },
   "hero": {
-   "device_label": "Cuenta operativa"
+   "device_label": "Cuenta operativa",
+   "eyebrow": "{brand_upper} · {geo_short}",
+   "h1_rest": [
+    "Una forma ordenada de entrar en tus herramientas",
+    "El mercado, sin ruido",
+    "Herramientas claras en un solo lugar"
+   ],
+   "h1_accent": [
+    "con método",
+    "en unos pocos pasos",
+    "desde tu propia área"
+   ],
+   "lead": [
+    "{brand} reúne listados, herramientas de análisis y tu área personal en un solo espacio. El acceso es guiado y se ve paso a paso.",
+    "{brand} pone los datos de mercado, las herramientas y un área personal ordenada en un mismo lugar. El registro sigue una ruta clara."
+   ],
+   "secondary": [
+    "Pensada para quien quiere saber qué está mirando.",
+    "Para quien prefiere una interfaz tranquila a una sala de mandos ruidosa."
+   ],
+   "cta_primary": [
+    "Abrir acceso",
+    "Empezar ahora",
+    "Solicitar acceso",
+    "Crear cuenta",
+    "Comenzar"
+   ],
+   "cta_secondary": [
+    "Cómo funciona",
+    "Ver los pasos",
+    "El método",
+    "Ver la demo",
+    "Ver el panel"
+   ],
+   "stat_rating": "valoración de usuarios",
+   "stat_users": "usuarios registrados",
+   "stat_latency": "respuesta de la plataforma",
+   "device_delta": "↗ {pct}% en los últimos 30 días",
+   "asset_1": [
+    "Índice europeo amplio",
+    "Cesta de renta variable global",
+    "Exposición a renta variable"
+   ],
+   "asset_2": [
+    "Deuda pública de la eurozona",
+    "Cesta de deuda a corto plazo",
+    "Liquidez en euros"
+   ],
+   "device_aria": "Vista previa de la cartera",
+   "device_note": "Ilustración · vista previa de la interfaz",
+   "device_tag1": "Señal de IA",
+   "device_risk": "Riesgo",
+   "device_safe": "Bajo control",
+   "trust_label": "reseñas verificadas"
   },
   "sections": {
    "markets": {
-    "disclaimer": "Valores ilustrativos."
+    "disclaimer": "Valores ilustrativos.",
+    "eyebrow": "LISTADOS",
+    "h2": "Datos de mercado a la vista",
+    "lead": "Valores orientativos, actualizados en la interfaz según el nivel de acceso.",
+    "rows": [
+     {
+      "sym": "BTC/EUR",
+      "v": "87.450",
+      "chg": "+2,4%"
+     },
+     {
+      "sym": "ETH/EUR",
+      "v": "3.120",
+      "chg": "-0,8%"
+     },
+     {
+      "sym": "INDEX EU",
+      "v": "4.986",
+      "chg": "+0,6%"
+     },
+     {
+      "sym": "GOLD/EUR",
+      "v": "2.284",
+      "chg": "+0,3%"
+     }
+    ]
    },
    "stats": {
     "rating": "Valoración media",
@@ -2428,6 +2511,261 @@
    "notes": {
     "lead": "{brand} tiene gráficos, listas y noticias de mercado en un solo lugar: la revisión matinal lleva minutos, no una hora.",
     "note": "Cada módulo explica qué mide y por qué importa, sin jerga innecesaria."
+   },
+   "intro": {
+    "eyebrow": [
+     "EN BREVE",
+     "LO ESENCIAL",
+     "QUÉ ENCUENTRAS"
+    ],
+    "h2": [
+     "Una interfaz, tareas claras",
+     "Menos ruido, más contexto",
+     "Todo en un solo lugar"
+    ],
+    "lead": [
+     "Listados, herramientas y tu área comparten una pantalla. Cada sección tiene una función definida, sin paneles decorativos."
+    ]
+   },
+   "ladder": {
+    "eyebrow": "NIVELES",
+    "h2": "Perfiles de acceso y qué cambia",
+    "lead": "Los niveles se diferencian por herramientas y frecuencia de datos, no por promesas de rentabilidad.",
+    "rows": [
+     {
+      "k": "Base",
+      "v": "Lectura",
+      "d": "Listados con retardo, área personal, soporte por correo."
+     },
+     {
+      "k": "Plus",
+      "v": "Análisis",
+      "d": "Actualizaciones más frecuentes, herramientas de comparación, notas guardadas."
+     },
+     {
+      "k": "Pro",
+      "v": "Operativa",
+      "d": "Listados en tiempo real, más mercados en seguimiento, alertas por umbral."
+     },
+     {
+      "k": "Desk",
+      "v": "Soporte",
+      "d": "Canal directo de soporte y revisión periódica del perfil."
+     }
+    ]
+   },
+   "features": {
+    "eyebrow": "HERRAMIENTAS",
+    "h2": "Qué hay dentro de {brand}",
+    "lead": "Funciones concretas, cada una con una tarea reconocible.",
+    "cards": [
+     {
+      "ic": "▤",
+      "t": "Listados legibles",
+      "d": "Precios y variaciones en columnas alineadas con sus unidades."
+     },
+     {
+      "ic": "◷",
+      "t": "Histórico visible",
+      "d": "Series por periodo con la escala indicada."
+     },
+     {
+      "ic": "⌗",
+      "t": "Comparación de instrumentos",
+      "d": "Dos o más instrumentos lado a lado, en la misma ventana."
+     },
+     {
+      "ic": "⚑",
+      "t": "Alertas por umbral",
+      "d": "Aviso cuando un valor cruza tu nivel."
+     },
+     {
+      "ic": "▦",
+      "t": "Notas y recordatorios",
+      "d": "Anotaciones por instrumento, recuperadas en su ficha."
+     },
+     {
+      "ic": "⛨",
+      "t": "Acceso protegido",
+      "d": "Verificación en dos pasos y sesiones por dispositivo."
+     }
+    ]
+   },
+   "steps": {
+    "eyebrow": "EL RECORRIDO",
+    "h2": "Tres pasos para abrir el acceso",
+    "steps": [
+     {
+      "t": "Solicitud",
+      "d": "Rellena el formulario con nombre, correo y teléfono."
+     },
+     {
+      "t": "Comprobación",
+      "d": "Te llamamos en horario de oficina y verificamos los datos."
+     },
+     {
+      "t": "Documentos",
+      "d": "Se suben en tu área, en formato digital."
+     },
+     {
+      "t": "Primer depósito",
+      "d": "Solo tras la aprobación, con los datos indicados en tu área."
+     },
+     {
+      "t": "Acceso activo",
+      "d": "Las credenciales funcionan y el soporte está disponible."
+     }
+    ]
+   },
+   "security": {
+    "eyebrow": "SEGURIDAD",
+    "h2": "Cómo se protegen los datos y el acceso",
+    "cards": [
+     {
+      "ic": "⛨",
+      "t": "Transporte cifrado",
+      "d": "HTTPS en todas las páginas del área."
+     },
+     {
+      "ic": "⌘",
+      "t": "Verificación en dos pasos",
+      "d": "Código adicional en dispositivos nuevos."
+     },
+     {
+      "ic": "◫",
+      "t": "Sesiones controladas",
+      "d": "Lista de accesos con fecha y dispositivo, revocable."
+     }
+    ]
+   },
+   "risk": {
+    "eyebrow": "RIESGOS",
+    "h2": "Qué puede salir de otra manera",
+    "lead": "Tres puntos que conviene tener presentes antes de operar.",
+    "rows": [
+     {
+      "ic": "↕",
+      "t": "Precio cambiante",
+      "d": "Los valores de los instrumentos suben y bajan; el capital no está garantizado."
+     },
+     {
+      "ic": "◷",
+      "t": "Tiempo de ejecución",
+      "d": "En fases volátiles una orden puede ejecutarse a otro precio."
+     },
+     {
+      "ic": "€",
+      "t": "Costes y divisas",
+      "d": "Las comisiones y las diferencias de cambio reducen el resultado final."
+     }
+    ]
+   },
+   "streams": {
+    "eyebrow": "DATOS",
+    "h2": "De dónde vienen las cifras",
+    "cards": [
+     {
+      "ic": "⟡",
+      "t": "Fuentes indicadas",
+      "d": "Cada listado muestra la fuente y la hora de actualización."
+     },
+     {
+      "ic": "⌁",
+      "t": "Retardo visible",
+      "d": "El retardo de los datos aparece junto al precio."
+     },
+     {
+      "ic": "⧉",
+      "t": "Exportación",
+      "d": "Series y tablas descargables en formato de tabla."
+     }
+    ]
+   },
+   "cta": {
+    "eyebrow": [
+     "SIGUIENTE PASO",
+     "CUANDO QUIERAS",
+     "A UN FORMULARIO",
+     "EMPIEZA YA"
+    ],
+    "h2": [
+     "Abre tu acceso a {brand}",
+     "Tu panel de {brand} empieza con un formulario",
+     "Solicita hoy tu acceso a {brand}",
+     "Un formulario te separa de {brand}"
+    ],
+    "lead": [
+     "Formulario breve, devolución de llamada en horario de oficina.",
+     "Un formulario; un asesor te llama el mismo día laborable.",
+     "Rellénalo una vez: la configuración lleva unos minutos.",
+     "Deja tus datos y el equipo de alta hace el resto."
+    ],
+    "btn": [
+     "Empezar ahora",
+     "Solicitar acceso",
+     "Abrir mi cuenta",
+     "Quiero mi acceso"
+    ]
+   },
+   "demo": {
+    "eyebrow": "TENDENCIA",
+    "h2": "El gráfico se lee de un vistazo",
+    "lead": "Eje de tiempo en horizontal, valores en vertical, intervalo indicado sobre la línea.",
+    "disclaimer": "Línea ilustrativa, no una previsión de rentabilidad."
+   },
+   "facts": {
+    "eyebrow": [
+     "QUÉ OBTIENES",
+     "TRAS EL REGISTRO",
+     "PRIMER ACCESO"
+    ],
+    "h2": [
+     "Lo que ves justo después del primer acceso",
+     "Tus primeros minutos en la plataforma, sin adivinar",
+     "Un arranque paso a paso"
+    ],
+    "lead": [
+     "Cada módulo se abre con una explicación breve, así el primer acceso no necesita manual.",
+     "Una vez verificada la identidad, la plataforma se abre con los resúmenes ya configurados."
+    ],
+    "points": [
+     "Resumen de mercado en una página",
+     "Listas de seguimiento en tus propios grupos",
+     "Historial de operaciones con exportación",
+     "Modo demo con datos reales"
+    ]
+   },
+   "portal": {
+    "eyebrow": [
+     "PLATAFORMA",
+     "QUÉ APORTA",
+     "HERRAMIENTAS"
+    ],
+    "h2": [
+     "Lo que la plataforma te da cada día",
+     "Los módulos que usarás a diario",
+     "La plataforma como espacio de trabajo"
+    ],
+    "lead": [
+     "Tres módulos que cubren la mayor parte del trabajo diario sin saltar entre servicios."
+    ],
+    "cards": [
+     {
+      "k": "Resúmenes y datos",
+      "v": "Mercados",
+      "d": "Cotizaciones, profundidad de mercado y noticias en una página, sin cambiar de pestaña."
+     },
+     {
+      "k": "Gestión de la cuenta",
+      "v": "Cuenta",
+      "d": "Cambias datos, límites y documentos tú mismo, sin abrir incidencias."
+     },
+     {
+      "k": "Histórico e informes",
+      "v": "Informes",
+      "d": "Registro de operaciones con comisiones y exportación para la declaración en dos clics."
+     }
+    ]
    }
   },
   "_pulse": {
@@ -2445,6 +2783,318 @@
    "r2": "1S",
    "r3": "1M",
    "gold": "Oro"
+  },
+  "meta": {
+   "title": [
+    "{brand} — una plataforma con método",
+    "{brand} — herramientas y listados en un solo lugar",
+    "{brand} — acceso guiado al mercado"
+   ],
+   "description": [
+    "{brand}: listados, herramientas y área personal en un solo lugar. Acceso guiado en unos pocos pasos, sin promesas de rentabilidad.",
+    "{brand} reúne datos de mercado, herramientas de análisis y soporte. Registro breve y un área personal ordenada."
+   ],
+   "keywords": "{brand}, {brand_lower} iniciar sesión, {brand_lower} registro, {domain}, {brand} {geo}, {brand} opiniones",
+   "og": [
+    "{brand} — datos de mercado y área personal en un solo espacio.",
+    "Abre tu área de {brand}: listados, herramientas y soporte."
+   ]
+  },
+  "bands": {
+   "mid_eyebrow": [
+    "ACCESO",
+    "ÁREA ABIERTA",
+    "REGISTRO"
+   ],
+   "mid_h2": [
+    "Abre tu acceso a {brand} en unos pocos pasos",
+    "Registro guiado, sin campos de más",
+    "Primero el contacto, después el área"
+   ],
+   "mid_lead": "Deja tus datos; te llamamos en horario de oficina y terminamos la comprobación juntos.",
+   "mid_points": [
+    "Devolución de llamada en 30 minutos laborables",
+    "Acceso en tres pasos",
+    "Documentos subidos en tu área",
+    "Soporte también después de abrir",
+    "Sin cuota mensual de cuenta",
+    "Datos que puedes editar tú mismo"
+   ],
+   "form_title": [
+    "Solicitud de acceso",
+    "Abre tu área personal"
+   ],
+   "form_sub": "Formulario breve; el resto se resuelve por teléfono.",
+   "form_consent": "Al enviar aceptas el tratamiento de datos según la política de privacidad. El área se activa tras el primer depósito <small>{deposit}</small>; las condiciones completas están en los documentos del contrato.",
+   "submit_nav": [
+    "Abrir acceso",
+    "Solicitar acceso"
+   ],
+   "labels": {
+    "first": "Nombre",
+    "last": "Apellidos",
+    "email": "Correo electrónico",
+    "phone": "Teléfono"
+   },
+   "placeholders": {
+    "first": "Lucía",
+    "last": "García",
+    "email": "lucia@email.com",
+    "phone": "600 000 000"
+   },
+   "submit": "Enviar solicitud",
+   "side_stats": [
+    "3 pasos",
+    "≤ 1 hora",
+    "24/5"
+   ],
+   "side_labels": [
+    "lo que tarda el registro",
+    "revisión de identidad habitual",
+    "soporte en días laborables"
+   ],
+   "side_note": "La cuenta se activa solo después de verificar tus datos: sin suscripciones ni renovaciones automáticas."
+  },
+  "ui": {
+   "calc_eyebrow": "CÁLCULO RÁPIDO",
+   "calc_initial": "Importe inicial",
+   "calc_init_note": "{cur_code} · desde {deposit}",
+   "calc_monthly": "Aportación mensual",
+   "calc_cur_note": "{cur_code}",
+   "calc_years": "Horizonte",
+   "calc_rate": "Supuesto anual",
+   "calc_value_after": "VALOR ORIENTATIVO AL FINAL",
+   "calc_contributed": "Total aportado",
+   "calc_gain": "Diferencia (orientativa)",
+   "calc_now": "Hoy",
+   "cur_code": "EUR",
+   "cur_sym": "€",
+   "year_full": "AÑOS",
+   "year_short": "AÑOS",
+   "min_init": "250",
+   "status_sending": "Enviando…",
+   "status_fix": "Revisa los campos marcados.",
+   "status_fail": "No se pudo enviar, inténtalo de nuevo.",
+   "status_ok": "Listo, redirigiendo…"
+  },
+  "reviews": {
+   "eyebrow": "PERSONAS",
+   "h2": "Quién usa {brand}",
+   "lead": "Los nombres son ilustrativos; contenido aportado por usuarios durante las pruebas.",
+   "quotes": [
+    "Encontré el listado que buscaba de inmediato, con el retardo indicado junto al precio.",
+    "La llamada llegó por la mañana: comprobación rápida y sin preguntas repetidas.",
+    "Uso el área sobre todo para notas: todo está en la ficha del instrumento.",
+    "Comparar dos instrumentos en la misma ventana me ahorró varios pasos.",
+    "Nada de ventanas emergentes sobre los datos, algo raro en este tipo de interfaz."
+   ],
+   "roles": [
+    "Docente",
+    "Diseñadora",
+    "Administrativo",
+    "Técnica",
+    "Operador",
+    "Investigadora"
+   ],
+   "tenures": [
+    "3 meses",
+    "7 meses",
+    "1 año",
+    "1,5 años"
+   ]
+  },
+  "scarcity": {
+   "eyebrow": "COLA",
+   "h2": "La próxima revisión cierra pronto",
+   "lead": "Las solicitudes se acumulan y se devuelven en horario de oficina.",
+   "btn": "Entrar en la cola",
+   "units": [
+    "días",
+    "h",
+    "min",
+    "s"
+   ]
+  },
+  "faq": {
+   "eyebrow": "PREGUNTAS",
+   "h2": "Respuestas breves antes de empezar",
+   "items": [
+    {
+     "q": "¿El registro tiene algún coste?",
+     "a": "No, la solicitud es gratuita y no compromete a nada. El depósito llega después, cuando activas el área de trabajo. Hasta entonces puedes revisar los resúmenes y decidir con calma."
+    },
+    {
+     "q": "¿Cuánto tarda la comprobación?",
+     "a": "Normalmente el mismo día laborable, siempre que los datos enviados estén completos y sean legibles. Si hacen falta documentos adicionales, el equipo lo indica en tu área. Recibes un correo en cada cambio de estado."
+    },
+    {
+     "q": "¿El soporte atiende en español?",
+     "a": "Sí, el soporte responde en tu idioma en horario de oficina, de lunes a viernes. Las respuestas llegan por correo o por el formulario de contacto, normalmente en un día laborable. Una sección de guías cubre las dudas más frecuentes."
+    },
+    {
+     "q": "¿Puedo cambiar mis datos más adelante?",
+     "a": "Sí, en tu área: nombre, contactos y preferencias se actualizan en unos clics. Cada cambio requiere confirmación por correo por seguridad. Si algo falla, el soporte te acompaña paso a paso."
+    },
+    {
+     "q": "¿Los datos de los listados son en tiempo real?",
+     "a": "Depende del nivel de cuenta: el retardo se muestra junto al precio, así siempre sabes qué estás viendo. Los gráficos se mantienen sincronizados entre ordenador y móvil. Los valores siguen siendo ilustrativos hasta que el área esté activa."
+    }
+   ]
+  },
+  "brand_note": {
+   "h2": "{brand} — a qué se refiere el nombre",
+   "p1": "La gente busca {brand_lower} iniciar sesión, {brand_lower} registro y {brand} {geo} para llegar al área. El dominio oficial sigue siendo {domain}.",
+   "p2": "Las páginas interiores explican el método, la estructura de las herramientas y los contactos directos; las condiciones están en la página de términos."
+  },
+  "footer": {
+   "tagline": "Datos legibles, pasos verificables.",
+   "risk_line": "Las inversiones pueden subir y bajar; la rentabilidad pasada no garantiza la futura.",
+   "disclaimer": "{brand} publica material informativo y no ofrece asesoramiento personalizado. El sitio lo gestiona {brand}, con sede en {city}. Supervisor: {regulator}. Condiciones completas en el contrato."
+  },
+  "thanks": {
+   "eyebrow": "RECIBIDO",
+   "h1": "Solicitud registrada",
+   "lead": "Te llamamos en horario de oficina, en un plazo de 30 minutos laborables.",
+   "warn": "Si no te localizamos, prueba al día siguiente o escribe a info@{domain}."
+  },
+  "page_labels": {
+   "about": "Quiénes somos",
+   "tech": "Herramientas",
+   "who": "Para quién",
+   "contact": "Contacto",
+   "register": "Registro"
+  },
+  "contacts": {
+   "streets": [
+    "Calle Mayor",
+    "Plaza del Mercado",
+    "Paseo del Puerto",
+    "Calle de la Estación",
+    "Avenida del Parque"
+   ],
+   "hours": [
+    "Lun–Vie 9:00–17:30",
+    "Lun–Vie 8:30–17:00",
+    "Lun–Jue 9:00–18:00, Vie 9:00–13:00"
+   ]
+  },
+  "legal": {
+   "terms": "<p>Este documento resume las condiciones de uso de {domain}, gestionado por {brand}. El acceso al área requiere comprobar los datos y realizar un primer depósito con los datos indicados en el área.</p><p>Los datos de mercado son informativos y pueden llevar retardo; no constituyen asesoramiento de inversión. Las condiciones completas forman parte del contrato.</p><p>Supervisor: {regulator}. La legislación aplicable y el tribunal los fija el contrato.</p>",
+   "privacy": "<p>Responsable: {brand}, {city}. Base: consentimiento y ejecución del contrato. Datos: identificación, contacto, uso del área.</p><p>Se conservan por obligaciones contractuales y legales. Derechos a través de info@{domain}.</p><p>Reclamaciones ante la autoridad de control; en materia financiera: {regulator}.</p>"
+  },
+  "inner_about": {
+   "title": [
+    "Quiénes somos — {brand}",
+    "El proyecto {brand}"
+   ],
+   "h1": [
+    "Un proyecto nacido de una necesidad práctica",
+    "Cómo está construido {brand}"
+   ],
+   "lead": "El punto de partida es simple: listados legibles y pasos verificables.",
+   "blocks": [
+    {
+     "t": "Origen",
+     "d": "{brand} nació de quitar ruido alrededor de los datos de mercado."
+    },
+    {
+     "t": "Método",
+     "d": "Cada sección tiene una función declarada y un orden de lectura."
+    },
+    {
+     "t": "Límites",
+     "d": "Sin promesas de rentabilidad: la interfaz se describe tal como es."
+    },
+    {
+     "t": "Revisión",
+     "d": "Comprobaciones periódicas comparan páginas y área para mantener la coherencia."
+    }
+   ]
+  },
+  "inner_tech": {
+   "title": [
+    "Herramientas — {brand}",
+    "Interfaz y herramientas"
+   ],
+   "h1": [
+    "Cómo funciona la interfaz",
+    "Herramientas con unidades indicadas"
+   ],
+   "lead": "Cada función tiene un límite escrito y un uso previsto.",
+   "blocks": [
+    {
+     "t": "Listados",
+     "d": "Columnas alineadas, fuente bajo la tabla, retardo indicado."
+    },
+    {
+     "t": "Gráficos",
+     "d": "Eje de tiempo en horizontal, intervalo sobre la línea."
+    },
+    {
+     "t": "Alertas",
+     "d": "Umbrales definidos por el usuario, modificables en cualquier momento."
+    },
+    {
+     "t": "Exportación",
+     "d": "Tablas descargables para uso personal."
+    }
+   ]
+  },
+  "inner_who": {
+   "title": [
+    "Para quién — {brand}",
+    "A quién se dirige"
+   ],
+   "h1": [
+    "A quién sirve de verdad",
+    "Para quién está pensada"
+   ],
+   "lead": "Herramientas para quien lee los datos antes de decidir.",
+   "blocks": [
+    {
+     "t": "Principiantes",
+     "d": "Un recorrido guiado y vocabulario explicado en las páginas interiores."
+    },
+    {
+     "t": "Independientes",
+     "d": "Quien conoce los mercados encuentra las funciones sin pasos extra."
+    },
+    {
+     "t": "Prudentes",
+     "d": "Notas, recordatorios y umbrales quedan guardados."
+    },
+    {
+     "t": "No es para",
+     "d": "Quien busca asesoramiento de inversión personalizado."
+    }
+   ]
+  },
+  "inner_contact": {
+   "title": [
+    "Contacto — {brand}",
+    "Escríbenos"
+   ],
+   "h1": [
+    "Hablemos antes de abrir el área",
+    "Contactos directos"
+   ],
+   "lead": "Respondemos en horario de oficina."
+  },
+  "inner_register": {
+   "title": [
+    "Registro — {brand}",
+    "Abrir acceso"
+   ],
+   "h1": [
+    "Una solicitud en tres campos",
+    "Cómo abrir el acceso"
+   ],
+   "lead": "Rellena el formulario de la página de inicio; el resto se completa por teléfono.",
+   "points": [
+    "Devolución de llamada en horario de oficina",
+    "Documentos subidos online",
+    "Sin comisión de apertura"
+   ]
   }
  }
 }

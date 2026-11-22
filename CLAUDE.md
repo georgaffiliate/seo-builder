@@ -32,9 +32,13 @@ pheira-voltreksc.site
 python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltreksc.site --build
 #   план    → plans/<domain>.json (палітра × скін × hero × порядок × віджети × слуги × меню ×
 #             числа × персони+фото × регулятор; валідатор упав → --seed +1)
-#   контент → content/<domain>-content.json з resources/content-l10n.json (мова гео, сиблінги
-#             різняться seed-ом; депозит лише bands.form_consent; наявний контент не перетирає,
-#             якщо не --force — можна покласти свій/LLM-пак і він піде в збірку)
+#   контент → content/<domain>-content.json. Два маршрути (обирає gen_plan сам):
+#             · будь-яка мова, крім en → англійський майстер-пак (--source-lang en) + tools/localize.py:
+#               ЛЛМ переписує рядки мовою сайту (кожна збірка — новий текст), програма перевіряє
+#               (ключі, плейсхолдери, цифри, теги, бренд, слаги) і жене repair-пас; не пройшло — падає
+#             · en або --offline (тести/без ключа) → resources/content-l10n.json (точні рядки банку)
+#             депозит лише bands.form_consent; наявний контент не перетирає, якщо не --force
+#             (можна покласти свій/LLM-пак і він піде в збірку)
 #   далі    → sites/<domain>/ (9 сторінок, інтеграція, sitemap/robots/htaccess) + gates
 #             tools/seo_audit.py (0 err) + tools/twin_check.py (унікальність)
 #   іконки  → favicon.svg/.ico/.png + apple-touch-icon.png + og-image.png з палітри бренду
@@ -124,6 +128,15 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   (у HTML їх НІКОЛИ не рендеримо — анти-фінгерпринт),
   `crm.php aff_sub11='google.com'` НЕ чіпати (Telegram бере реальний хост).
 - 0 inline `<script>`; 0 кириличних коментарів у ship-файлах; числа без обіцянок.
+- Мова: джерело істини — англійський майстер-пак, а не банк. Будь-яка мова (крім en) іде
+  через `tools/localize.py` (ЛЛМ переписує унікально, програма перевіряє ключі/плейсхолдери/
+  цифри/теги/бренд/слаги + repair); `--offline` — банковий шлях для тестів і роботи без ключа.
+  Банк лишається майстром англійської та опційним фікстуром (it/cs/es).
+- Hero-мокап (ledger/device) — ілюстрація, а не вигадані цифри: рядки додаються до балансу
+  в шапці, підпис без «sample data». Текст пише ЛЛМ (brief rules у `tools/llm_content.py`),
+  програма лише перевіряє, що модель не забула: `ledger_errors` → repair-пас → локальний
+  `content_gen.reconcile_ledger` (тільки арифметика) → fallback на банк; `seo_audit` —
+  остання сітка на зібраних сторінках. Банк (`hero.device_note`) — лише fallback.
 - `thanks.php` рядок 1 = `require _postback.php; send_postback();`; serve-js (`calculator.js`/
   `app.js`/`widgets.js`) — присутні в корені, підключені в footer-партіалі.
 - Ассети (blocks.css/skin.css/app.js/calculator.js/lead-form.js) підключаються з `?v=` (хеш збірки

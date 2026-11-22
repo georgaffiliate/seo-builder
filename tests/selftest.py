@@ -232,6 +232,90 @@ for path, n in {"faq.items": 5, "sections.features.cards": 6, "reviews.items": 3
     for part in path.split("."):
         node = node.get(part, {}) if isinstance(node, dict) else {}
     chk(isinstance(node, list) and len(node) >= n, f"content array {path} >= {n}")
+# the hero ledger mock must add up and must not advertise itself as "sample data"
+_hh = pack.get("hero", {}) or {}
+_hrows = [r for r in _hh.get("device_rows", []) if isinstance(r, dict)]
+try:
+    _sum = sum(float(r.get("vv", "")) for r in _hrows)
+    _bal = float(_hh.get("device_bal_v", ""))
+except (TypeError, ValueError):
+    _sum = _bal = -1.0
+chk(len(_hrows) == 2 and abs(_sum - _bal) <= 0.02,
+    f"hero mock rows add up to the balance ({_sum:.2f} vs {_bal:.2f})")
+chk(not any(t in blob.lower() for t in ("sample data", "dati di esempio", "ukázková data",
+                                        "dati demo", "demo data")),
+    "hero mock caption does not say 'sample data'")
+# the same rules apply to rendered pages (audit gate) and to model-written packs
+sys.path.insert(0, str(ROOT / "tools"))
+import content_gen as _cg, seo_audit as _sa, llm_content as _lc
+_llm_ok = {"device_note": "Ilustración · vista previa de la interfaz", "device_bal_v": "12000.00",
+           "device_cur": "€", "device_cur_code": "EUR",
+           "device_rows": [{"n": "Renta variable europea", "vv": "7000.00", "v": "€7.000,00"},
+                           {"n": "Liquidez en euros", "vv": "5000.00", "v": "€5.000,00"}]}
+_llm_bad = json.loads(json.dumps(_llm_ok))
+_llm_bad["device_note"] = "Illustration · sample data"
+_llm_bad["device_rows"][1].update({"vv": "4000.00", "v": "€4.000,00"})
+chk(not _lc.ledger_errors(_llm_ok), "LLM contract: a written caption + balanced rows pass")
+_bad_errs = _lc.ledger_errors(_llm_bad)
+chk(len(_bad_errs) == 2, f"LLM contract: placeholder caption + unbalanced rows rejected ({len(_bad_errs)})")
+_llm_missing = {"device_bal_v": "12000.00", "device_rows": _llm_ok["device_rows"]}
+chk(any("device_note is empty" in e for e in _lc.ledger_errors(_llm_missing)),
+    "LLM contract: forgotten caption is caught")
+_fixed_llm = {"hero": json.loads(json.dumps(_llm_bad))}
+chk(bool(_cg.reconcile_ledger(_fixed_llm))
+    and abs(sum(float(r["vv"]) for r in _fixed_llm["hero"]["device_rows"]) - 12000) <= 0.02
+    and _fixed_llm["hero"]["device_rows"][1]["n"] == "Liquidez en euros",
+    "last resort: rows rebalanced, model labels kept")
+chk(bool(_sa.audit_mock_panel(
+    '<div class="ledger" role="img"><div class="ledger-head"><span>€14.933,25</span></div>'
+    '<div class="ledger-row"><b>a</b><small>x</small><span>€8.935,91</span><em>+1,8%</em></div>'
+    '<div class="ledger-row"><b>b</b><small>y</small><span>€3.014,21</span><em>+0,5%</em></div></div>')),
+    "audit flags a ledger whose parts do not add up")
+chk(not _sa.audit_mock_panel(
+    '<div class="ledger"><div class="ledger-head"><span>€12.000,00</span></div>'
+    '<div class="ledger-row"><b>a</b><small>x</small><span>€8.000,00</span></div>'
+    '<div class="ledger-row"><b>b</b><small>y</small><span>€4.000,00</span></div></div>'),
+    "audit accepts a ledger whose parts add up")
+chk(bool(_sa.PLACEHOLDER_NOTE.search("Illustration · sample data")),
+    "audit catches 'sample data' captions")
+# language rule: a bank that covers the copy only partly must never ship a mixed page
+_bank_all = json.loads(_cg.L10N.read_text(encoding="utf-8"))
+chk(all(_cg.bank_coverage(_bank_all, lg)[0] == 100 for lg in ("it", "cs", "es")),
+    "it/cs/es banks cover 100% of the copy")
+# universal route: any language = en master copy + LLM translation layer
+import localize as _lz
+_src = {"content.hero.lead": "Bitnova keeps listings in one workspace.",
+        "content.bands.form_consent": "Deposit <small>{deposit}</small> after 30 days.",
+        "plan.layout.slugs.about": "about"}
+_ok_tr = {"content.hero.lead": "A Bitnova reúne os listados num só espaço.",
+          "content.bands.form_consent": "Depósito <small>{deposit}</small> após 30 dias.",
+          "plan.layout.slugs.about": "sobre-nos"}
+chk(not _lz.validate(_src, _ok_tr, "pt", "Bitnova", "bitnova-pt.site"),
+    "localize: a faithful translation passes")
+_bad_cases = {
+    "placeholder dropped": dict(_ok_tr, **{"content.bands.form_consent": "Depósito <small>250</small> após 30 dias."}),
+    "numbers changed": dict(_ok_tr, **{"content.bands.form_consent": "Depósito <small>{deposit}</small> após 40 dias."}),
+    "brand lost": dict(_ok_tr, **{"content.hero.lead": "A empresa reúne os listados num só espaço."}),
+    "slug not ascii": dict(_ok_tr, **{"plan.layout.slugs.about": "Sobre Nós"}),
+    "not translated": dict(_ok_tr, **{"content.hero.lead": "Bitnova keeps listings in one workspace."}),
+}
+_bad_ok = all(_lz.validate(_src, case, "pt", "Bitnova", "bitnova-pt.site") for case in _bad_cases.values())
+chk(_bad_ok, f"localize: {len(_bad_cases)} bad translations rejected")
+chk(_lz.needs_translation("content.hero.lead", "Keeps listings") and
+    not _lz.needs_translation("content.hero.device_rows.0.s", "MIX-GL") and
+    not _lz.needs_translation("content.meta.email", "info@bitnova-pt.site"),
+    "localize: copy is translated, tickers/emails are not")
+_partial_bank = json.loads(json.dumps(_bank_all))
+_partial_bank["es"] = {"hero": {"device_label": "Cuenta operativa"}}   # 1 key instead of 235
+try:
+    import contextlib as _ctx, io as _io
+    with _ctx.redirect_stdout(_io.StringIO()):      # the refusal prints its own ✗ line
+        _cg.build({"params": {"lang": "es"}}, _partial_bank)
+    _partial_refused = False
+except SystemExit:
+    _partial_refused = True
+_pcov = _cg.bank_coverage(_partial_bank, "es")[0]
+chk(_partial_refused, f"partial bank ({_pcov}%) refuses to build a mixed-language page")
 r2 = subprocess.run([sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan_f),
                      "--content", str(content_f)], capture_output=True, text=True, cwd=ROOT)
 ok_build = "ALL GREEN" in r2.stdout

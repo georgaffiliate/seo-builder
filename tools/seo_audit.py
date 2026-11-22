@@ -204,6 +204,54 @@ def _page_text_nodes(html):
     html = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
     return re.sub(r"<[^>]+>", " ", html)
 
+PLACEHOLDER_NOTE = re.compile(
+    r"sample data|dati di esempio|datos de ejemplo|ukazkov[aá] data|uk[aá]zkov[aá] data|"
+    r"demo-?gegevens|prikazni podatki|przyk[lł]adowe dane|donn[eé]es d'exemple|"
+    r"beispieldaten|dati demo|demo data|dane demonstracyjne", re.I)
+
+
+def parse_amount(s):
+    """'€8.935,91' / '3 014,21 Kč' / '14,933.25 $' → float (locale-agnostic)."""
+    t = re.sub(r"[^\d.,]", "", s or "")
+    if not t:
+        return None
+    m = re.search(r"[.,](\d{1,2})$", t)
+    if m:
+        body = t[: -len(m.group(0))].replace(".", "").replace(",", "")
+        try:
+            return float(f"{body or '0'}.{m.group(1)}")
+        except ValueError:
+            return None
+    try:
+        return float(t.replace(".", "").replace(",", ""))
+    except ValueError:
+        return None
+
+
+def audit_mock_panel(html):
+    """Hero ledger mock: parts must add up to the headline total (else it reads as
+    invented figures), and the caption must not advertise placeholder data."""
+    out = []
+    for m in re.finditer(r'<div class="ledger(?![-\w])', html):
+        chunk = html[m.start(): m.start() + 4000]
+        head = re.search(r'<div class="ledger-head">\s*<span>([^<]+)</span>', chunk)
+        if not head:
+            continue
+        total = parse_amount(head.group(1))
+        vals = []
+        for row in re.findall(r'<div class="ledger-row">(.*?)</div>', chunk, re.S):
+            am = re.search(r"<span>([^<]+)</span>", row)
+            v = parse_amount(am.group(1)) if am else None
+            if v is not None:
+                vals.append(v)
+        if total is None or not vals:
+            continue
+        if abs(sum(vals) - total) > 0.02:
+            out.append((head.group(1).strip(), [f"{v:,.2f}" for v in vals],
+                        f"{sum(vals):,.2f}"))
+    return out
+
+
 def audit_visible_cyrillic(pages):
     """Cyrillic in RENDERED page text (spot offer-language leaks)."""
     out = []
@@ -378,6 +426,22 @@ def main():
     vis_cyr = audit_visible_cyrillic(seen_pages)
     chk(not vis_cyr, "WARN", "no Cyrillic in rendered page text",
         f"Cyrillic visible on pages: " + "; ".join(f"{p}: …{s}…" for p, s in vis_cyr[:4]))
+
+    # ---- mock-panel gate: no "sample data" captions, ledger parts add up ----
+    ph_hits = []
+    for path, (code, html) in seen_pages.items():
+        hit = PLACEHOLDER_NOTE.search(_page_text_nodes(html))
+        if hit:
+            ph_hits.append((path, hit.group(0)))
+    chk(not ph_hits, "ERR", "no placeholder caption on mock panels",
+        "placeholder wording visible: "
+        + "; ".join(f"{p} “{w}”" for p, w in ph_hits[:4])
+        + " — regenerate content (tools/content_gen.py --force)")
+    for path, (code, html) in seen_pages.items():
+        bad = audit_mock_panel(html)
+        chk(not bad, "ERR", f"hero mock rows add up /{path}",
+            f"hero ledger parts do not add up /{path}: headline {bad[0][0]} vs rows "
+            f"{bad[0][1]} (sum {bad[0][2]})" if bad else None)
 
     srv.terminate()
 

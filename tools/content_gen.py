@@ -23,6 +23,11 @@ PHONE_CC = {"IT": "+39 ", "CZ": "+420 ", "SK": "+421 ", "PL": "+48 ", "DE": "+49
             "HR": "+385 ", "SI": "+386 ", "LT": "+370 ", "LV": "+371 ", "EE": "+372 ",
             "FI": "+358 ", "SE": "+46 ", "DK": "+45 ", "NO": "+47 ", "IE": "+353 "}
 ZIP_RE = re.compile(r"^[A-Za-z0-9 -]{2,8}$")
+# captions that advertise a mock panel as placeholder data (mirrored in tools/seo_audit.py)
+PLACEHOLDER_NOTE = re.compile(
+    r"sample data|dati di esempio|datos de ejemplo|ukazkov[aá] data|uk[aá]zkov[aá] data|"
+    r"demo-?gegevens|prikazni podatki|przyk[lł]adowe dane|donn[eé]es d'exemple|"
+    r"beispieldaten|dati demo|demo data|dane demonstracyjne", re.I)
 
 
 def die(m):
@@ -63,6 +68,27 @@ def fmt_amount(value: float, cur: str, decimals: bool = False) -> str:
                 .replace("T", thousands).replace("D", ","))
 
 
+def bank_coverage(bank_all: dict, lang: str) -> tuple[int, list[str]]:
+    """Percent of the en key set the language bank covers + the missing key paths.
+
+    A partial bank is the worst case: merged over en it ships a page that is half
+    translated — Spanish livebar and menu next to an English hero, form and FAQ."""
+    def _walk(node, path=""):
+        out = {}
+        for k, v in node.items():
+            kp = f"{path}.{k}" if path else k
+            if isinstance(v, dict):
+                out.update(_walk(v, kp))
+            else:
+                out[kp] = v
+        return out
+    en = _walk(bank_all.get("en") or {})
+    if not en:
+        return 100, []
+    missing = sorted(set(en) - set(_walk(bank_all.get(lang) or {})))
+    return int(round(100 * (len(en) - len(missing)) / len(en))), missing
+
+
 def merged_bank(bank_all: dict, lang: str) -> dict:
     """deep merge: lang bank wins per key, en fills everything missing
     (thin/partial banks must never crash the fallback path)"""
@@ -80,6 +106,18 @@ def merged_bank(bank_all: dict, lang: str) -> dict:
 def build(plan: dict, bank_all: dict) -> dict:
     p = plan["params"]
     lang = p["lang"]
+    # never mix two languages on one page: a bank that covers the copy only partly
+    # would leave English hero/form/FAQ next to local livebar — refuse and say what to do.
+    # A language with no bank at all still falls back to en on purpose (documented policy).
+    if lang != "en" and (bank_all.get(lang) or {}):
+        cov, missing = bank_coverage(bank_all, lang)
+        if cov < 100:
+            die(f"language bank '{lang}' covers {cov}% of the copy ({len(missing)} keys missing: "
+                f"{', '.join(missing[:5])}, …)\n"
+                f"  merged over en it ships half-translated pages (local top strip, English body).\n"
+                f"  fix one of: finish resources/content-l10n.json:{lang} · "
+                f"run gen_plan.py --with-llm (model writes the whole pack in '{lang}') · "
+                f"--lang en for a deliberately English site")
     bank = merged_bank(bank_all, lang)
     cc = (p.get("cc") or "").upper()
     cur = (p.get("currency") or "EUR").upper()
@@ -122,10 +160,12 @@ def build(plan: dict, bank_all: dict) -> dict:
     phone = prefix + " ".join(str(rng.randint(100, 999)) for _ in range(2)) + f" {rng.randint(1000, 9999)}"
     email = f"info@{dom}"
 
-    _bal = rng.uniform(8_000, 26_000) * rate
+    # the ledger mock shows a total plus its parts, so the parts must add up to the
+    # headline: a panel that does not sum reads as invented data, not as an illustration
+    _bal = round(rng.uniform(8_000, 26_000) * rate, 2)
     _pct = rng.uniform(0.8, 3.6)
-    _r1 = rng.uniform(1_500, 9_000) * rate
-    _r2 = rng.uniform(900, 6_000) * rate
+    _r1 = round(_bal * rng.uniform(0.45, 0.65), 2)
+    _r2 = round(_bal - _r1, 2)
 
     content = {
         "meta": {
@@ -386,13 +426,63 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
     return fixed
 
 
+def parse_money(s) -> float | None:
+    """'€8.935,91' / '3 014,21 Kč' / '14,933.25 $' → float (locale-agnostic)."""
+    t = re.sub(r"[^\d.,]", "", str(s or ""))
+    if not t:
+        return None
+    m = re.search(r"[.,](\d{1,2})$", t)
+    try:
+        if m:
+            body = t[: -len(m.group(0))].replace(".", "").replace(",", "")
+            return float(f"{body or '0'}.{m.group(1)}")
+        return float(t.replace(".", "").replace(",", ""))
+    except ValueError:
+        return None
+
+
+def reconcile_ledger(content: dict) -> list[str]:
+    """Hero ledger mock: row 1 + row 2 must equal the headline balance.
+
+    Only the numbers of the second row are rewritten (labels stay the model's); the LLM
+    path asks the model for a repair pass first and calls this as the last resort so a
+    single arithmetic slip never dumps an otherwise good pack.
+    """
+    h = content.get("hero") or {}
+    rows = [r for r in (h.get("device_rows") or []) if isinstance(r, dict)]
+    if len(rows) < 2:
+        return []
+    total = parse_money(h.get("device_bal_v") or h.get("device_bal") or "")
+    first = parse_money(rows[0].get("vv") or rows[0].get("v") or "")
+    if total is None or first is None or not 0 < first < total:
+        return []
+    rest = round(total - first, 2)
+    cur_code = str(h.get("device_cur_code") or "EUR")
+    cur_sym = str(h.get("device_cur") or "")
+    rows[1]["vv"] = f"{rest:.2f}"
+    body = fmt_amount(rest, cur_code, True)
+    if cur_code == "EUR":
+        rows[1]["v"] = f"{cur_sym or '€'}{body}"
+    elif cur_sym.isalpha():
+        rows[1]["v"] = f"{body} {cur_sym}"
+    else:
+        rows[1]["v"] = f"{cur_sym}{body}"
+    return ["hero.device_rows.1"]
+
+
 def main():
     ap = argparse.ArgumentParser(description="plan → content pack")
     ap.add_argument("--plan", required=True)
     ap.add_argument("--out", default="")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--source-lang", default="",
+                    help="build the pack in this bank language instead of the plan language "
+                         "(master English copy for tools/localize.py)")
     a = ap.parse_args()
     plan = json.loads(pathlib.Path(a.plan).read_text(encoding="utf-8"))
+    if a.source_lang:
+        plan = json.loads(json.dumps(plan))
+        plan["params"]["lang"] = a.source_lang
     dom = plan["params"]["domain"]
     out = pathlib.Path(a.out) if a.out else ROOT / "content" / f"{dom}-content.json"
     if out.exists() and not a.force:
