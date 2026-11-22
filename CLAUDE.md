@@ -160,6 +160,10 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   або mtime): прод кешує CSS на 30 днів, без мітки правки не доїжджають.
 - Після будь-якої правки JS: `node --check` (одна регулярка ламала форму на сиблінгах).
 - Широкі таблиці — одразу у `.tbl-scroll`; жодних inline `grid-template-columns` на контейнерах.
+- Мобільне меню: якщо варіант хедера задає власний `display` для `.blk-nav`, він мусить мати
+  пару в `@media(max-width:700px)` — `.blk-nav{display:none}` + `.blk-nav.open{display:flex}`.
+  Інакше специфічність десктопного правила перебиває базове «сховано», і бургер не закриває меню
+  (реальний баг варіанта `i`).
 - Self-check після змін інфраструктури: `python3 tests/selftest.py` (має бути PASSED).
 - Canonical-URL гігієна: sitemap/canonical/внутрішні лінки — тільки з `.php`; кожен контент-файл
   починається з PHP-canonical-guard (`PHP_CANON_GUARD` в assemble.py): GET/HEAD на URL без `.php`

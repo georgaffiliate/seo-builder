@@ -728,6 +728,10 @@ button,input,textarea,select{font:inherit;color:inherit}
   .blk-header[data-var="g"] .blk-nav{left:0;right:0;top:calc(100% - 6px);border-radius:0;
     border-bottom:1px solid var(--line)}
   .blk-header[data-var="g"] .menu-toggle{display:block}
+  /* i: the desktop pill row sets display:flex on .blk-nav, so the base mobile
+     "display:none" lost and the panel stayed open forever — restate it here */
+  .blk-header[data-var="i"] .blk-nav{display:none;flex-direction:column;gap:10px}
+  .blk-header[data-var="i"] .blk-nav.open{display:flex;top:calc(100% - 4px)}
   /* grid-based header variants fall back to one line on phones, and the burger must
      come back (the desktop "hide toggle" rule is more specific than the global one) */
   :is(.blk-header[data-var="c"],.blk-header[data-var="h"],.blk-header[data-var="i"],

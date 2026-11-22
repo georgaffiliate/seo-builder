@@ -1132,8 +1132,12 @@ def build_404(plan, C, css_vars, fonts_import, theme):
 
 ASSETS_JS_APP = """function onReady(fn){if(document.readyState!=='loading'){fn();}else{document.addEventListener('DOMContentLoaded',fn);}}
 onReady(function(){
-var mt=document.querySelector('.menu-toggle');if(mt){mt.addEventListener('click',function(){
-var n=document.querySelector('.blk-nav');var ex=n.classList.toggle('open');mt.setAttribute('aria-expanded',ex)});
+var mt=document.querySelector('.menu-toggle'),nv=document.querySelector('.blk-nav');
+if(mt&&nv){var mSync=function(open){nv.classList.toggle('open',open);mt.setAttribute('aria-expanded',open)};
+mt.addEventListener('click',function(){mSync(!nv.classList.contains('open'))});
+nv.addEventListener('click',function(e){if(e.target.closest('a'))mSync(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')mSync(false)});
+document.addEventListener('click',function(e){if(nv.classList.contains('open')&&!nv.contains(e.target)&&!mt.contains(e.target))mSync(false)});
 }
 /* contact e-mail: built here so the hosting proxy never rewrites a plain-text
    mailto into an undecodable "[email protected]" stub (broken link on live pages) */
