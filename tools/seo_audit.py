@@ -256,9 +256,16 @@ def audit_mock_panel(html):
 def audit_review_avatars(html):
     """Review cards must be different people: a portrait shown twice on one page means
     the section was padded with cloned cards (variant-agnostic signal)."""
-    srcs = re.findall(r'<img[^>]+src="([^"]*p-(?:men|women)[^"]*)"', html)
+    srcs = re.findall(r'<img[^>]+src="([^"]*p-(?:men|women)[^"]*)"', _strip_hidden_copies(html))
     dup = sorted({s for s in srcs if srcs.count(s) > 1})
     return dup
+
+
+def _strip_hidden_copies(html):
+    """Sliders (people-g, livebar tapes) duplicate their cards with aria-hidden="true"
+    so the loop has no seam. Those copies are not content: counting them as repeats
+    produced false "duplicate portrait / duplicate paragraph" errors on live pages."""
+    return re.sub(r"<(\w+)[^>]*\baria-hidden=\"true\"[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
 
 
 def audit_duplicate_paragraphs(html):
@@ -268,7 +275,7 @@ def audit_duplicate_paragraphs(html):
     timeline and again as a card grid, so half the page was a verbatim repeat.
     """
     items = []
-    for raw in re.findall(r"<p[^>]*>(.*?)</p>", html, re.S | re.I):
+    for raw in re.findall(r"<p[^>]*>(.*?)</p>", _strip_hidden_copies(html), re.S | re.I):
         t = " ".join(unescape(re.sub(r"<[^>]+>", " ", raw)).split())
         if len(t) >= 45:
             items.append(t)

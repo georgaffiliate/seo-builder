@@ -63,6 +63,12 @@ _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img
                '<h3>Pedro M.</h3><p>Sem pop-ups.</p></article>') * 3
 chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
     "audit flags the same review portrait used twice")
+_slider = ('<article class="rev-card"><p>“Quote long enough to be counted here.”</p>'
+           '<img class="avatar" src="img/p-men-63.jpg"></article>'
+           '<article class="rev-card" aria-hidden="true"><p>“Quote long enough to be counted here.”</p>'
+           '<img class="avatar" src="img/p-men-63.jpg" alt=""></article>')
+chk(_sa2.audit_review_avatars(_slider) == [] and _sa2.audit_duplicate_paragraphs(_slider) == [],
+    "slider's aria-hidden copies are not counted as repeats")
 # the LLM schema must describe every key the fragments render, otherwise the model is
 # asked for a slot it never sees a shape for (that is how portal.cards came back null)
 _schema_doc = json.loads((ROOT / "content" / "content-pack.schema.json").read_text())
