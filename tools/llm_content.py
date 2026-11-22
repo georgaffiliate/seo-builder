@@ -303,6 +303,8 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
               "sections.security.cards": 3, "sections.streams.cards": 3,
               "hero.stats": 3, "hero.device_rows": 2, "bands.mid_points": 4,
               "scarcity.units": 4, "inner_about.blocks": 4,
+              "sections.facts.points": 4, "sections.portal.cards": 3,
+              "bands.side_stats": 3, "bands.side_labels": 3,
             "inner_tech.blocks": 3, "inner_who.blocks": 3, "inner_register.points": 3}
     sk = json.loads(json.dumps(schema))
 
@@ -621,7 +623,8 @@ def main():
                 {"role": "assistant", "content": json.dumps(pack, ensure_ascii=False)},
                 {"role": "user", "content": "Fix these errors, keep all other values: "
                                             + "; ".join(errs[:12]) +
-                                            ". Keep every array at its skeleton length. Return ONLY the corrected "
+                                            ". Keep every array at its skeleton length — never null, never an "
+                                            "empty array. Return ONLY the corrected "
                                             "JSON object, no commentary."},
             ]
             try:

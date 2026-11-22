@@ -63,6 +63,36 @@ _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img
                '<h3>Pedro M.</h3><p>Sem pop-ups.</p></article>') * 3
 chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
     "audit flags the same review portrait used twice")
+# the LLM schema must describe every key the fragments render, otherwise the model is
+# asked for a slot it never sees a shape for (that is how portal.cards came back null)
+_schema_doc = json.loads((ROOT / "content" / "content-pack.schema.json").read_text())
+_derived = {"hero.device_bal_v", "hero.device_cur", "hero.device_cur_code", "hero.device_pct"}
+
+
+def _schema_has(path):
+    node = _schema_doc
+    for part in path.split("."):
+        if part.isdigit():
+            if not isinstance(node, list) or not node:
+                return False
+            node = node[0]
+            continue
+        if not isinstance(node, dict) or part not in node:
+            return False
+        node = node[part]
+    return True
+
+
+_missing_schema = set()
+for _f in (ROOT / "blocks").glob("blk-*.html"):
+    for _p in set(re.findall(r"\{\{c:([\w.]+)\}\}", _f.read_text(encoding="utf-8"))):
+        _base = ".".join(x for x in _p.split(".") if not x.isdigit())
+        if _p in _derived or _base in _derived or _p.endswith(".vv"):
+            continue
+        if not _schema_has(_p):
+            _missing_schema.add(_base)
+chk(not _missing_schema,
+    f"schema covers every fragment key ({sorted(_missing_schema)[:4] if _missing_schema else 'complete'})")
 # a long plan history must not shrink the persona trio to one
 sys.path.insert(0, str(ROOT)); import gen_plan as _gp
 _worn = [{"people": ["Anna K.", "Peter M.", "Sofia L.", "David R.", "Emma S."]},
