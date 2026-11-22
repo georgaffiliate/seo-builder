@@ -35,6 +35,20 @@ chk("{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets.html"
     and "{{c:sections.markets.disclaimer}}" in (ROOT / "blocks" / "blk-markets-b.html").read_text(),
     "markets disclaimer comes from content (no English caption)")
 chk("{{c:hero.device_label}}" in (ROOT / "blocks" / "blk-hero.html").read_text(), "hero ledger label from content")
+# no hardcoded copy in fragments: everything the visitor reads or hears comes from the pack
+_pay = {"visa", "mastercard", "sepa", "sepa/visa"}
+_hard = {}
+for _f in (ROOT / "blocks").glob("blk-*.html"):
+    _h = _f.read_text(encoding="utf-8")
+    _h = re.sub(r"<(script|style)\b.*?</\1>", " ", _h, flags=re.S | re.I)
+    _h = re.sub(r"<!--.*?-->", " ", _h, flags=re.S)
+    _h = re.sub(r"[\w.+-]+@(?:\{\{[^}]*\}\}|[\w.-]+)", " ", _h)   # mailto:info@domain is not copy
+    _h = re.sub(r"\{\{[^}]*\}\}", " ", _h)
+    _words = {w.lower() for w in re.findall(r"[^\W\d_]{3,}", re.sub(r"<[^>]+>", " ", _h), re.UNICODE)}
+    _left = _words - _pay
+    if _left:
+        _hard[_f.name] = sorted(_left)[:4]
+chk(not _hard, f"no hardcoded copy in fragments ({'; '.join(f'{k}: {v}' for k, v in list(_hard.items())[:3]) or 'clean'})")
 chk("{{c:sections.stats.}}" not in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
     and "{{c:sections.stats.reviews}}" in (ROOT / "blocks" / "blk-intro-stats.html").read_text()
     and all(f"{{{{c:sections.stats.{k}}}}}" in (ROOT / "blocks" / "blk-numbers.html").read_text()

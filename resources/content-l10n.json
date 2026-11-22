@@ -144,7 +144,13 @@
    "status_sending": "Invio in corso…",
    "status_fix": "Controlla i campi evidenziati.",
    "status_fail": "Invio non riuscito, riprova.",
-   "status_ok": "Fatto, ti stiamo reindirizzando…"
+   "status_ok": "Fatto, ti stiamo reindirizzando…",
+   "aria_nav": "Navigazione principale",
+   "aria_menu": "Menu",
+   "aria_timer": "Conto alla rovescia",
+   "aria_chart": "Grafico di proiezione",
+   "aria_illustration": "Illustrazione",
+   "aria_direction": "Illustrazione della direzione"
   },
   "sections": {
    "intro": {
@@ -278,7 +284,10 @@
       "chg": "+0,3%"
      }
     ],
-    "disclaimer": "Valori illustrativi."
+    "disclaimer": "Valori illustrativi.",
+    "th_symbol": "Strumento",
+    "th_value": "Valore",
+    "th_change": "Variazione"
    },
    "security": {
     "eyebrow": "SICUREZZA",
@@ -360,7 +369,8 @@
     "rating": "Valutazione media",
     "reviews": "Recensioni verificate",
     "orders": "Ordini al secondo",
-    "api": "Uptime API"
+    "api": "Uptime API",
+    "note": "Valori medi della piattaforma. Le performance passate non garantiscono risultati futuri."
    },
    "glance": {
     "eyebrow": "IN SINTESI",
@@ -423,6 +433,9 @@
       "d": "Registro ordini con commissioni, export per la dichiarazione dei redditi in pochi clic."
      }
     ]
+   },
+   "ticker": {
+    "label": "TENDENZA"
    }
   },
   "reviews": {
@@ -500,7 +513,8 @@
   "brand_note": {
    "h2": "{brand} — cosa indica il nome",
    "p1": "Si cerca {brand_lower} login, {brand_lower} registrazione e {brand} {geo} per arrivare all'area personale. Il dominio ufficiale resta {domain}.",
-   "p2": "Nelle pagine interne trovi il metodo di lavoro, la struttura degli strumenti e i recapiti diretti; le condizioni sono nella pagina termini."
+   "p2": "Nelle pagine interne trovi il metodo di lavoro, la struttura degli strumenti e i recapiti diretti; le condizioni sono nella pagina termini.",
+   "badge": "IN SINTESI"
   },
   "inner_about": {
    "title": [
@@ -623,7 +637,11 @@
   "footer": {
    "tagline": "Dati leggibili, passaggi verificabili.",
    "risk_line": "Gli investimenti possono salire e scendere; il rendimento passato non è garanzia.",
-   "disclaimer": "{brand} pubblica materiali informativi e non fornisce consulenza personalizzata. Il sito è gestito da {brand} con sede in {city}. Autorità di vigilanza: {regulator}. Condizioni complete nella documentazione contrattuale."
+   "disclaimer": "{brand} pubblica materiali informativi e non fornisce consulenza personalizzata. Il sito è gestito da {brand} con sede in {city}. Autorità di vigilanza: {regulator}. Condizioni complete nella documentazione contrattuale.",
+   "terms_label": "Termini",
+   "privacy_label": "Privacy",
+   "rights": "Tutti i diritti riservati.",
+   "pay_chips": "VISA · Mastercard · Bonifico"
   },
   "thanks": {
    "eyebrow": "RICEVUTO",
@@ -898,7 +916,13 @@
    "status_sending": "Odesíláme…",
    "status_fix": "Zkontrolujte zvýrazněná pole.",
    "status_fail": "Odeslání se nezdařilo, zkuste to znovu.",
-   "status_ok": "Hotovo, přesměrováváme…"
+   "status_ok": "Hotovo, přesměrováváme…",
+   "aria_nav": "Hlavní navigace",
+   "aria_menu": "Menu",
+   "aria_timer": "Časovač",
+   "aria_chart": "Graf projekce",
+   "aria_illustration": "Ilustrace",
+   "aria_direction": "Ilustrace směru"
   },
   "sections": {
    "intro": {
@@ -1032,7 +1056,10 @@
       "chg": "+0,3 %"
      }
     ],
-    "disclaimer": "Ilustrační hodnoty."
+    "disclaimer": "Ilustrační hodnoty.",
+    "th_symbol": "Symbol",
+    "th_value": "Hodnota",
+    "th_change": "Změna"
    },
    "security": {
     "eyebrow": "BEZPEČNOST",
@@ -1114,7 +1141,8 @@
     "rating": "Průměrné hodnocení",
     "reviews": "Ověřené recenze",
     "orders": "Objednávek za sekundu",
-    "api": "Dostupnost API"
+    "api": "Dostupnost API",
+    "note": "Průměrné hodnoty platformy. Minulá výkonnost nezaručuje budoucí výsledky."
    },
    "glance": {
     "eyebrow": "PŘEHLED",
@@ -1177,6 +1205,9 @@
       "d": "Deník obchodů s poplatky, export pro daňové přiznání za pár kliků."
      }
     ]
+   },
+   "ticker": {
+    "label": "TREND"
    }
   },
   "reviews": {
@@ -1254,7 +1285,8 @@
   "brand_note": {
    "h2": "{brand} — co jméno znamená",
    "p1": "Hledá se {brand_lower} přihlášení, {brand_lower} registrace a {brand} {geo} kvůli zóně. Oficiální doména je {domain}.",
-   "p2": "Na vnitřních stránkách je postup, struktura nástrojů a kontakty; podmínky najdete na stránce podmínek."
+   "p2": "Na vnitřních stránkách je postup, struktura nástrojů a kontakty; podmínky najdete na stránce podmínek.",
+   "badge": "V SOUHRNU"
   },
   "inner_about": {
    "title": [
@@ -1377,7 +1409,11 @@
   "footer": {
    "tagline": "Čitelná data, ověřitelné kroky.",
    "risk_line": "Investice mohou klesat i stoupat; minulý výnos není zárukou.",
-   "disclaimer": "{brand} zveřejňuje informativní materiály a neposkytuje osobní poradenství. Web spravuje {brand} se sídlem v {city}. Dohled: {regulator}. Úplné podmínky ve smlouvě."
+   "disclaimer": "{brand} zveřejňuje informativní materiály a neposkytuje osobní poradenství. Web spravuje {brand} se sídlem v {city}. Dohled: {regulator}. Úplné podmínky ve smlouvě.",
+   "terms_label": "Podmínky",
+   "privacy_label": "Soukromí",
+   "rights": "Všechna práva vyhrazena.",
+   "pay_chips": "VISA · Mastercard · Bankovní převod"
   },
   "thanks": {
    "eyebrow": "PŘIJATO",
@@ -1657,7 +1693,13 @@
    "status_sending": "Sending…",
    "status_fix": "Check the highlighted fields.",
    "status_fail": "Sending failed, try again.",
-   "status_ok": "Done, redirecting…"
+   "status_ok": "Done, redirecting…",
+   "aria_nav": "Main navigation",
+   "aria_menu": "Menu",
+   "aria_timer": "Timer",
+   "aria_chart": "Projection chart",
+   "aria_illustration": "Illustration",
+   "aria_direction": "Direction illustration"
   },
   "sections": {
    "intro": {
@@ -1791,7 +1833,10 @@
       "chg": "+0.3%"
      }
     ],
-    "disclaimer": "Illustrative values."
+    "disclaimer": "Illustrative values.",
+    "th_symbol": "Symbol",
+    "th_value": "Value",
+    "th_change": "Change"
    },
    "security": {
     "eyebrow": "SECURITY",
@@ -1893,7 +1938,8 @@
     "rating": "Average rating",
     "reviews": "Verified reviews",
     "orders": "Orders per second",
-    "api": "API uptime"
+    "api": "API uptime",
+    "note": "Platform averages. Past performance does not guarantee future results."
    },
    "glance": {
     "eyebrow": "AT A GLANCE",
@@ -1956,6 +2002,9 @@
       "d": "Trade log with fees, export for tax filing in a couple of clicks."
      }
     ]
+   },
+   "ticker": {
+    "label": "TREND"
    }
   },
   "reviews": {
@@ -2033,7 +2082,8 @@
   "brand_note": {
    "h2": "{brand} — what the name refers to",
    "p1": "People search {brand_lower} login, {brand_lower} registration and {brand} {geo} to reach the area. The official domain stays {domain}.",
-   "p2": "Inner pages cover the method, tool structure and direct contacts; conditions sit on the terms page."
+   "p2": "Inner pages cover the method, tool structure and direct contacts; conditions sit on the terms page.",
+   "badge": "IN SHORT"
   },
   "inner_about": {
    "title": [
@@ -2156,7 +2206,11 @@
   "footer": {
    "tagline": "Readable data, verifiable steps.",
    "risk_line": "Investments can rise and fall; past returns are no guarantee.",
-   "disclaimer": "{brand} publishes informative material and does not provide personal advice. The site is run by {brand}, based in {city}. Supervisor: {regulator}. Full conditions in the contract."
+   "disclaimer": "{brand} publishes informative material and does not provide personal advice. The site is run by {brand}, based in {city}. Supervisor: {regulator}. Full conditions in the contract.",
+   "terms_label": "Terms",
+   "privacy_label": "Privacy",
+   "rights": "All rights reserved.",
+   "pay_chips": "VISA · Mastercard · Bank transfer"
   },
   "thanks": {
    "eyebrow": "RECEIVED",
@@ -2496,13 +2550,17 @@
       "v": "2.284",
       "chg": "+0,3%"
      }
-    ]
+    ],
+    "th_symbol": "Instrumento",
+    "th_value": "Valor",
+    "th_change": "Variación"
    },
    "stats": {
     "rating": "Valoración media",
     "reviews": "Reseñas verificadas",
     "orders": "Órdenes por segundo",
-    "api": "Disponibilidad de la API"
+    "api": "Disponibilidad de la API",
+    "note": "Valores medios de la plataforma. La rentabilidad pasada no garantiza resultados futuros."
    },
    "glance": {
     "eyebrow": "EN RESUMEN",
@@ -2766,6 +2824,9 @@
       "d": "Registro de operaciones con comisiones y exportación para la declaración en dos clics."
      }
     ]
+   },
+   "ticker": {
+    "label": "TENDENCIA"
    }
   },
   "_pulse": {
@@ -2875,7 +2936,13 @@
    "status_sending": "Enviando…",
    "status_fix": "Revisa los campos marcados.",
    "status_fail": "No se pudo enviar, inténtalo de nuevo.",
-   "status_ok": "Listo, redirigiendo…"
+   "status_ok": "Listo, redirigiendo…",
+   "aria_nav": "Navegación principal",
+   "aria_menu": "Menú",
+   "aria_timer": "Temporizador",
+   "aria_chart": "Gráfico de proyección",
+   "aria_illustration": "Ilustración",
+   "aria_direction": "Ilustración de la dirección"
   },
   "reviews": {
    "eyebrow": "PERSONAS",
@@ -2944,12 +3011,17 @@
   "brand_note": {
    "h2": "{brand} — a qué se refiere el nombre",
    "p1": "La gente busca {brand_lower} iniciar sesión, {brand_lower} registro y {brand} {geo} para llegar al área. El dominio oficial sigue siendo {domain}.",
-   "p2": "Las páginas interiores explican el método, la estructura de las herramientas y los contactos directos; las condiciones están en la página de términos."
+   "p2": "Las páginas interiores explican el método, la estructura de las herramientas y los contactos directos; las condiciones están en la página de términos.",
+   "badge": "EN RESUMEN"
   },
   "footer": {
    "tagline": "Datos legibles, pasos verificables.",
    "risk_line": "Las inversiones pueden subir y bajar; la rentabilidad pasada no garantiza la futura.",
-   "disclaimer": "{brand} publica material informativo y no ofrece asesoramiento personalizado. El sitio lo gestiona {brand}, con sede en {city}. Supervisor: {regulator}. Condiciones completas en el contrato."
+   "disclaimer": "{brand} publica material informativo y no ofrece asesoramiento personalizado. El sitio lo gestiona {brand}, con sede en {city}. Supervisor: {regulator}. Condiciones completas en el contrato.",
+   "terms_label": "Términos",
+   "privacy_label": "Privacidad",
+   "rights": "Todos los derechos reservados.",
+   "pay_chips": "VISA · Mastercard · Transferencia bancaria"
   },
   "thanks": {
    "eyebrow": "RECIBIDO",

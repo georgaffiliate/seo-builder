@@ -58,7 +58,13 @@
     "status_sending":  "статус під час відправки форми",
     "status_fix":      "статус: поправте виділені поля",
     "status_fail":     "статус: відправка не вдалась",
-    "status_ok":       "статус: успіх, редірект"
+    "status_ok":       "статус: успіх, редірект",
+    "aria_nav":        "aria-label навігації (мова сайту)",
+    "aria_menu":       "aria-label кнопки меню",
+    "aria_timer":      "aria-label таймера зворотного відліку",
+    "aria_chart":      "aria-label графіка калькулятора",
+    "aria_illustration":"aria-label ілюстрації (demo)",
+    "aria_direction":  "aria-label лінії напрямку (demo)"
   },
 
   "sections": {
@@ -71,7 +77,9 @@
     "steps":  {"eyebrow":"…","h2":"…",
                 "steps":[{"t":"Крок","d":"1 речення"}]},
     "markets":{"eyebrow":"…","h2":"…","lead":"…",
+                "th_symbol":"заголовок колонки інструмента","th_value":"…","th_change":"…",
                 "rows":[{"sym":"BTC/EUR","v":"87.450","chg":"+2,4%"}]},
+    "ticker": {"label":"підпис тікера (короткий, верхній регістр)"},
     "security":{"eyebrow":"…","h2":"…",
                 "cards":[{"ic":"⛨","t":"…","d":"…"}]},
     "risk":   {"eyebrow":"…","h2":"…","lead":"…",
@@ -80,7 +88,8 @@
                 "cards":[{"ic":"⟡","t":"…","d":"…"}]},
     "cta":    {"eyebrow":"…","h2":"…","lead":"…","btn":"…"},
     "notes":  {"lead":"…","note":"…"},
-    "stats":  {"_doc":"підписи метрик для numbers/stats-intro (rating, reviews, orders, api)","rating":"…","reviews":"…","orders":"…","api":"…"},
+    "stats":  {"_doc":"підписи метрик для numbers/stats-intro (rating, reviews, orders, api)","rating":"…","reviews":"…","orders":"…","api":"…",
+                "note":"дрібний дисклеймер під метриками"},
     "demo":   {"eyebrow":"…","h2":"…","lead":"…","disclaimer":"ілюстрація, без обіцянок"}
   },
 
@@ -107,7 +116,7 @@
               "addr_label":"…","addr":"…","hours_label":"…","hours":"…",
               "contact_label":"…"},
 
-  "brand_note": {"eyebrow":"…","h2":"Бренд + ключ",
+  "brand_note": {"eyebrow":"…","badge":"бейдж бренд-ноти (короткий, верхній регістр)","h2":"Бренд + ключ",
                    "p1":"або-фрази, як шукають (login/geo)","p2":"теми + якорі на внутрішні"},
 
   "inner_about":   {"title":"…","h1":"…","lead":"вступний абзац","blocks":[{"t":"…","d":"…"}]},
@@ -120,6 +129,8 @@
              "privacy":"HTML-абзаци чеською (GDPR/ČNB)"},
 
   "footer": {"tagline":"…","risk_line":"…",
+              "terms_label":"пункт футера «Умови»","privacy_label":"пункт футера «Приватність»",
+              "rights":"правова фраза біля © (мова сайту)","pay_chips":"VISA · Mastercard · …",
               "disclaimer":"2-3 речення: ризики, компанія, регулятор з plan.regulator"},
 
   "thanks": {"h1":"…","lead":"телефон протягом 30 хв","warn":"якщо не взяли трубку…"}

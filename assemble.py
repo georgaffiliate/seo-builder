@@ -498,12 +498,14 @@ def build_header_footer(plan, C):
     nav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs)
     geo_l = plan["params"]["lang"]
     livebar = R("livebar", plan, C)
+    ui = C.get("ui") or {}
     hv = (plan["layout"].get("variants") or {}).get("header", "")
     parts = {
         "logo": logo_html(plan),
-        "nav": f'<nav class="blk-nav" aria-label="Main">{nav}</nav>',
+        "nav": f'<nav class="blk-nav" aria-label="{esc(ui.get("aria_nav") or "Main")}">{nav}</nav>',
         "cta": f'<a class="blk-btn" href="index.php#claim">{esc(C["bands"].get("submit_nav", "Open account"))}</a>',
-        "toggle": '<button class="menu-toggle" aria-label="Menu" aria-expanded="false">☰</button>',
+        "toggle": f'<button class="menu-toggle" aria-label="{esc(ui.get("aria_menu") or "Menu")}" '
+                  f'aria-expanded="false">☰</button>',
     }
     order = {
         "": ("logo", "nav", "cta", "toggle"),
@@ -515,16 +517,20 @@ def build_header_footer(plan, C):
         "g": ("logo", "cta", "nav", "toggle"),
     }.get(hv, ("logo", "nav", "cta", "toggle"))
     header = f'<header class="blk-header" data-var="{hv or "a"}">' + "\n".join(parts[k] for k in order) + "</header>"
-    flabels = [(FOOTER_L10N.get(geo_l, ("Terms", "Privacy", ""))[0], "terms.php"),
-               (FOOTER_L10N.get(geo_l, ("Terms", "Privacy", ""))[1], "privacy.php")]
-    rights = FOOTER_L10N.get(geo_l, ("Terms", "Privacy", "All rights reserved."))[2]
+    # footer labels come from the content pack (translated by tools/localize.py);
+    # FOOTER_L10N only backstops packs written before these keys existed
+    ft = C.get("footer") or {}
+    fb = FOOTER_L10N.get(geo_l, ("Terms", "Privacy", "All rights reserved."))
+    flabels = [(ft.get("terms_label") or fb[0], "terms.php"),
+               (ft.get("privacy_label") or fb[1], "privacy.php")]
+    rights = ft.get("rights") or fb[2]
     fnav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs + flabels)
     footer = f"""<footer class="blk-footer"><div class="footer-top">
 {logo_html(plan)}
 <nav>{fnav}</nav><span>{esc(C.get('footer', {}).get('tagline', ''))}</span></div>
 <p class="footer-disclaimer">{esc(C.get('footer', {}).get('disclaimer', ''))}</p>
 <div class="footer-bottom"><span>© 2026 {esc(brand)}. {esc(rights)}</span>
-<span class="pay-chips">VISA · Mastercard · Bank transfer</span>
+<span class="pay-chips">{esc(ft.get("pay_chips") or "VISA · Mastercard · Bank transfer")}</span>
 <span>{esc(C.get('footer', {}).get('risk_line', ''))}</span></div></footer>"""
     return livebar, header, footer
 
