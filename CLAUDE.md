@@ -115,9 +115,12 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   центрований стек, split-сітмап, мінімальний рядок). Оболонка = header × footer = 10×5 = 50
   комбінацій; `pick_variant` тримає шапку/футер подалі від 5 попередніх планів, а `validate()`
   валить план, якщо комбо повторює один із трьох попередніх.
-- Стрічка в хедері (`livebar`) — окрема вісь поза `section_order`: 10 варіантів (b–j: валюти,
-  крипта, індекси, сировина, новини, статус сервісів, сесія, сентимент, черга) + канон;
-  вибір у плані (`layout.variants.livebar`) + дані в `plan.livebar.subs`, assemble рендерить їх.
+- Стрічка в хедері (`livebar`) — окрема вісь поза `section_order`; у пул ідуть лише СТРУКТУРНО
+  різні стрічки: `a` маркі-тейп, `f` новини, `j` центрований тейп, `k` ledger-тейп, `m` рядки,
+  `n` метри (label+bar), `t` борд (3×2, без анімації), `z` тейп зі спарклайнами, `ac` статичні
+  чіпи (свайп, без руху). Решта старих id (b–y) лишаються рендерябельними для історії, але не
+  обираються: вони відрізнялись лише рамкою/кольором. Вибір у плані (`layout.variants.livebar`) +
+  дані в `plan.livebar.subs`, assemble рендерить їх.
 - `SECTION_POOL` ×22 типи (`device` виведений з пулу — він дублював hero-мокап; `VARIANTS` ×21 слот). Стат-екрани
   не дублюють значення hero: `numbers` = rating/5·reviews·orders/s·API, `stats-intro` = reviews·orders·API
   (labels з `sections.stats`), `glance` = власні `sections.glance` + rows з markets; numbers і stats-intro

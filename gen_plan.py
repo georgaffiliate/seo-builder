@@ -61,10 +61,11 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
-    "livebar": ["b", "d", "f", "g", "h", "i", "j",
-                "k", "l", "m", "n", "o", "p", "r",
-                "t", "u", "v", "w", "x", "y",
-                "z", "aa", "ab", "ac"],
+    # only structurally DIFFERENT strips are drawn: marquee, news, centered tape,
+    # ledger tape, rows, meters, board, sparkline tape, static chips. The rest of the
+    # old b..y ids were the same marquee with another border — they stay renderable
+    # for historical plans but are never picked for a new site.
+    "livebar": ["a", "f", "j", "k", "m", "n", "t", "z", "ac"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
     "header": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
     "footer": ["b", "c", "d", "e", "f"],

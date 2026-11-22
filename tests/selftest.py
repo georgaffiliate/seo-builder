@@ -148,6 +148,8 @@ for slot, vs in pairs:
         chk(len(variants) >= 3, f"{slot}: several variants")
         continue
     for v in variants:
+        if v == "a":                  # canonical shell renders from the canon file
+            continue
         cand = [ROOT / "blocks" / f"blk-{slot}-{v}.html",
                 ROOT / "blocks" / f"blk-{CANON_HINT.get(slot, slot)}-{v}.html"]
         chk(any(c.exists() for c in cand), f"{slot}-{v}: fragment exists")
@@ -271,6 +273,9 @@ r = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "Selft
 chk(r.returncode == 0, f"gen_plan smoke: rc={r.returncode}")
 _p = json.loads(plan_f.read_text()) if plan_f.exists() else {}
 _lb = (_p.get("livebar") or {}).get("variant")
+_lb_css = (ROOT / "blocks" / "blocks.css").read_text()
+chk(all(f".blk-livebar.{c}" in _lb_css for c in ("lb-board", "lb-rows", "lb-meters")),
+    "livebar structural families styled (board/rows/meters)")
 chk(_lb in {"b", "d", "f", "g", "h", "i", "j",
             "k", "l", "m", "n", "o", "p", "r",
             "t", "u", "v", "w", "x", "y",
