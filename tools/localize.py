@@ -80,8 +80,12 @@ def needs_translation(path: str, value) -> bool:
     text = value.strip()
     if not text or not re.search(r"[^\W\d_]", text, re.UNICODE):
         return False
-    if path in WHITELIST_PATHS or path.endswith((".vv", ".photo", ".ic", ".g")):
+    if path in WHITELIST_PATHS or path.endswith((".vv", ".photo", ".ic", ".g", ".sym")):
         return False
+    if path.endswith("meta.keywords"):
+        return False          # search queries: brand + "login" stay as people type them
+    if path.endswith(".eyebrow") and re.fullmatch(r"[A-Z0-9 ·/\-]+", text):
+        return False          # BRAND · GEO, all caps: nothing to translate
     if "@" in text or text.startswith(("http://", "https://")):
         return False
     if _is_ticker(text) or text.lower() in WHITELIST_WORDS:
@@ -109,6 +113,17 @@ def collect(pack: dict, plan: dict) -> dict:
 
 
 # ------------------------------------------------------------------ validation
+LABEL_WORD = re.compile(r"^(?:[A-Z][a-z\u00c0-\u024f]{0,7}|[A-Z0-9][A-Z0-9·/&.\-]*)$")
+
+
+def _label_like(text: str) -> bool:
+    """'Menu', 'Base', 'INDEX EU', 'Pro' — short label tokens that legitimately read
+    the same in many languages (a full sentence never matches)."""
+    words = [w.strip(",. ;:!?«»\"'()") for w in text.split()]
+    words = [w for w in words if w]
+    return 0 < len(words) <= 3 and all(LABEL_WORD.match(w) for w in words)
+
+
 def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "") -> list[str]:
     """Structural + copy checks: same keys, placeholders, digits, tags, real translation."""
     errs = []
@@ -144,6 +159,8 @@ def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "")
                 errs.append(f"{path}: '{new}' is not a kebab-case ascii slug")
             continue
         if new.strip() == text.strip() and lang != "en" and re.search(r"[^\W\d_]{3,}", text, re.UNICODE):
+            if _label_like(text):
+                continue          # Menu / Base / Pro / INDEX EU: same word by nature
             errs.append(f"{path}: not translated ('{text[:40]}')")
     return errs
 

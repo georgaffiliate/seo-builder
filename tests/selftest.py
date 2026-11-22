@@ -351,6 +351,14 @@ chk(_lz.needs_translation("content.hero.lead", "Keeps listings") and
     not _lz.needs_translation("content.hero.device_rows.0.s", "MIX-GL") and
     not _lz.needs_translation("content.meta.email", "info@bitnova-pt.site"),
     "localize: copy is translated, tickers/emails are not")
+chk(not _lz.needs_translation("content.meta.keywords", "Bitnova, bitnova login") and
+    not _lz.needs_translation("content.hero.eyebrow", "BITNOVA · PT") and
+    not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU"),
+    "localize: keywords / BRAND · GEO / ticker symbols are not sent to the model")
+_labels = {"content.ui.aria_menu": "Menu", "content.sections.ladder.rows.0.k": "Base",
+           "content.sections.ladder.rows.1.k": "Pro"}
+chk(not _lz.validate(_labels, dict(_labels), "pt", "Bitnova"),
+    "localize: a label that reads the same in both languages is accepted")
 _partial_bank = json.loads(json.dumps(_bank_all))
 _partial_bank["es"] = {"hero": {"device_label": "Cuenta operativa"}}   # 1 key instead of 235
 try:
