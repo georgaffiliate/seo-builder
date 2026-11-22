@@ -66,7 +66,8 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
                 "t", "u", "v", "w", "x", "y",
                 "z", "aa", "ab", "ac"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
-    "header": ["b", "c", "d", "e", "f", "g"],
+    "header": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    "footer": ["b", "c", "d", "e", "f"],
 }
 
 LIVEBAR_L10N = {lg: b["_livebar"] for lg, b in json.loads(
@@ -269,6 +270,13 @@ def pick_people(rng, lang: str, hist: list) -> list:
     return sorted(rng.sample(fresh, k=min(3, len(fresh))))
 
 
+def pick_variant(rng, key: str, pool: list, hist: list, lookback: int = 3) -> str:
+    """Variant that did not appear in the last `lookback` plans (falls back to the pool)."""
+    recent = {(h.get("variants") or {}).get(key, "") for h in hist[-lookback:]}
+    fresh = [v for v in pool if v not in recent]
+    return rng.choice(fresh or pool)
+
+
 def build_plan(rng, args, hist)->dict|None:
     last2=hist[-2:]
     # palette: ≠ neighbours, and (skin,palette) combo globally unused
@@ -417,12 +425,12 @@ def build_plan(rng, args, hist)->dict|None:
         elif rng.random()<0.45: variants[slot]=rng.choice(opts)
 
     # livebar strip: a second structural axis (not a page section, always present)
-    lb_pool=[v for v in VARIANTS["livebar"] if not hist or v != hist[-1]["variants"].get("livebar")]
-    variants["livebar"]=rng.choice(lb_pool)
-    logo_pool=[v for v in VARIANTS["logo"] if not hist or v != hist[-1]["variants"].get("logo")]
-    variants["logo"]=rng.choice(logo_pool)
-    hdr_pool=[v for v in VARIANTS["header"] if not hist or v != hist[-1]["variants"].get("header")]
-    variants["header"]=rng.choice(hdr_pool)
+    variants["livebar"]=pick_variant(rng, "livebar", VARIANTS["livebar"], hist, 2)
+    variants["logo"]=pick_variant(rng, "logo", VARIANTS["logo"], hist, 3)
+    # header/footer are the shell every page repeats: keep them away from the last few
+    # offers instead of only avoiding the single most recent plan
+    variants["header"]=pick_variant(rng, "header", VARIANTS["header"], hist, 5)
+    variants["footer"]=pick_variant(rng, "footer", VARIANTS["footer"], hist, 5)
     livebar=build_livebar(rng, variants["livebar"], args.lang,
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
     # people-e is a rating-summary screen: same stat family as the numbers screen — never both
@@ -830,6 +838,13 @@ def validate(plan,hist)->list[str]:
             errs.append(f"widget set equals {h['domain']}"); break
     if any(h["palette"]==plan["design"]["palette_id"] for h in last2): errs.append("palette repeats neighbour")
     if any(h["skin"]==plan["design"]["skin"] for h in last2): errs.append("skin repeats neighbour")
+    # shell = header + footer: identical shell on consecutive offers is the most visible
+    # similarity a visitor notices (every page repeats it)
+    shell=(plan["layout"]["variants"].get("header",""),plan["layout"]["variants"].get("footer",""))
+    for h in hist[-3:]:
+        hv=h.get("variants") or {}
+        if shell[0] and (hv.get("header",""),hv.get("footer",""))==shell:
+            errs.append(f"header+footer shell repeats {h['domain']}"); break
     # NOTE: skin+palette combo reuse is NOT an error any more (paint budget of
     # 90 combos exhausts at site #91) — gen_plan logs it as a WARN instead
     if last2 and all(seq_overlap(plan["layout"]["section_order"],h["order"])>=0.6 for h in last2):

@@ -106,6 +106,11 @@ chk(len(_gp.pick_people(__import__("random").Random(3), "pt", _worn)) == 3,
     "personas stay at 3 after the name bank is used up")
 # routing: model writes the copy by default; translation and bank are opt-in
 _pp = {"params": {"lang": "pt"}}
+chk(len(_gp.VARIANTS["header"]) >= 9 and len(_gp.VARIANTS["footer"]) >= 5,
+    f"shell pools: {len(_gp.VARIANTS['header'])} headers × {len(_gp.VARIANTS['footer'])} footers")
+chk(_gp.pick_variant(__import__("random").Random(1), "header", ["b", "c", "d"], 
+                     [{"variants": {"header": "b"}}] * 5, 5) in ("c", "d"),
+    "header variant avoids the last five plans")
 chk(_gp.content_route(_pp) == "invent" and
     _gp.content_route(_pp, translate=True) == "localize" and
     _gp.content_route(_pp, offline=True) == "bank",
@@ -139,7 +144,7 @@ chk(len(pairs) >= 12, f"variant registry slots: {len(pairs)}")
 for slot, vs in pairs:
     variants = _re.findall(r'"([a-z])"', vs)
     chk(len(variants) >= 1, f"{slot}: has variants")
-    if slot in ("logo", "header"):   # rendered by assemble.logo_html / header shell, no fragment
+    if slot in ("logo", "header", "footer"):   # rendered by assemble, no fragment file
         chk(len(variants) >= 3, f"{slot}: several variants")
         continue
     for v in variants:
@@ -293,6 +298,10 @@ if _p:
             chk("blk-logo" not in _hv_html, "header-d drops the logo")
         if _hv == "e":
             chk("blk-btn" not in _hv_html, "header-e drops the CTA")
+    for _fv in ("b", "c", "d", "e", "f"):
+        _plan = json.loads(json.dumps(_p)); _plan["layout"]["variants"]["footer"] = _fv
+        _fh = _asm.footer_html(_plan, {"bands": {}, "footer": {}})
+        chk(f'data-var="{_fv}"' in _fh and "{{" not in _fh, f"footer-{_fv} renders shell")
     for _v in ("b", "d", "f", "g", "h", "i", "j",
            "k", "l", "m", "n", "o", "p", "r",
            "t", "u", "v", "w", "x", "y",

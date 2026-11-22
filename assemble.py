@@ -33,7 +33,7 @@ POSTBACK_SRC = ROOT / "_postback.php"
 
 BUILD_V = "0"
 REQUIRED_PLAN_KEYS = ["params", "design", "layout", "widgets", "numbers"]
-SPECIAL_VARIANTS = {"livebar", "logo", "header"}
+SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer"}
 
 # footer legal labels + rights line per geo language (fallback English)
 FOOTER_L10N = {
@@ -511,13 +511,88 @@ def logo_html(plan) -> str:
     return f'<a class="blk-logo" data-var="{v or "a"}" href="index.php" aria-label="{esc(brand)}">{inner}</a>'
 
 
+def footer_html(plan, C):
+    """Footer shell — its own layout axis (5 designs, `data-var`), same content keys.
+
+    The footer repeats on every page of every site, so a single design is the most
+    visible fingerprint the factory can leave. Each variant is a different structure,
+    not a recolour: grid of link columns, centered stack, split sitemap, minimal bar,
+    or the classic three-tier block.
+    """
+    brand = plan["params"]["brand"]
+    lang = plan["params"]["lang"]
+    ft = C.get("footer") or {}
+    fb = FOOTER_L10N.get(lang, ("Terms", "Privacy", "All rights reserved."))
+    flabels = [(ft.get("terms_label") or fb[0], "terms.php"),
+               (ft.get("privacy_label") or fb[1], "privacy.php")]
+    rights = ft.get("rights") or fb[2]
+    tagline = ft.get("tagline", "")
+    disclaimer = ft.get("disclaimer", "")
+    risk = ft.get("risk_line", "")
+    pays = ft.get("pay_chips") or "VISA · Mastercard · Bank transfer"
+    slugs = plan["layout"].get("slugs", {})
+    menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
+    pairs = [(menu[0], "index.php"), (menu[1], f"{slugs.get('about','about')}.php"),
+             (menu[2], f"{slugs.get('who','who')}.php"), (menu[3], f"{slugs.get('contact','contact')}.php")]
+    logo = logo_html(plan)
+
+    def links(items):
+        return "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in items)
+
+    v = (plan["layout"].get("variants") or {}).get("footer", "") or ""
+    base = (f'<div class="foot-base"><span>© 2026 {esc(brand)}. {esc(rights)}</span>'
+            f'<span class="pay-chips">{esc(pays)}</span></div>')
+    if v == "b":       # brand block + two link columns
+        return (f'<footer class="blk-footer" data-var="b"><div class="foot-grid">'
+                f'<div class="foot-brand">{logo}<p class="foot-tag">{esc(tagline)}</p></div>'
+                f'<nav class="foot-nav">{links(pairs)}</nav>'
+                f'<nav class="foot-legal">{links(flabels)}</nav></div>'
+                f'<p class="footer-disclaimer">{esc(disclaimer)}</p>'
+                f'<p class="foot-risk">{esc(risk)}</p>{base}</footer>')
+    if v == "c":       # centered stack
+        return (f'<footer class="blk-footer" data-var="c"><div class="foot-center">{logo}'
+                f'<p class="foot-tag">{esc(tagline)}</p>'
+                f'<nav class="foot-nav">{links(pairs + flabels)}</nav></div>'
+                f'<p class="footer-disclaimer">{esc(disclaimer)}</p>'
+                f'<p class="foot-risk">{esc(risk)}</p>'
+                f'<div class="foot-base foot-center-base"><span>© 2026 {esc(brand)}. '
+                f'{esc(rights)}</span></div></footer>')
+    if v == "d":       # split: brand + disclaimer left, link sitemap right
+        return (f'<footer class="blk-footer" data-var="d"><div class="foot-split">'
+                f'<div class="foot-brand">{logo}<p class="footer-disclaimer">{esc(disclaimer)}</p>'
+                f'<p class="foot-risk">{esc(risk)}</p></div>'
+                f'<div class="foot-cols"><nav class="foot-nav">{links(pairs)}</nav>'
+                f'<nav class="foot-legal">{links(flabels)}</nav>'
+                f'<span class="pay-chips">{esc(pays)}</span></div></div>'
+                f'<div class="foot-base"><span>© 2026 {esc(brand)}. {esc(rights)}</span>'
+                f'<span>{esc(tagline)}</span></div></footer>')
+    if v == "e":       # minimal bar: one line, fine print under it
+        return (f'<footer class="blk-footer" data-var="e"><div class="foot-bar">'
+                f'{logo}<nav class="foot-nav">{links(pairs + flabels)}</nav>'
+                f'<span class="foot-copy">© 2026 {esc(brand)}</span></div>'
+                f'<p class="foot-fine">{esc(risk)} · {esc(rights)} · '
+                f'<span class="pay-chips">{esc(pays)}</span></p></footer>')
+    if v == "f":       # tagline band on top, legal grid underneath
+        return (f'<footer class="blk-footer" data-var="f"><div class="foot-band">'
+                f'{logo}<p class="foot-tag">{esc(tagline)}</p>'
+                f'<nav class="foot-nav">{links(pairs)}</nav></div>'
+                f'<div class="foot-grid2">{logo}<nav class="foot-legal">{links(flabels)}</nav>'
+                f'<p class="foot-risk">{esc(risk)}</p>{base}</div>'
+                f'<p class="footer-disclaimer">{esc(disclaimer)}</p></footer>')
+    return (f'<footer class="blk-footer"><div class="footer-top">\n{logo}\n'
+            f'<nav>{links(pairs + flabels)}</nav><span>{esc(tagline)}</span></div>\n'
+            f'<p class="footer-disclaimer">{esc(disclaimer)}</p>\n'
+            f'<div class="footer-bottom"><span>© 2026 {esc(brand)}. {esc(rights)}</span>\n'
+            f'<span class="pay-chips">{esc(pays)}</span>\n'
+            f'<span>{esc(risk)}</span></div></footer>')
+
+
 def build_header_footer(plan, C):
     brand = plan["params"]["brand"]; slugs = plan["layout"].get("slugs", {})
     menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
     pairs = [(menu[0], "index.php"), (menu[1], f"{slugs.get('about','about')}.php"),
               (menu[2], f"{slugs.get('who','who')}.php"), (menu[3], f"{slugs.get('contact','contact')}.php")]
     nav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs)
-    geo_l = plan["params"]["lang"]
     livebar = R("livebar", plan, C)
     ui = C.get("ui") or {}
     hv = (plan["layout"].get("variants") or {}).get("header", "")
@@ -536,24 +611,13 @@ def build_header_footer(plan, C):
         "e": ("logo", "nav", "toggle"),
         "f": ("logo", "cta", "nav", "toggle"),
         "g": ("logo", "cta", "nav", "toggle"),
+        "h": ("logo", "cta", "nav", "toggle"),
+        "i": ("logo", "cta", "nav", "toggle"),
+        "j": ("nav", "cta", "logo", "toggle"),
     }.get(hv, ("logo", "nav", "cta", "toggle"))
     header = f'<header class="blk-header" data-var="{hv or "a"}">' + "\n".join(parts[k] for k in order) + "</header>"
-    # footer labels come from the content pack (translated by tools/localize.py);
-    # FOOTER_L10N only backstops packs written before these keys existed
-    ft = C.get("footer") or {}
-    fb = FOOTER_L10N.get(geo_l, ("Terms", "Privacy", "All rights reserved."))
-    flabels = [(ft.get("terms_label") or fb[0], "terms.php"),
-               (ft.get("privacy_label") or fb[1], "privacy.php")]
-    rights = ft.get("rights") or fb[2]
-    fnav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs + flabels)
-    footer = f"""<footer class="blk-footer"><div class="footer-top">
-{logo_html(plan)}
-<nav>{fnav}</nav><span>{esc(C.get('footer', {}).get('tagline', ''))}</span></div>
-<p class="footer-disclaimer">{esc(C.get('footer', {}).get('disclaimer', ''))}</p>
-<div class="footer-bottom"><span>© 2026 {esc(brand)}. {esc(rights)}</span>
-<span class="pay-chips">{esc(ft.get("pay_chips") or "VISA · Mastercard · Bank transfer")}</span>
-<span>{esc(C.get('footer', {}).get('risk_line', ''))}</span></div></footer>"""
-    return livebar, header, footer
+    return livebar, header, footer_html(plan, C)
+
 
 def fix_anchors(html: str) -> str:
     """Point decorative CTA anchors at targets that actually exist on this page."""
