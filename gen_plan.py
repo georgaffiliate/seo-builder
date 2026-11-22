@@ -916,22 +916,22 @@ def plan_lang_ready(lang: str) -> bool:
     return lang in MENU_POOLS and lang in LIVEBAR_L10N and lang in SLUG_POOLS
 
 
-def content_route(plan_data: dict, offline: bool = False) -> str:
+def content_route(plan_data: dict, offline: bool = False, translate: bool = False) -> str:
     """Where the copy comes from.
 
-    Default: 'localize' for every non-English language — the LLM rewrites the English
-    master pack so each build gets fresh, unique wording (the whole point of the
-    factory). English builds use the master pack directly.
+    Default: 'invent' — the model writes the whole pack itself in the plan language
+    from the brief (unique copy per build; that is the point of the factory).
 
-    --offline (tests, no API key): 'bank' — exact strings from resources/content-l10n.json.
+    --translate: 'localize' — English master pack, model only rewrites it (cheaper,
+    structure guaranteed by the program).
+    --offline (tests / no API key): 'bank' — exact strings from content-l10n.json.
     """
-    lang = (plan_data["params"].get("lang") or "en").lower()
-    if offline or lang == "en":
+    if offline:
         return "bank"
-    return "localize"
+    return "localize" if translate else "invent"
 
 
-def run_build(domain, force, with_llm=False, offline=False):
+def run_build(domain, force, with_llm=False, offline=False, translate=False):
     """content → assemble(+gates) → icons → js syntax → mobile lint → profile. Deploy stays manual."""
     plan = PLANS / f"{domain}.json"
     content = ROOT / "content" / f"{domain}-content.json"
@@ -939,10 +939,10 @@ def run_build(domain, force, with_llm=False, offline=False):
 
     plan_data = json.loads(plan.read_text(encoding="utf-8"))
     lang = (plan_data["params"].get("lang") or "en").lower()
-    route = content_route(plan_data, offline)
+    route = content_route(plan_data, offline, translate)
 
-    if with_llm:
-        step("CONTENT PACK (LLM)")
+    if route == "invent":
+        step("CONTENT PACK (LLM writes the copy)")
         llm_cmd = [sys.executable, str(ROOT / "tools" / "llm_content.py"),
                    "--plan", str(plan), "--out", str(content)]
         if os.environ.get("LLM_MODEL"):
@@ -950,11 +950,15 @@ def run_build(domain, force, with_llm=False, offline=False):
         if os.environ.get("LLM_PROVIDER"):
             llm_cmd += ["--provider", os.environ["LLM_PROVIDER"]]
         if subprocess.run(llm_cmd).returncode != 0:
-            print("! LLM pack failed — switching to the master-copy route")
-            with_llm = False
+            print("! model pack failed — falling back to master copy + translation")
+            route = "localize"
+        elif lang != "en" and not plan_lang_ready(lang):
+            # menu / top strip / slugs may still be the English fallback
+            step_run(f"LOCALIZE plan strings → {lang}",
+                     [sys.executable, str(ROOT / "tools" / "localize.py"),
+                      "--plan", str(plan), "--content", str(content), "--plan-only"])
 
-    if route == "localize" and not with_llm:
-        # universal route: en bank = master copy, the model only translates it
+    if route == "localize":
         step_run("CONTENT PACK (English master)",
                  [sys.executable, str(ROOT / "tools" / "content_gen.py"),
                   "--plan", str(plan), "--out", str(content), "--force",
@@ -962,18 +966,12 @@ def run_build(domain, force, with_llm=False, offline=False):
         step_run(f"LOCALIZE → {lang}",
                  [sys.executable, str(ROOT / "tools" / "localize.py"),
                   "--plan", str(plan), "--content", str(content), "--lang", lang])
-    elif with_llm:
-        # the model wrote the copy; plan-level strings (menu, top strip, slugs) may
-        # still be the English fallback
-        if lang != "en" and not plan_lang_ready(lang):
-            step_run(f"LOCALIZE plan strings → {lang}",
-                     [sys.executable, str(ROOT / "tools" / "localize.py"),
-                      "--plan", str(plan), "--content", str(content), "--plan-only"])
-    else:
-        cmd = [sys.executable, str(ROOT / "tools" / "content_gen.py"), "--plan", str(plan), "--out", str(content)]
+    elif route == "bank":
+        cmd = [sys.executable, str(ROOT / "tools" / "content_gen.py"),
+               "--plan", str(plan), "--out", str(content)]
         if force:
             cmd.append("--force")
-        step_run("CONTENT PACK", cmd)
+        step_run("CONTENT PACK (bank)", cmd)
 
     step_run("ASSEMBLE + GATES",
              [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)])
@@ -1012,10 +1010,13 @@ def main():
                     help="pulse-sim (G3 market simulator): on/off forces it, auto follows the G3 draw")
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--offline",action="store_true",
-                    help="build copy from the language bank only (tests / no API key); "
-                         "unique per-site wording needs the translator")
+                    help="build copy from the language bank only (tests / no API key)")
+    ap.add_argument("--translate",action="store_true",
+                    help="English master copy + translation instead of the model writing "
+                         "the copy itself (cheaper, structure guaranteed)")
     ap.add_argument("--with-llm",action="store_true",
-                    help="model writes the content pack (and picks personas/numbers); implies --build")
+                    help="kept for compatibility: the model writing the pack is the default; "
+                         "implies --build")
     ap.add_argument("--llm-model",default="",help="override model id for --with-llm (default from resources/llm.json)")
     ap.add_argument("--llm-provider",default="",choices=("", "auto", "http", "cli"),
                     help="transport for --with-llm (default auto: HTTP when key exists)")
@@ -1070,8 +1071,8 @@ def main():
     if a.llm_provider:
         os.environ["LLM_PROVIDER"] = a.llm_provider
     if a.with_llm:
-        run_build(a.domain, a.force, with_llm=True, offline=a.offline)
+        run_build(a.domain, a.force, offline=a.offline, translate=a.translate)
     elif a.build:
-        run_build(a.domain, a.force, offline=a.offline)
+        run_build(a.domain, a.force, offline=a.offline, translate=a.translate)
 
 if __name__=="__main__": main()

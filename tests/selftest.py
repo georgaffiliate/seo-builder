@@ -104,6 +104,12 @@ _worn = [{"people": ["Anna K.", "Peter M.", "Sofia L.", "David R.", "Emma S."]},
          {"people": ["Ines T.", "Nina P.", "Luca R.", "Sara P."]}] * 4
 chk(len(_gp.pick_people(__import__("random").Random(3), "pt", _worn)) == 3,
     "personas stay at 3 after the name bank is used up")
+# routing: model writes the copy by default; translation and bank are opt-in
+_pp = {"params": {"lang": "pt"}}
+chk(_gp.content_route(_pp) == "invent" and
+    _gp.content_route(_pp, translate=True) == "localize" and
+    _gp.content_route(_pp, offline=True) == "bank",
+    "copy route: invent by default, --translate / --offline opt-in")
 # a model that answers null for an array must produce a repair instruction, not a traceback
 _broken = {"sections": {"facts": {"points": None}, "portal": {"cards": None}},
            "reviews": {"items": None}, "faq": {"items": None},
