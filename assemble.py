@@ -324,6 +324,31 @@ def _livebar_labels(lang: str) -> dict:
     except Exception:
         return {}
 
+SYM_ALIASES = {"XAU": "GOLD", "XAG": "SILVER", "WTI": "OIL", "USOIL": "OIL",
+               "DAX": "DAX40", "US500": "SP500", "SPX": "SP500"}
+
+
+def _sym_keys(sym) -> list:
+    """Every way the same instrument can be written: 'BTC / EUR', 'btc-eur', 'XAU/EUR',
+    'GOLD/EUR', 'DAX 40', 'DAX40'. Models and the generator do not agree on spelling,
+    and a missed match printed the same instrument at two prices on live pages."""
+    base = re.sub(r"\s+", "", str(sym or "").upper().replace("\u00a0", ""))
+    if not base:
+        return []
+    out = set()
+    head, quote = (base.split("/", 1) + [""])[:2] if "/" in base else (base, "")
+    head = re.sub(r"[^A-Z0-9]", "", head)
+    quote = re.sub(r"[^A-Z0-9]", "", quote)
+    alias = SYM_ALIASES.get(head, head)
+    for h in {head, alias}:
+        out.add(h)
+        if quote:
+            out.add(f"{h}/{quote}")
+            out.add(f"{h}{quote}")
+    out.add(re.sub(r"[^A-Z0-9]", "", base))
+    return [k for k in out if k]
+
+
 def reconcile_numbers(plan, C: dict) -> None:
     """One source of truth for every figure the page prints.
 
@@ -368,13 +393,16 @@ def reconcile_numbers(plan, C: dict) -> None:
             subs[f"LB_S{i}V"] = API_UPTIME
     # instrument quotes: the content rows (ticker/markets) win, so the strip agrees
     rows = ((C.get("sections") or {}).get("markets") or {}).get("rows") or []
-    by_sym = {str(r["sym"]).strip().casefold(): r for r in rows
-              if isinstance(r, dict) and r.get("sym")}
+    by_sym = {}
+    for r in rows:
+        if isinstance(r, dict) and r.get("sym"):
+            for alias in _sym_keys(r["sym"]):
+                by_sym.setdefault(alias, r)
     for i in range(1, 7):
         sym = subs.get(f"LB{i}S")
         if not isinstance(sym, str):
             continue
-        row = by_sym.get(sym.strip().casefold())
+        row = next((by_sym[k] for k in _sym_keys(sym) if k in by_sym), None)
         if not row:
             continue
         if str(row.get("v") or "").strip():

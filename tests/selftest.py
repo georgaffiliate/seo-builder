@@ -63,6 +63,11 @@ _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img
                '<h3>Pedro M.</h3><p>Sem pop-ups.</p></article>') * 3
 chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
     "audit flags the same review portrait used twice")
+# the same instrument written differently must still be recognised (strip vs ticker)
+chk(bool(set(_asm3._sym_keys("BTC / EUR")) & set(_asm3._sym_keys("BTC/EUR"))) and
+    bool(set(_asm3._sym_keys("XAU/EUR")) & set(_asm3._sym_keys("GOLD/EUR"))) and
+    bool(set(_asm3._sym_keys("DAX 40")) & set(_asm3._sym_keys("DAX40"))),
+    "instrument symbols match across spellings (BTC / EUR, XAU↔GOLD, DAX 40)")
 _slider = ('<article class="rev-card"><p>“Quote long enough to be counted here.”</p>'
            '<img class="avatar" src="img/p-men-63.jpg"></article>'
            '<article class="rev-card" aria-hidden="true"><p>“Quote long enough to be counted here.”</p>'
