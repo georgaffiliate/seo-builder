@@ -32,6 +32,7 @@ PEOPLE_DIR = ROOT / "people"
 POSTBACK_SRC = ROOT / "_postback.php"
 
 BUILD_V = "0"
+API_UPTIME = "99,9%"
 REQUIRED_PLAN_KEYS = ["params", "design", "layout", "widgets", "numbers"]
 SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer"}
 
@@ -150,6 +151,42 @@ OFFICE_L10N = {
     "en": ("Address", "Hours", "Phone", "Contact us", "Email us"),
 }
 
+# screen-reader labels the fragments bind to (ui.aria_*). Packs sometimes ship them
+# empty, which renders aria-label="" — worse than no label at all.
+UI_L10N = {
+    "it": ("Navigazione principale", "Menu", "Tempo rimanente per l'accesso", "Grafico della simulazione"),
+    "cs": ("Hlavní navigace", "Menu", "Zbývající čas nabídky", "Graf simulace"),
+    "sk": ("Hlavná navigácia", "Menu", "Zvyšný čas ponuky", "Graf simulácie"),
+    "pl": ("Nawigacja główna", "Menu", "Pozostały czas oferty", "Wykres symulacji"),
+    "de": ("Hauptnavigation", "Menü", "Verbleibende Zeit", "Diagramm der Simulation"),
+    "fr": ("Navigation principale", "Menu", "Temps restant", "Graphique de la simulation"),
+    "es": ("Navegación principal", "Menú", "Tiempo restante para el acceso", "Gráfico de la simulación"),
+    "pt": ("Navegação principal", "Menu", "Tempo restante", "Gráfico da simulação"),
+    "nl": ("Hoofdnavigatie", "Menu", "Resterende tijd", "Grafiek van de simulatie"),
+    "hu": ("Fő navigáció", "Menü", "Hátralévő idő", "A szimuláció grafikonja"),
+    "ro": ("Navigare principală", "Meniu", "Timp rămas", "Graficul simulării"),
+    "bg": ("Основна навигация", "Меню", "Оставащо време", "Графика на симулацията"),
+    "el": ("Κύρια πλοήγηση", "Μενού", "Υπόλοιπος χρόνος", "Γράφημα προσομοίωσης"),
+    "hr": ("Glavna navigacija", "Izbornik", "Preostalo vrijeme", "Graf simulacije"),
+    "sl": ("Glavna navigacija", "Meni", "Preostali čas", "Graf simulacije"),
+    "lt": ("Pagrindinė navigacija", "Meniu", "Liekantis laikas", "Simuliacijos grafikas"),
+    "lv": ("Galvenā navigācija", "Izvēlne", "Atlikušais laiks", "Simulācijas grafiks"),
+    "et": ("Põhinavigatsioon", "Menüü", "Järelejäänud aeg", "Simulatsiooni graafik"),
+    "fi": ("Päänavigaatio", "Valikko", "Jäljellä oleva aika", "Simulaation kuvaaja"),
+    "sv": ("Huvudnavigering", "Meny", "Återstående tid", "Simuleringens diagram"),
+    "da": ("Hovednavigation", "Menu", "Resterende tid", "Simuleringens graf"),
+    "nb": ("Hovednavigasjon", "Meny", "Gjenstående tid", "Simuleringens graf"),
+    "en": ("Main navigation", "Menu", "Time left to claim", "Simulation chart"),
+}
+# thanks.php eyebrow fallback (the pack usually supplies it; the default used to be
+# the English word "DONE" on every locale)
+THANKS_EYEBROW = {"it": "CONFERMATO", "cs": "POTVRZENO", "sk": "POTVRDENÉ", "pl": "POTWIERDZONE",
+                  "de": "BESTÄTIGT", "fr": "CONFIRMÉ", "es": "RECIBIDO", "pt": "CONFIRMADO",
+                  "nl": "BEVESTIGD", "hu": "MEGERŐSÍTVE", "ro": "CONFIRMAT", "bg": "ПОТВЪРДЕНО",
+                  "el": "ΕΠΙΒΕΒΑΙΩΘΗΚΕ", "hr": "POTVRĐENO", "sl": "POTRJENO", "lt": "PATVIRTINTA",
+                  "lv": "APSTIPRINĀTS", "et": "KINNITATUD", "fi": "VAHVISTETTU", "sv": "BEKRÄFTAT",
+                  "da": "BEKRÆFTET", "nb": "BEKREFTET", "en": "DONE"}
+
 # ---------------------------------------------------------------- utilities --
 def die(msg, code=1): print(f"✗ {msg}"); sys.exit(code)
 def ok(msg): print(f"✓ {msg}")
@@ -249,6 +286,133 @@ def finish_page(page: str, plan, C: dict) -> str:
                 .replace("{{PHONE_TEL}}", re.sub(r"[^\d+]", "", c["telephone"]))
                 .replace("{{PHONE}}", c["telephone"])
                 .replace("{{EMAIL}}", c["email"]))
+
+def ui_defaults(C: dict, plan) -> None:
+    """Never ship aria-label="" — packs regularly leave ui.aria_* blank."""
+    lang = plan["params"].get("lang", "en")
+    nav, menu, timer, chart = UI_L10N.get(lang, UI_L10N["en"])
+    ui = C.setdefault("ui", {})
+    for key, val in (("aria_nav", nav), ("aria_menu", menu),
+                     ("aria_timer", timer), ("aria_chart", chart)):
+        if not str(ui.get(key) or "").strip():
+            ui[key] = val
+
+def fmt_int(v) -> str:
+    return f"{int(v):,}".replace(",", ".")
+
+def _num(v):
+    """'31.500' / '2.930,80' / '41 ms' → float (locale-agnostic)."""
+    m = re.search(r"\d[\d\s.,]*", str(v or ""))
+    if not m:
+        return None
+    t = m.group(0).replace(" ", "")
+    if "," in t and "." in t:
+        t = t.replace(".", "").replace(",", ".")
+    elif t.count(",") == 1 and len(t.split(",")[-1]) <= 2:
+        t = t.replace(",", ".")
+    else:
+        t = t.replace(",", "").replace(".", "")
+    try:
+        return float(t)
+    except ValueError:
+        return None
+
+def _livebar_labels(lang: str) -> dict:
+    try:
+        import gen_plan
+        return gen_plan.LIVEBAR_L10N.get(lang) or gen_plan.LIVEBAR_L10N.get("en") or {}
+    except Exception:
+        return {}
+
+def reconcile_numbers(plan, C: dict) -> None:
+    """One source of truth for every figure the page prints.
+
+    The strip (plan.livebar.subs), the numbers band and the JSON-LD were generated
+    independently — the plan baked random latency/orders/prices, the content wrote its
+    own — so a page could show 41 ms and 52 ms, or BTC/EUR at two different prices.
+    Content hero stats are canonical (they sit above the fold); the strip is aligned.
+    """
+    n = plan.setdefault("numbers", {})
+    stats = (C.get("hero") or {}).get("stats") or []
+    if len(stats) >= 3:
+        rating = str(stats[0].get("v") or "").strip()
+        if rating:
+            n["rating"] = rating
+        users = _num(stats[1].get("v"))
+        if users:
+            n["users"] = int(users)
+        lat = _num(stats[2].get("v"))
+        if lat:
+            n["latency_ms"] = int(lat)
+    # orders/second is its own metric: users//4 produced absurd rates (31k users →
+    # "7.875 orders per second") and two surfaces printed two different figures
+    if not n.get("orders"):
+        rng = random.Random(f"{plan.get('seed', 0)}:{plan['params']['domain']}:orders")
+        n["orders"] = rng.randint(900, 2600)
+
+    subs = (plan.get("livebar") or {}).get("subs") or {}
+    if not isinstance(subs, dict):
+        return
+    labels = _livebar_labels(plan["params"].get("lang", "en"))
+    lat_lbl = str(labels.get("latency") or "").casefold()
+    ord_lbl = str(labels.get("orders") or "").casefold()
+    for i in (1, 2, 3):
+        key = str(subs.get(f"LB_S{i}K") or "").strip().casefold()
+        if not key:
+            continue
+        if lat_lbl and key == lat_lbl and n.get("latency_ms"):
+            subs[f"LB_S{i}V"] = f"{int(n['latency_ms'])} ms"
+        elif ord_lbl and key == ord_lbl and n.get("orders"):
+            subs[f"LB_S{i}V"] = fmt_int(n["orders"])
+        elif key == "api":
+            subs[f"LB_S{i}V"] = API_UPTIME
+    # instrument quotes: the content rows (ticker/markets) win, so the strip agrees
+    rows = ((C.get("sections") or {}).get("markets") or {}).get("rows") or []
+    by_sym = {str(r["sym"]).strip().casefold(): r for r in rows
+              if isinstance(r, dict) and r.get("sym")}
+    for i in range(1, 7):
+        sym = subs.get(f"LB{i}S")
+        if not isinstance(sym, str):
+            continue
+        row = by_sym.get(sym.strip().casefold())
+        if not row:
+            continue
+        if str(row.get("v") or "").strip():
+            subs[f"LB{i}V"] = str(row["v"]).strip()
+        ch = str(row.get("chg") or "").strip()
+        if ch:
+            subs[f"LB{i}C"] = ch.rstrip("%").strip()
+            subs[f"LB{i}D"] = "dn" if ch.lstrip().startswith(("-", "−")) else "up"
+
+def ensure_anchors(html: str) -> str:
+    """The hero's secondary link ('see how it works') must land on the steps section.
+
+    Some steps fragments ship without an id, so the anchor was rewritten to #claim and
+    the link text promised something it did not open.
+    """
+    m = re.search(r"<section[^>]*\bsec-steps\b[^>]*>", html)
+    if not m or 'id="come"' in html:
+        return html
+    tag = m.group(0)
+    if "id=" in tag:
+        return html
+    return html[:m.start()] + tag[:-1] + ' id="come">' + html[m.end():]
+
+def add_brandnote_links(html: str, plan, C: dict) -> str:
+    """Editorial block names the inner pages but used to link none of them."""
+    m = re.search(r"<section[^>]*sec-brandnote[^>]*>.*?</section>", html, re.S)
+    if not m or "<a " in m.group(0):
+        return html
+    slugs = plan["layout"].get("slugs", {})
+    links = " · ".join(
+        f'<a href="{slugs.get(which, which)}.php">{esc(page_nav_label(plan, C, which))}</a>'
+        for which in ("about", "who", "contact"))
+    block = m.group(0)
+    cut = block.rfind("</p>")
+    if cut < 0:
+        return html
+    block = block[:cut + 4] + f'<p class="brand-links">{links}</p>' + block[cut + 4:]
+    return html[:m.start()] + block + html[m.end():]
 
 
 # ---------------------------------------------------------------- validation -
@@ -410,6 +574,21 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         elif isinstance(node, list):
             for i, v in enumerate(node): _scan(v, f"{path}.{i}")
     _scan(content)
+    # ---- card icons are monochrome glyphs, not emoji -------------------------
+    # (a coloured 🔔 among ▤/◍ glyphs reads as a different design system)
+    EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF]")
+
+    def _icons(node, path=""):
+        if isinstance(node, dict):
+            ic = node.get("ic")
+            if isinstance(ic, str) and EMOJI_RE.search(ic):
+                errs.append(f"{path}.ic is an emoji, use a monochrome glyph: {ic}")
+            for k, v in node.items():
+                _icons(v, f"{path}.{k}".strip("."))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                _icons(v, f"{path}.{i}")
+    _icons(content.get("sections") or {})
     return errs
 
 # ---------------------------------------------------------------- content ----
@@ -558,11 +737,17 @@ def safe_emails(html: str) -> str:
     return "".join(out)
 
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
-               theme_color, body, og_desc="", jsonld="", noindex=False):
+               theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True):
     body = safe_emails(body)
     dom_css = f"<style>{esc(css_vars)}</style>"
     rob = "noindex,follow" if noindex else "index,follow"
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
+    # a noindex page must not advertise a canonical target (search engines ignore it
+    # and the pair reads as a contradiction)
+    canon = (f'<link rel="canonical" href="https://{{DOM}}{canonical_path}">\n'
+             f'<link rel="alternate" hreflang="{esc(locale)}" href="https://{{DOM}}{canonical_path}">\n'
+             f'<link rel="alternate" hreflang="x-default" href="https://{{DOM}}{canonical_path}">\n'
+             ) if canonical else ""
     return f"""<!doctype html>
 <html lang="{esc(locale.split('-')[0])}">
 <head>
@@ -579,10 +764,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="canonical" href="https://{{DOM}}{canonical_path}">
-<link rel="alternate" hreflang="{esc(locale)}" href="https://{{DOM}}{canonical_path}">
-<link rel="alternate" hreflang="x-default" href="https://{{DOM}}{canonical_path}">
-<meta property="og:title" content="{esc(title)}">
+{canon}<meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(og_desc or descr)}">
 <meta property="og:locale" content="{esc(locale.replace('-', '_'))}">
 <meta property="og:type" content="website">
@@ -653,7 +835,9 @@ def R(name: str, plan, C, **kw) -> str:
         "{{BRAND}}": plan["params"]["brand"], "{{DOMAIN}}": plan["params"]["domain"],
         "{{GEO_SHORT}}": plan["params"].get("geo_short", ""),
         "{{LATENCY}}": str(plan["numbers"].get("latency_ms", 52)),
-        "{{API_UPTIME}}": "99,9%", "{{ORDERS}}": f"{plan['numbers'].get('users', 12500)//4:,}".replace(",", "."),
+        "{{API_UPTIME}}": API_UPTIME,
+        "{{ORDERS}}": fmt_int(plan["numbers"].get("orders")
+                              or (plan["numbers"].get("users", 12500) // 4)),
         "{{GEO}}": plan["params"].get("geo", ""), "{{RATING}}": str(plan["numbers"].get("rating", "4,7")),
         "{{SEED}}": str(plan.get("seed", "")),
         "{{REVIEWS}}": f"{plan['numbers'].get('reviews', 641):,}".replace(",", "."),
@@ -870,7 +1054,7 @@ def build_header_footer(plan, C):
 def fix_anchors(html: str) -> str:
     """Point decorative CTA anchors at targets that actually exist on this page."""
     ids = set(re.findall(r'id="([^"]+)"', html))
-    for missing, fallbacks in (("come", ("demo", "claim")), ("demo", ("claim",)),
+    for missing, fallbacks in (("come", ("demo", "claim")), ("demo", ("come", "claim")),
                                ("reviews", ("people", "claim")), ("calculator", ("claim",))):
         if missing in ids:
             continue
@@ -907,13 +1091,20 @@ def build_index(plan, C, css_vars, fonts_import, theme):
         body_parts.append(html)
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
+    body = ensure_anchors(body)
+    body = add_brandnote_links(body, plan, C)
     m = C["meta"]
     jsonld = build_jsonld(plan, C, body)
     title = m["title_home"].replace("{Brand}", brand)
-    descr = m["description"]; kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
+    descr = clamp_meta(m["description"]); kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
     page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme,
                       body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld)
-    page = fix_anchors(page).replace('href="index.php#claim"', 'href="#claim"')
+    page = fix_anchors(page)
+    if 'id="come"' not in page:
+        # no "how it works" section on this plan → drop the hero's secondary link
+        # instead of pointing a promise at the form
+        page = re.sub(r'<a class="text-link"[^>]*>[^<]*</a>', "", page, count=1)
+    page = page.replace('href="index.php#claim"', 'href="#claim"')
     page = finish_page(page, plan, C)
     return page
 
@@ -985,6 +1176,21 @@ def brand_first(title: str, brand: str, fallback: str = "Home") -> str:
     return f"{brand} — {body}"
 
 
+def h1_with_brand(text, brand) -> str:
+    """Headline keeps the brand exactly once.
+
+    The inner-page template appended a .brand-line twin, so "Chi è Photon AI" printed
+    the brand twice ("…Photon AI" + a second "Photon AI" line). When the authored
+    headline already names the brand, the accent span wraps that occurrence instead.
+    """
+    text = str(text or "").strip() or brand
+    i = text.lower().find(brand.lower())
+    if i < 0:
+        return f'{esc(text)}<br><span class="brand-line">{esc(brand)}</span>'
+    return (esc(text[:i]) + f'<span class="brand-line">{esc(text[i:i + len(brand)])}</span>'
+            + esc(text[i + len(brand):]))
+
+
 def build_inner(plan, C, css_vars, fonts_import, theme, which):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     slugs = plan["layout"].get("slugs", {})
@@ -992,13 +1198,18 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     cp = C.get(f"inner_{which}", {})
     livebar, header, footer = build_header_footer(plan, C)
     body_parts = [livebar, header, "<main>"]
-    intro = f"""<section class="page-intro"><div class="eyebrow">{esc(cp.get('title', which.upper()))}</div>
-<h1>{esc(cp.get('h1', brand))}<br><span class="brand-line">{esc(brand)}</span></h1><p>{esc(cp.get('lead', ''))}</p></section>"""
+    eyebrow_raw = re.sub(rf"\s*[—–-]\s*{re.escape(brand)}\s*$", "",
+                         str(cp.get("title") or "").strip(), flags=re.I).strip()
+    eyebrow = eyebrow_raw or PAGE_LABELS.get(plan["params"].get("lang", "en"),
+                                              PAGE_LABELS["en"]).get(which, which.upper())
+    intro = f"""<section class="page-intro"><div class="eyebrow">{esc(eyebrow)}</div>
+<h1>{h1_with_brand(cp.get('h1'), brand)}</h1><p>{esc(cp.get('lead', ''))}</p></section>"""
     if "page-intro" in skeleton: body_parts.append(intro)
     else:
         # every indexed page MUST have h1 with .brand-line (audit) even in non-intro skeletons
-        body_parts.append(f'<section class="page-intro"><h1>{esc(cp.get("h1", cp.get("title", brand)))}'
-                          f'<br><span class="brand-line">{esc(brand)}</span></h1></section>')
+        body_parts.append('<section class="page-intro"><h1>'
+                          + h1_with_brand(cp.get("h1") or cp.get("title"), brand)
+                          + '</h1></section>')
     form_slot = next((x for x in ("access-band", "claim-band", "enroll-band")
                       if x in plan["layout"]["section_order"]), "access-band")
 
@@ -1050,6 +1261,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
         cta = C.get("sections", {}).get("cta", {})
         body_parts.append(R("cta-band", plan, C).replace("{{c:sections.cta.h2}}", esc(cta.get("h2", brand))))
     body_parts.append("</main>"); body_parts.append(footer)
+    body = ensure_anchors("\n".join(body_parts))
     m = C["meta"]
     label = PAGE_LABELS.get(plan["params"]["lang"], PAGE_LABELS["en"]).get(which, which.title())
     title = brand_first(cp.get("title") or label, brand, label)
@@ -1058,7 +1270,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     page = page_shell(f"{title}", descr, m["keywords"].replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
-                       "\n".join(body_parts), jsonld=build_inner_jsonld(plan, C, which))
+                       body, jsonld=build_inner_jsonld(plan, C, which))
     page = page.replace('href="#claim"', 'href="index.php#claim"')
     page = finish_page(page, plan, C)
     return page
@@ -1067,13 +1279,18 @@ def build_inner_jsonld(plan, C, which):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     slugs = plan["layout"].get("slugs", {})
     slug = slugs.get(which, which)
+    # schema names in the site language and matching the visible nav wording
+    label = page_nav_label(plan, C, which)
+    home = (plan["layout"].get("menu") or ["Home"])[0]
     return json.dumps({"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "@id": f"https://{dom}/{slug}.php",
-         "url": f"https://{dom}/{slug}.php", "name": f"{which} — {brand}",
+         "url": f"https://{dom}/{slug}.php", "name": f"{label} — {brand}",
+         "inLanguage": plan["params"].get("locale", ""),
          "publisher": {"@id": f"https://{dom}/#org"}},
         {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"https://{dom}/"},
-            {"@type": "ListItem", "position": 2, "name": which.title()}]}]}, ensure_ascii=False, separators=(",", ":"))
+            {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
+            {"@type": "ListItem", "position": 2, "name": label,
+             "item": f"https://{dom}/{slug}.php"}]}]}, ensure_ascii=False, separators=(",", ":"))
 
 def build_legal(plan, C, css_vars, fonts_import, theme, which):
     """terms.php / privacy.php — unique titles, legal body from content pack or neutral stub."""
@@ -1088,10 +1305,16 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
     terms_l = {"terms": tl[0], "privacy": tl[1]}
     title_map = {"terms": brand_first(tl[0], brand), "privacy": brand_first(tl[1], brand)}
     body = f"""{livebar}{header}<main>
-<section class="page-intro"><div class="eyebrow">{esc(terms_l[which])}</div>
-<h1>{brand}<br><span class="brand-line">{esc(terms_l[which])}</span></h1></section>
+<section class="page-intro">
+<h1>{esc(brand)}<br><span class="brand-line">{esc(terms_l[which])}</span></h1></section>
 <section class="legal">{bodyLegal}</section></main>{footer}"""
-    page = page_shell(title_map[which], f"{terms_l[which]} — {brand}.",
+    # description from the document's own first paragraph: unique, localised and
+    # informative (the old "Privacy of X." was 32 chars and repeated the title)
+    _p = re.search(r"<p[^>]*>(.*?)</p>", bodyLegal or "", re.S)
+    descr = clamp_meta(re.sub(r"<[^>]+>", " ", _p.group(1))) if _p else ""
+    if len(descr) < 60:
+        descr = f"{terms_l[which]} — {brand}."
+    page = page_shell(title_map[which], descr,
                        f"{brand}, {terms_l[which]}", f"/{which}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        body, jsonld=build_inner_jsonld(plan, C, which))
@@ -1100,18 +1323,20 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
 
 def build_thanks(plan, C, css_vars, fonts_import, theme):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
+    lang = plan["params"].get("lang", "en")
     th = C.get("thanks", {})
+    tl = TERMS_L10N.get(lang, TERMS_L10N["en"])
+    back = NOTFOUND_L10N.get(lang, ("", "Back to home"))[1]
     livebar, header, footer = build_header_footer(plan, C)
     body = f"""{livebar}{header}<main><section class="section"><div class="wrap blk-center">
-<div class="eyebrow center">{esc(th.get('eyebrow','DONE'))}</div>
-<h1>{esc(th.get('h1','Thank you'))}<br><span class="brand-line">{esc(brand)}</span></h1><p>{esc(th.get('lead',''))}</p>
+<div class="eyebrow center">{esc(th.get('eyebrow') or THANKS_EYEBROW.get(lang, THANKS_EYEBROW['en']))}</div>
+<h1>{esc(th.get('h1') or tl[2].split('—')[0].strip())}<br><span class="brand-line">{esc(brand)}</span></h1><p>{esc(th.get('lead',''))}</p>
 <p class="fine">{esc(th.get('warn',''))}</p>
-<a class="blk-btn" href="index.php">← {esc(brand.split()[0].title())}</a>
+<a class="blk-btn" href="index.php">← {esc(back)}</a>
 </div></section></main>{footer}"""
-    tl = TERMS_L10N.get(plan["params"]["lang"], TERMS_L10N["en"])
-    page = page_shell(brand_first(tl[2], brand), th.get("lead", "")[:155], "", "/thanks.php",
-                       plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
-                       body, noindex=True)
+    page = page_shell(brand_first(tl[2], brand), clamp_meta(th.get("lead", "")), "", "/thanks.php",
+                       plan["params"].get("locale") or lang, css_vars, fonts_import, theme,
+                       body, noindex=True, canonical=False)
     page = finish_page(page, plan, C)
     postback_head = "<?php require __DIR__ . '/_postback.php'; send_postback(); ?>\n"
     return postback_head + page
@@ -1389,12 +1614,15 @@ def cmd_build(a):
         # contacts belong to the offer, not to the model's mood: normalize before the
         # gate so a foreign fallback (contatti@/+39 on a .es site) can never ship
         office_defaults(C, plan)
+        ui_defaults(C, plan)
+        reconcile_numbers(plan, C)
         _cnt = contacts_for(plan, C)
         C.setdefault("meta", {})["email"] = _cnt["email"]
         C["meta"]["telephone"] = _cnt["telephone"]
         errs = validate_content(C, plan, strict=True); errs and die("; ".join(errs))
     else:
-        C = seed_content(plan); office_defaults(C, plan); ok("content: seeded placeholders")
+        C = seed_content(plan); office_defaults(C, plan); ui_defaults(C, plan)
+        reconcile_numbers(plan, C); ok("content: seeded placeholders")
         _cnt = contacts_for(plan, C)
         C["meta"]["email"], C["meta"]["telephone"] = _cnt["email"], _cnt["telephone"]
     css_vars, fonts_import, theme = css_link_block(plan)

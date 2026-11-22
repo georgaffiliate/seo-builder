@@ -306,6 +306,25 @@ def audit_stats_captions(html):
     return bad
 
 
+def audit_market_prices(html):
+    """One instrument must show one price on a page.
+
+    The top strip and the ticker are generated from different sources, so a page could
+    print BTC/EUR at 56.073 in the strip and 87.450 in the ticker below it.
+    """
+    text = unescape(" ".join(_page_text_nodes(html).split()))
+    seen = defaultdict(set)
+    sym_re = re.compile(r"\b([A-Z]{2,5}\s?/\s?[A-Z]{3}|DAX\s?40|FTSE\s?MIB|IBEX\s?35|Brent|WTI)\b")
+    for m in sym_re.finditer(text):
+        tail = text[m.end():m.end() + 40]
+        num = re.search(r"\d[\d.,]{1,12}\d", tail)
+        if not num:
+            continue
+        sym = re.sub(r"\s+", "", m.group(1)).upper()
+        seen[sym].add(num.group(0).strip(".,"))
+    return {s: sorted(v) for s, v in seen.items() if len(v) > 1}
+
+
 def audit_visible_cyrillic(pages):
     """Cyrillic in RENDERED page text (spot offer-language leaks)."""
     out = []
@@ -555,6 +574,10 @@ def main():
         bad = audit_stats_captions(html)
         chk(not bad, "ERR", f"stats captions are words /{path}",
             f"numbers-band captions are figures instead of labels /{path}: {bad[:3]}")
+        prices = audit_market_prices(html)
+        chk(not prices, "ERR", f"one price per instrument /{path}",
+            f"same instrument shown at two prices /{path}: {list(prices.items())[:2]} "
+            f"— align the top strip with the ticker/markets rows")
 
     # ---- no orphan pages: every sitemap URL needs an inbound internal link ----
     for p in sitemap_pages:
