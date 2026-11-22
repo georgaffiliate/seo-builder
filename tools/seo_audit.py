@@ -252,6 +252,14 @@ def audit_mock_panel(html):
     return out
 
 
+def audit_review_avatars(html):
+    """Review cards must be different people: a portrait shown twice on one page means
+    the section was padded with cloned cards (variant-agnostic signal)."""
+    srcs = re.findall(r'<img[^>]+src="([^"]*p-(?:men|women)[^"]*)"', html)
+    dup = sorted({s for s in srcs if srcs.count(s) > 1})
+    return dup
+
+
 def audit_visible_cyrillic(pages):
     """Cyrillic in RENDERED page text (spot offer-language leaks)."""
     out = []
@@ -442,6 +450,12 @@ def main():
         chk(not bad, "ERR", f"hero mock rows add up /{path}",
             f"hero ledger parts do not add up /{path}: headline {bad[0][0]} vs rows "
             f"{bad[0][1]} (sum {bad[0][2]})" if bad else None)
+
+    # ---- review cards must be three different people ----
+    for path, (code, html) in seen_pages.items():
+        dup = audit_review_avatars(html)
+        chk(not dup, "ERR", f"review cards distinct /{path}",
+            f"same review portrait used more than once /{path}: {dup[:3]}")
 
     srv.terminate()
 

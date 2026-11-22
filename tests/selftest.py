@@ -49,6 +49,26 @@ for _f in (ROOT / "blocks").glob("blk-*.html"):
     if _left:
         _hard[_f.name] = sorted(_left)[:4]
 chk(not _hard, f"no hardcoded copy in fragments ({'; '.join(f'{k}: {v}' for k, v in list(_hard.items())[:3]) or 'clean'})")
+# review cards must be different people — pack level and page level
+_clone = {"reviews": {"items": [{"name": "Pedro M.", "photo": "img/p-men-63.jpg",
+                                 "quote": "Sem pop-ups.", "city": "Lisboa", "tenure": "3 meses"}] * 3},
+          "sections": {}, "hero": {}, "bands": {}, "meta": {}, "faq": {"items": []}}
+_clone_plan = {"numbers": {}, "params": {"brand": "X", "domain": "x.site"},
+               "layout": {"section_order": []}}
+sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "tools"))
+import assemble as _asm3, seo_audit as _sa2
+chk(any("reviews.photo repeated" in e for e in _asm3.validate_content(_clone, _clone_plan, strict=True)),
+    "validator rejects cloned review cards")
+_clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img/p-men-63.jpg">'
+               '<h3>Pedro M.</h3><p>Sem pop-ups.</p></article>') * 3
+chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
+    "audit flags the same review portrait used twice")
+# a long plan history must not shrink the persona trio to one
+sys.path.insert(0, str(ROOT)); import gen_plan as _gp
+_worn = [{"people": ["Anna K.", "Peter M.", "Sofia L.", "David R.", "Emma S."]},
+         {"people": ["Ines T.", "Nina P.", "Luca R.", "Sara P."]}] * 4
+chk(len(_gp.pick_people(__import__("random").Random(3), "pt", _worn)) == 3,
+    "personas stay at 3 after the name bank is used up")
 # a model that answers null for an array must produce a repair instruction, not a traceback
 _broken = {"sections": {"facts": {"points": None}, "portal": {"cards": None}},
            "reviews": {"items": None}, "faq": {"items": None},

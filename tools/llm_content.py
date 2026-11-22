@@ -285,6 +285,8 @@ def brief(plan: dict) -> dict:
             "never promise yield ('interest-bearing cash' and the like).",
             "reviews.lead must say the names and quotes are illustrative; office/footer may mention the regulator as reference only.",
             "Treat every number as demo data: never write 'to be verified' or leave a value blank.",
+            "Format numbers, prices and percentages with the locale separators of the plan language "
+            "(comma decimals for pt/es/it/fr/de).",
             "Arrays need full length: faq.items 5, features.cards 6, steps.steps 5, ladder.rows 4, markets.rows 4, risk.rows 3, security.cards 3, streams.cards 3, reviews.items 3, hero.stats 3, hero.device_rows 2, bands.mid_points 4, scarcity.units 4, inner_about.blocks 4.",
             "livebar.* must be translated into the plan language (it feeds the top strip): all 9 fields plus 3-4 news headlines, short and concrete.",
             "Texts must read unlike the sibling offers: vary sentence openings, examples and section angles.",

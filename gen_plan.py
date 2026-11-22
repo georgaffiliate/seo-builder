@@ -255,6 +255,20 @@ SLUG_POOLS = {
                  "contact": ["contact","contacts"], "register": ["register","open-account"]}
 }
 
+def pick_people(rng, lang: str, hist: list) -> list:
+    """Three personas for the plan: unused names first, then the least used ones.
+
+    The old code took only the unused names, so once a long history used up the bank a
+    plan shipped with a single persona (and the reviews section had nobody to show)."""
+    nb = NAME_BANK.get(lang, NAME_BANK["fallback"])
+    used = [n for h in hist for n in (h.get("people") or [])]
+    counts = {n: used.count(n) for n in nb}
+    fresh = [n for n in nb if counts[n] == 0]
+    if len(fresh) < 3:
+        fresh += sorted((n for n in nb if counts[n] > 0), key=lambda n: counts[n])
+    return sorted(rng.sample(fresh, k=min(3, len(fresh))))
+
+
 def build_plan(rng, args, hist)->dict|None:
     last2=hist[-2:]
     # palette: ≠ neighbours, and (skin,palette) combo globally unused
@@ -456,11 +470,8 @@ def build_plan(rng, args, hist)->dict|None:
               "reviews_bin":list(rb),"users":rng.randint(*ub),"users_bin":list(ub),
               "latency_ms":round(rng.uniform(*lb)),"latency_bin":[round(lb[0]),round(lb[1])]}
 
-    # personas + portraits (never reused across plans)
-    nb=NAME_BANK.get(args.lang,NAME_BANK["fallback"])
-    used_n={n for h in hist for n in h["people"]}
-    avail=[n for n in nb if n not in used_n] or nb
-    people=sorted(rng.sample(avail,k=min(3,len(avail))))
+    # personas + portraits (fresh names while the bank has them)
+    people=pick_people(rng,args.lang,hist)
     bank=sorted(PEOPLE_DIR.glob("p-*.jpg")) if PEOPLE_DIR.exists() else []
     used_ph={ph for h in hist for ph in h["photos"]}
     free=[f.name for f in bank if f.name not in used_ph] or [f.name for f in bank]

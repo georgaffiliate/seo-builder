@@ -150,7 +150,8 @@ def build(plan: dict, bank_all: dict) -> dict:
     # contacts (unique across siblings: street + seeded number + seeded phone)
     street = rng.choice(bank["contacts"]["streets"])
     num = rng.randint(12, 189)
-    zipc = (f"{rng.randint(10, 99)}-{rng.randint(100, 999)}" if cc in ("PL", "PT") else
+    zipc = (f"{rng.randint(10, 99)}-{rng.randint(100, 999)}" if cc == "PL" else
+            f"{rng.randint(1000, 9999)}-{rng.randint(100, 999)}" if cc == "PT" else
             f"{rng.randint(10000, 99999)}" if cc in ("IT", "FR", "DE", "ES", "CZ", "SK", "HU",
                                                      "RO", "BG", "GR", "HR", "SI", "LT", "LV",
                                                      "EE", "FI", "SE", "DK", "NO") else
@@ -256,7 +257,14 @@ def build(plan: dict, bank_all: dict) -> dict:
         cities = list(city_bank); rng.shuffle(cities)
     else:
         cities = [city_bank or city]          # no geo city bank → capital only (LLM path fills real ones)
-    for i, (name, photo) in enumerate(zip(plan["people"][:3], plan["photos"][:3])):
+    # three DIFFERENT people: duplicating one persona across the review cards reads as a
+    # fake section (identical name, photo and quote three times) — refuse instead
+    people = list(plan.get("people") or [])
+    photos = list(plan.get("photos") or [])
+    if len(people) < 3:
+        die(f"plan carries {len(people)} persona(s); the reviews section needs 3 different "
+            f"people — regenerate the plan (gen_plan pick_people) or run with --with-llm")
+    for i, (name, photo) in enumerate(zip(people[:3], photos[:3])):
         content["reviews"]["items"].append({
             "name": name, "city": cities[i % len(cities)], "role": roles[i % len(roles)],
             "tenure": tenures[i % len(tenures)],
@@ -298,6 +306,8 @@ def build(plan: dict, bank_all: dict) -> dict:
         if isinstance(node, str):
             raise SystemExit(f"min-array path is a string: {path}")
         while len(node) < n:
+            if path == "reviews.items":
+                die("reviews.items shorter than 3 — cloning a review card is never acceptable")
             node.append(node[len(node) % max(1, len(node))])
     return content
 

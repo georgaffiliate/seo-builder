@@ -168,8 +168,10 @@ def ask(cfg, key, use_http, lang, payload: dict, errors=None, brand: str = "") -
         + (f"The brand is '{brand}' — never translate, transliterate or shorten it. " if brand else "") +
         "Rules: keep placeholders like {brand} or {city} exactly; "
         "keep html tags (<small>, <p>) exactly; keep numbers, prices, times, percentages, tickers, "
-        "emails, urls and the brand name unchanged; paths starting with 'plan.layout.slugs.' must be "
-        "kebab-case ascii slugs without diacritics. Return ONLY the JSON object with the same keys."
+        "emails, urls and the brand name unchanged, but write them with the locale's separators "
+        "(comma decimals for pt/es/it/fr/de/pt-BR: '+2,4%', '87 450'); paths starting with "
+        "'plan.layout.slugs.' must be kebab-case ascii slugs without diacritics. "
+        "Return ONLY the JSON object with the same keys."
     )
     if errors:
         instruction += ("\nFix these problems from the previous attempt, keep everything else: "

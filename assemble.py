@@ -204,6 +204,19 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
                 v = ((content.get("sections") or {}).get(slot) or {}).get(k)
                 if isinstance(v, list) or not str(v or "").strip():
                     errs.append(f"sections.{slot}.{k} missing or a raw list")
+    # review cards must be three DIFFERENT people — cloned cards (same name, photo or
+    # quote) read as a fake section on a live page
+    ritems = rv.get("items") if isinstance(rv, dict) else None
+    if isinstance(ritems, list):
+        if len(ritems) < 3:
+            errs.append(f"reviews.items has {len(ritems)} entries, need 3 different people")
+        for field in ("name", "photo", "quote"):
+            vals = [str((it or {}).get(field, "")).strip().casefold()
+                    for it in ritems if isinstance(it, dict)]
+            vals = [v for v in vals if v]
+            dup = sorted({v for v in vals if vals.count(v) > 1})
+            if dup:
+                errs.append(f"reviews.{field} repeated across cards: {dup[:2]}")
     # faq answers shorter than ~2 sentences read as stubs on live pages
     faq_items = ((content.get("faq") or {}).get("items") or [])
     if not isinstance(faq_items, list):
