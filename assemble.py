@@ -597,8 +597,12 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         a = it.get("a") if isinstance(it, dict) else ""
         if not isinstance(a, str) or not a.strip():
             errs.append("faq answer empty")
-        elif len(a.strip()) < 120:
-            errs.append(f"faq answer too short ({len(a.strip())} chars): {a[:40]}…")
+        else:
+            # CJK says the same in half the characters: 97 Japanese characters are two
+            # full sentences, while 97 Latin characters are usually a stub
+            _min = 45 if plan["params"].get("lang") in ("ja", "zh", "ko") else 110
+            if len(a.strip()) < _min:
+                errs.append(f"faq answer too short ({len(a.strip())} chars): {a[:40]}…")
     # ---- stats captions are WORDS, never the numbers they describe -----------
     # (live bug: 4,7/5 → caption "4,7", 1.405 → caption "1.280": the numbers band
     #  shipped as a wall of duplicated figures with no meaning)

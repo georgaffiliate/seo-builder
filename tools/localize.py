@@ -128,7 +128,8 @@ def collect(pack: dict, plan: dict) -> dict:
 
 
 # ------------------------------------------------------------------ validation
-LABEL_WORD = re.compile(r"^(?:[A-Z][a-z\u00c0-\u024f]{0,7}|[A-Z0-9][A-Z0-9·/&.\-]*)$")
+LABEL_WORD = re.compile(r"^(?:[A-Z][A-Za-z\u00c0-\u024f0-9·/&.\-\u2013\u2014]{0,13}"
+                        r"|[A-Z0-9][A-Z0-9·/&.\-\u2013\u2014]*)$")
 
 
 def _label_like(text: str) -> bool:
@@ -171,7 +172,13 @@ def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "")
         # "three steps". Small counters (1–12) are fine, invented figures (100, 250) are not.
         src_nums, dst_nums = DIGITS_RE.findall(text), DIGITS_RE.findall(new)
         if src_nums:
-            if sorted(src_nums) != sorted(dst_nums):
+            from collections import Counter
+            need, got = Counter(src_nums), Counter(dst_nums)
+            missing = list((need - got).elements())
+            extra = list((got - need).elements())
+            # every source figure must survive; extra small numbers are the language's
+            # own (dates, counters: "2 и 3 марта" → "3月2日と3日"), big ones are invented
+            if missing or any(int(d) > 12 for d in extra):
                 errs.append(f"{path}: numbers changed ({' '.join(src_nums)} → "
                             f"{' '.join(dst_nums)})")
         elif dst_nums and any(int(d) > 12 for d in dst_nums):

@@ -183,6 +183,19 @@ chk(_gp.decimal_comma("tr") and _gp.decimal_comma("de") and _gp.decimal_comma("f
     and not _gp.decimal_comma("en") and not _gp.decimal_comma("ja")
     and _gp._fmt_num(1234.5, "tr") == "1.234,50" and _gp._fmt_num(1234.5, "en") == "1,234.50",
     "decimal separators follow the plan language")
+# FAQ length is script-aware: CJK says as much in half the characters
+_ja_plan = {"params": {"lang": "ja", "brand": "X", "domain": "x.site"},
+            "layout": {"section_order": []}, "numbers": {}}
+_en_plan = {"params": {"lang": "en", "brand": "X", "domain": "x.site"},
+            "layout": {"section_order": []}, "numbers": {}}
+_ja_ans = "はい。画面表示・メール・電話サポートのすべてを日本語で対応しています。平日の日中は担当者が回答します。"
+_en_ans = "Yes. Screen display, email and phone support are all available in the language."
+def _faq_errs(pl, ans):
+    pack = {"faq": {"items": [{"q": "q", "a": ans}]}, "hero": {}, "bands": {}, "meta": {},
+            "sections": {}, "reviews": {"items": []}, "office": {}}
+    return [e for e in _asm3.validate_content(pack, pl, strict=True) if "faq answer" in e]
+chk(not _faq_errs(_ja_plan, _ja_ans) and _faq_errs(_en_plan, "Too short."),
+    "FAQ length threshold follows the script")
 # money follows the language and the currency (yen never gets cents)
 import content_gen as _cgen
 chk(_cgen.fmt_amount(1234.5, "EUR", True, "de") == "1.234,50"
