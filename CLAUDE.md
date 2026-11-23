@@ -167,6 +167,11 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   Інакше специфічність десктопного правила перебиває базове «сховано», і бургер не закриває меню
   (реальний баг варіанта `i`).
 - Self-check після змін інфраструктури: `python3 tests/selftest.py` (має бути PASSED).
+- Збірка не має кидати користувача без сайту: assemble сам лікує повтор абзацу (без
+  `aria-hidden` копій) і злипання бренду (`self_heal_page`); якщо гейти все одно впали —
+  `gen_plan --build` робить другий прохід `assemble --ship-anyway` (ERR стають WARN і
+  друкуються списком), а якщо пак відкинуто — перезбирає контент з англійського банку і
+  шипить. `localize` при невдачі лишає англійський master і попереджає, а не падає.
 - Canonical-URL гігієна: sitemap/canonical/внутрішні лінки — тільки з `.php`; кожен контент-файл
   починається з PHP-canonical-guard (`PHP_CANON_GUARD` в assemble.py): GET/HEAD на URL без `.php`
   → 301 на `.php` (панель віддає extensionless з 200 і перегенеровує sitemap без `.php`).

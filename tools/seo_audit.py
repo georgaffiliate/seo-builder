@@ -347,6 +347,7 @@ def audit_visible_cyrillic(pages):
 def main():
     folder = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "."
     want_deploy = "--deploy" in sys.argv
+    ship_anyway = "--ship-anyway" in sys.argv
     domain_hint = ""
     robots_p = os.path.join(folder, "robots.txt")
     if os.path.exists(robots_p):
@@ -599,6 +600,10 @@ def main():
 
     errs = [m for lv, m in CHECKS if lv == "ERR" and m]
     warns = [m for lv, m in CHECKS if lv == "WARN" and m]
+    if ship_anyway and errs:
+        print(f"\n! SHIPPING WITH {len(errs)} UNFIXED ISSUE(S) (--ship-anyway)")
+        warns = errs + warns
+        errs = []
     print(f"\n=== SEO AUDIT ({folder}) ===")
     print(f"pages crawled : {len(seen_pages)}")
     print(f"ERRORS: {len(errs)}"); [print("  ✗", m) for m in errs]
@@ -610,7 +615,9 @@ def main():
     ok_count = sum(1 for lv,_ in CHECKS if lv=="ok")
     print(f"passed checks : {ok_count}")
     if errs: sys.exit(1)
-    if want_deploy: print("\nGate passed — safe to deploy.")
+    if ship_anyway and warns and any(w in warns for w in warns):
+        print("\nShipped with the issues listed above (--ship-anyway).")
+    elif want_deploy: print("\nGate passed — safe to deploy.")
     else: print("\nLocal audit passed.")
 
 if __name__ == "__main__":

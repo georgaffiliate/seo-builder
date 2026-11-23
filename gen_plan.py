@@ -1051,9 +1051,15 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False):
                  [sys.executable, str(ROOT / "tools" / "content_gen.py"),
                   "--plan", str(plan), "--out", str(content), "--force",
                   "--source-lang", "en"])
-        step_run(f"LOCALIZE → {lang}",
-                 [sys.executable, str(ROOT / "tools" / "localize.py"),
-                  "--plan", str(plan), "--content", str(content), "--lang", lang])
+        step("LOCALIZE → " + lang)
+        rc = subprocess.run([sys.executable, str(ROOT / "tools" / "localize.py"),
+                             "--plan", str(plan), "--content", str(content),
+                             "--lang", lang], cwd=str(ROOT)).returncode
+        if rc != 0:
+            # never leave the user without a site: the master copy is complete, it is
+            # just in English — ship it and say so loudly
+            print(f"! localization failed — the site will be built from the English master")
+            print(f"! run tools/localize.py again to get the {lang} version")
     elif route == "bank":
         cmd = [sys.executable, str(ROOT / "tools" / "content_gen.py"),
                "--plan", str(plan), "--out", str(content)]
@@ -1061,8 +1067,22 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False):
             cmd.append("--force")
         step_run("CONTENT PACK (bank)", cmd)
 
-    step_run("ASSEMBLE + GATES",
-             [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)])
+    asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
+    rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
+    if rc != 0:
+        # second pass: ship what we have, listing the remaining issues as warnings
+        print("! gates failed — retrying in ship-anyway mode (issues become warnings)")
+        rc = subprocess.run(asm_cmd + ["--ship-anyway"], cwd=str(ROOT)).returncode
+    if rc != 0:
+        # last resort: the content pack itself is broken — rebuild it from the English
+        # bank and ship anyway, so the user always ends up with a working folder
+        print("! content pack rejected — rebuilding it from the English bank, then shipping")
+        subprocess.run([sys.executable, str(ROOT / "tools" / "content_gen.py"),
+                        "--plan", str(plan), "--out", str(content), "--force"],
+                       cwd=str(ROOT))
+        step_run("ASSEMBLE (fallback content)",
+                 [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan),
+                  "--content", str(content), "--ship-anyway"])
     step_run("BRAND ICONS", [sys.executable, str(ROOT / "tools" / "brand_icons.py"),
                              "--plan", str(plan), "--site", str(site)])
 

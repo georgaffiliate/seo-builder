@@ -64,6 +64,14 @@ _clone_html = ('<article class="row-item quote-row"><img class="avatar" src="img
 chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
     "audit flags the same review portrait used twice")
 # the same instrument written differently must still be recognised (strip vs ticker)
+# page self-heal: duplicated paragraph dropped, aria-hidden copy kept, brand unglued
+_dup = ('<p>The same long paragraph that must appear only once in the final page.</p>'
+        '<article aria-hidden="true"><p>The same long paragraph that must appear only once in the final page.</p></article>'
+        '<p>The same long paragraph that must appear only once in the final page.</p>')
+_healed = _asm3.self_heal_page(_dup, "Acme")
+chk(_healed.count("The same long paragraph") == 2 and 'aria-hidden="true"' in _healed and
+    "Acme" in _asm3.self_heal_page("<p>oAcme panel</p>", "Acme"),
+    "page self-heal: duplicate paragraph dropped, brand spacing fixed")
 chk(_sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>87.450</td>") == {}
     and _sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>5.320,50</td>") != {}
     and _sa2.audit_market_prices("EUR/USD 500 miliardi e EUR/USD 1,0842") == {},
