@@ -283,7 +283,10 @@ def main():
                 print("! model did not return a JSON object")
 
     fell_back = False
+    invalid_pack = None
     if not isinstance(pack, dict) or validate_blog(plan, pack):
+        if isinstance(pack, dict):
+            invalid_pack = pack
         if a.strict and not a.offline:
             die("blog pack invalid (strict mode)")
         if not a.offline:
@@ -296,6 +299,10 @@ def main():
 
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+    if invalid_pack is not None:
+        bad = out.with_suffix(".invalid.json")
+        bad.write_text(json.dumps(invalid_pack, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"· rejected model pack saved for review: {bad.relative_to(ROOT)}")
     words = sum(len(re.findall(r"\w+", json.dumps(ar, ensure_ascii=False)))
                 for ar in pack["articles"])
     print(f"BLOG CONTENT OK -> {out.relative_to(ROOT)} "

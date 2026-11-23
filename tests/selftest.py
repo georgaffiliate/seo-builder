@@ -275,6 +275,15 @@ if _bp.exists():
         _broken2["articles"][0]["date"] = "2099-01-01"
         chk(any("future" in e for e in _ba.validate_blog(_bd, _broken2)),
             "blog gate rejects a future article date")
+        _prose = _copy.deepcopy(_pack)
+        _prose["articles"][0]["sections"][0]["p"][0] += " A short to-do list helps."
+        chk(not _ba.validate_blog(_bd, _prose),
+            "blog gate does not mistake the prose word 'to-do' for a TODO token")
+        _tok = _copy.deepcopy(_pack)
+        _tok["articles"][0]["sections"][0]["p"][0] += " Write to {brand}."
+        _tok_errs = _ba.validate_blog(_bd, _tok)
+        chk(any("template token" in e and "articles.0" in e for e in _tok_errs),
+            f"blog gate names the path of a leftover template token ({_tok_errs[:1]})")
     _bp.unlink(missing_ok=True)
     _bf.unlink(missing_ok=True)
 else:

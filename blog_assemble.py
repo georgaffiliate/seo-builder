@@ -33,7 +33,12 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RESERVED_SLUGS = {"index", "thanks", "404", "_postback", "privacy", "terms"}
 DEPOSIT_RE = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|100\s?000\s?Ft)", re.I)
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", re.I)
-TOKEN_RE = re.compile(r"\{\{|\}\}|\{(?:brand|domain|city|deposit)\}|TODO|PLACEHOLDER", re.I)
+TOKEN_PATTERNS = (
+    (re.compile(r"\{\{|\}\}"), "double-brace template"),
+    (re.compile(r"\{(?:brand|domain|city|deposit)\}", re.I), "template token"),
+    (re.compile(r"\bTODO\b"), "TODO marker"),
+    (re.compile(r"\bPLACEHOLDER\b", re.I), "PLACEHOLDER marker"),
+)
 EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF]")
 HTML_RE = re.compile(r"</?[a-z][^>]*>", re.I)
 
@@ -201,8 +206,18 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
     blob = json.dumps(B, ensure_ascii=False)
     if DEPOSIT_RE.search(blob):
         errs.append("blog pack mentions a deposit amount — deposit lives only in the form band")
-    if TOKEN_RE.search(blob):
-        errs.append("unresolved token in the blog pack")
+    _token_hits = 0
+    for path, text in _walk_paths(B):
+        for rx, label in TOKEN_PATTERNS:
+            m = rx.search(text)
+            if not m:
+                continue
+            snippet = " ".join(text[max(0, m.start() - 35):m.end() + 35].split())
+            errs.append(f"{path}: {label} {m.group(0)!r} in “{snippet}”")
+            _token_hits += 1
+            break
+        if _token_hits >= 3:
+            break
     if EMOJI_RE.search(blob):
         errs.append("emoji in the blog pack (copy uses monochrome glyphs only)")
     for path, text in _walk_paths(B):
