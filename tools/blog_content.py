@@ -252,9 +252,11 @@ def main():
                   f" · model: {cfg['model']} · {len(plan['blog']['topics'])} articles")
             pack, messages = ask_model(plan, data, cfg, transport, where)
             if isinstance(pack, dict):
-                errs = validate_blog(plan, pack)
-                if errs:
-                    print(f"· repair pass ({len(errs)} issues)")
+                for attempt in (1, 2):
+                    errs = validate_blog(plan, pack)
+                    if not errs:
+                        break
+                    print(f"· repair pass {attempt} ({len(errs)} issues)")
                     if transport == "http":
                         messages += [
                             {"role": "assistant", "content": json.dumps(pack, ensure_ascii=False)},
@@ -267,6 +269,7 @@ def main():
                             pack = L.extract_json(raw)
                         except Exception as e:
                             print(f"! repair unparsable: {e}")
+                            pack = None
                     else:
                         L.cli_chat(where, cfg["model"],
                                    f"Fix content/{dom}-blog.json. Errors: " + "; ".join(errs[:14]) +
@@ -275,10 +278,12 @@ def main():
                             pack = json.loads(out.read_text(encoding="utf-8"))
                         except Exception:
                             pack = None
-                    if isinstance(pack, dict):
-                        errs = validate_blog(plan, pack)
-                        if errs:
-                            print("! blog pack still invalid: " + "; ".join(errs[:6]))
+                    if not isinstance(pack, dict):
+                        break
+                if isinstance(pack, dict):
+                    errs = validate_blog(plan, pack)
+                    if errs:
+                        print("! blog pack still invalid: " + "; ".join(errs[:6]))
             elif pack is not None:
                 print("! model did not return a JSON object")
 
