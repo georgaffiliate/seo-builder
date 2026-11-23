@@ -284,6 +284,30 @@ if _bp.exists():
         _tok_errs = _ba.validate_blog(_bd, _tok)
         chk(any("template token" in e and "articles.0" in e for e in _tok_errs),
             f"blog gate names the path of a leftover template token ({_tok_errs[:1]})")
+        _long = _copy.deepcopy(_pack)
+        _long["articles"][0]["title"] = "Titolo " + "molto lungo " * 5
+        chk(any("brand prefix" in e for e in _ba.validate_blog(_bd, _long)),
+            "blog gate rejects a title whose brand-prefixed <title> exceeds 70 chars")
+        _cjk = _copy.deepcopy(_pack)
+        _cjk["articles"][0]["sections"][0]["p"][0] += " stop stretto允许 posizione"
+        _cjk_errs = _ba.validate_blog(_bd, _cjk)
+        chk(any("cjk script" in e for e in _cjk_errs),
+            f"blog gate rejects foreign-script characters ({_cjk_errs[:1]})")
+        chk(_ba.fmt_blog_date("2026-10-06", "it") == "6 ottobre 2026",
+            "blog dates render in the site language (6 ottobre 2026)")
+        _hub = (_bd.get("blog") or {}).get("hub_slug")
+        chk(bool(_hub) and bool(__import__("re").fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(_hub))),
+            f"--blog plan carries a valid hub slug ({_hub})")
+        _art = _pack["articles"][0]
+        _ld = json.loads(_ba.article_jsonld(_bd, _pack, _art,
+                                            f"https://selftest-blog.site/{_art['slug']}.php",
+                                            f"https://selftest-blog.site/img/{_art['slug']}.png"))
+        _post = next(x for x in _ld["@graph"] if x.get("@type") == "BlogPosting")
+        chk(bool(_post.get("image", {}).get("url")) and bool(_post.get("publisher", {}).get("logo")),
+            "BlogPosting carries image + full publisher (name/logo)")
+        _hld = json.loads(_ba.hub_jsonld(_bd, _pack, "https://selftest-blog.site/guide.php"))
+        chk(any(x.get("@type") == "ItemList" for x in _hld["@graph"]),
+            "hub JSON-LD carries a top-level ItemList")
     _bp.unlink(missing_ok=True)
     _bf.unlink(missing_ok=True)
 else:

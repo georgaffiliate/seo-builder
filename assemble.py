@@ -559,6 +559,12 @@ def validate_plan(plan: dict) -> None:
             die(f"plan.blog needs 3..5 topics, got {len(topics)}")
         if len({t.get("id") for t in topics}) != len(topics):
             die("plan.blog topics repeat")
+        hub_slug = bl.get("hub_slug")
+        if hub_slug:
+            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(hub_slug)):
+                die(f"plan.blog.hub_slug is not a lowercase slug: {hub_slug!r}")
+            if hub_slug in set((plan["layout"].get("slugs") or {}).values()):
+                die(f"plan.blog.hub_slug '{hub_slug}' collides with an existing page")
 
 def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     errs = []
@@ -854,8 +860,11 @@ def safe_emails(html: str) -> str:
 
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
                theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True,
-               og_type="website"):
+               og_type="website", og_image="", blog=False):
     body = safe_emails(body)
+    og_url = og_image or "https://{DOM}/og-image.png"
+    blog_css = (f'<link rel="stylesheet" href="blocks/blog.css?v={BUILD_V}">\n'
+                if blog else "")
     dom_css = f"<style>{esc(css_vars)}</style>"
     rob = "noindex,follow" if noindex else "index,follow"
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
@@ -887,16 +896,16 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <meta property="og:type" content="{esc(og_type)}">
 <meta property="og:site_name" content="{{BRAND}}">
 <meta property="og:url" content="https://{{DOM}}{canonical_path}">
-<meta property="og:image" content="https://{{DOM}}/og-image.png">
+<meta property="og:image" content="{esc(og_url)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{esc(title)}">
 <meta name="twitter:description" content="{esc(og_desc or descr)}">
-<meta name="twitter:image" content="https://{{DOM}}/og-image.png">
+<meta name="twitter:image" content="{esc(og_url)}">
 <link rel="stylesheet" href="blocks/blocks.css?v={BUILD_V}">
 <link rel="stylesheet" href="skin.css?v={BUILD_V}">
-<style>@import url('{fonts_import}');</style>
+{blog_css}<style>@import url('{fonts_import}');</style>
 {dom_css}
 {INC_HEAD}
 {ld}
@@ -1198,7 +1207,7 @@ def fix_anchors(html: str) -> str:
     return html
 
 
-def build_index(plan, C, css_vars, fonts_import, theme, B=None):
+def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     order = plan["layout"]["section_order"]
     for slot in order:
@@ -1226,7 +1235,7 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None):
         body_parts.append(html)
     if B and (plan.get("blog") or {}).get("enabled"):
         import blog_assemble
-        body_parts.append(blog_assemble.teaser_html(plan, B))
+        body_parts.append(blog_assemble.teaser_html(plan, B, covers))
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
     body = ensure_anchors(body)
@@ -1236,7 +1245,8 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None):
     title = m["title_home"].replace("{Brand}", brand)
     descr = clamp_meta(m["description"]); kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
     page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme,
-                      body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld)
+                      body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld,
+                      blog=bool(B))
     page = fix_anchors(page)
     if 'id="come"' not in page:
         # no "how it works" section on this plan → drop the hero's secondary link
@@ -1670,6 +1680,8 @@ def write_assets(out: pathlib.Path, plan):
     (out / "lead-form.js").write_text(lf.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css") if (out / "blocks").exists() else \
         ((out / "blocks").mkdir(parents=True, exist_ok=True), shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css"))
+    if (BLOCKS / "blog.css").exists() and (plan.get("blog") or {}).get("enabled"):
+        shutil.copy(BLOCKS / "blog.css", out / "blocks" / "blog.css")
     skin = plan["design"].get("skin", "rounded-air")
     shutil.copy(SKINS / f"skin-{skin}.css", out / "skin.css")
     # personas: copy only this plan's avatars into img/
@@ -1803,25 +1815,41 @@ def cmd_build(a):
     if out.exists(): shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / "blocks").mkdir()
+    covers = {}
+    if B:
+        import blog_assemble
+        covers = blog_assemble.write_covers(out, plan, B)
+        ok(f"blog covers: {len(covers)} article images (1200×630)")
     content_default = ROOT / "content" / f"{dom}-content.json"
 
     global BUILD_V
     BUILD_V = hashlib.sha1((BLOCKS / "blocks.css").read_bytes() +
+                           (BLOCKS / "blog.css").read_bytes() +
                            (SKINS / f"skin-{plan['design'].get('skin')}.css").read_bytes() +
                            (BLOCKS / "lead-form.js").read_bytes() +
                            (BLOCKS / "calculator.js").read_bytes() +
                            (BLOCKS / "pulse-sim.js").read_bytes()).hexdigest()[:8]
+    # blog_assemble imports this file as `assemble` while the CLI runs it as `__main__`;
+    # keep both module instances on the same cache-busting hash (otherwise blog pages
+    # shipped ?v=0 and cached the old CSS for 30 days).
+    _asm_mod = sys.modules.get("assemble")
+    if _asm_mod is not None and _asm_mod is not sys.modules.get("__main__"):
+        _asm_mod.BUILD_V = BUILD_V
     has_calc = "calculator" in plan["layout"]["section_order"]
-    pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme, B=B)}
+    pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme, B=B, covers=covers)}
     for which in ("about", "who", "contact", "register"):
         slug = plan["layout"].get("slugs", {}).get(which, which)
         pages[f"{slug}.php"] = build_inner(plan, C, css_vars, fonts_import, theme, which)
     if B:
         import blog_assemble
+        hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+        pages[f"{hub_slug}.php"] = blog_assemble.build_hub(plan, C, B, css_vars,
+                                                           fonts_import, theme, covers=covers)
         for art in B.get("articles") or []:
             pages[f"{art['slug']}.php"] = blog_assemble.build_article(plan, C, B, art,
-                                                                     css_vars, fonts_import, theme)
-        ok(f"blog pages: {', '.join(a['slug'] + '.php' for a in B['articles'])}")
+                                                                     css_vars, fonts_import, theme,
+                                                                     covers=covers)
+        ok(f"blog pages: {hub_slug}.php + {', '.join(a['slug'] + '.php' for a in B['articles'])}")
     pages["thanks.php"] = build_thanks(plan, C, css_vars, fonts_import, theme)
     pages["terms.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "terms")
     pages["privacy.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "privacy")

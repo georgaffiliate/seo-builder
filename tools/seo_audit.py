@@ -133,6 +133,7 @@ CHK_EXTENSIONS = (".php", "/", "")
 # surfaced Ukrainian comments in browser DevTools). Any Cyrillic text that
 # is not inside quotes/strings must live only in comments, so we flag it.
 CYR_RE = re.compile(r"[А-Яа-яЁёЇїІіЄєҐґ]")
+CJK_RE = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]")
 SHIP_EXTS = (".js", ".css", ".php", ".html", ".htm", ".svg", ".xml", ".txt")
 SHIP_SKIP_DIRS = {"storage", "jobs", "node_modules", ".git", "img", "fonts", "icons"}
 
@@ -480,15 +481,26 @@ def main():
         art_html = m.group(1) if m else ""
         types = set()
         dates = []
+        post = None
         for node in extract(html, path)["jsonld"]:
             for item in (node.get("@graph") or [node]) if isinstance(node, dict) else []:
                 if not isinstance(item, dict):
                     continue
                 types.add(item.get("@type"))
+                if item.get("@type") in ("BlogPosting", "Article", "NewsArticle"):
+                    post = item
                 if item.get("datePublished"):
                     dates.append(str(item["datePublished"]))
         chk(bool(types & {"BlogPosting", "Article", "NewsArticle"}), "ERR",
             f"article schema /{path}", f"article page /{path} lacks BlogPosting/Article JSON-LD")
+        img = (post or {}).get("image")
+        img_ok = bool(img.get("url") if isinstance(img, dict) else (img[0] if isinstance(img, list) and img else img))
+        chk(img_ok, "ERR", f"article image /{path}",
+            f"article page /{path}: BlogPosting has no image (required for Article rich results)")
+        pub = (post or {}).get("publisher") or {}
+        pub_ok = isinstance(pub, dict) and bool(pub.get("name")) and bool(pub.get("logo"))
+        chk(pub_ok, "ERR", f"article publisher /{path}",
+            f"article page /{path}: BlogPosting publisher needs name + logo (not only @id)")
         chk(any(re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) and d <= time.strftime("%Y-%m-%d")
                 for d in dates), "ERR", f"article date /{path}",
             f"article page /{path} has no valid non-future datePublished ({dates[:2]})")
@@ -499,6 +511,20 @@ def main():
             f"article body on /{path} is {body_words} words — thin copy (<300)")
         chk('href="index.php#claim"' in art_html, "ERR", f"article CTA /{path}",
             f"article page /{path} does not link to the offer's form (index.php#claim)")
+
+    # ---- guides hub (plan.blog): a real CollectionPage + ItemList ----
+    for path, (code, html) in seen_pages.items():
+        if code != 200 or 'data-blog-hub=' not in html:
+            continue
+        types = set()
+        for node in extract(html, path)["jsonld"]:
+            for item in (node.get("@graph") or [node]) if isinstance(node, dict) else []:
+                if isinstance(item, dict):
+                    types.add(item.get("@type"))
+        chk(bool(types & {"CollectionPage", "Blog"}), "ERR", f"hub schema /{path}",
+            f"blog hub /{path} lacks CollectionPage/Blog JSON-LD")
+        chk("ItemList" in types, "ERR", f"hub item list /{path}",
+            f"blog hub /{path} lacks an ItemList of articles")
     # broken internal links (skip assets with ?v=, they're static not pages)
     ASSETS = (".css", ".png", ".jpg", ".svg", ".ico", ".woff", ".webp", ".js")
     for il in sorted(internal_links):
@@ -549,6 +575,20 @@ def main():
     vis_cyr = audit_visible_cyrillic(seen_pages)
     chk(not vis_cyr, "WARN", "no Cyrillic in rendered page text",
         f"Cyrillic visible on pages: " + "; ".join(f"{p}: …{s}…" for p, s in vis_cyr[:4]))
+    # foreign-script leak: an Italian page once shipped 允许 inside an article
+    cjk_hits = []
+    for path, (code, html) in seen_pages.items():
+        m_lang = re.search(r'<html[^>]+lang=["\']([a-zA-Z-]+)', html, re.I)
+        lang = (m_lang.group(1) if m_lang else "").lower().split("-")[0]
+        if lang in ("zh", "ja", "ko"):
+            continue
+        text = " ".join(_page_text_nodes(html).split())
+        m = CJK_RE.search(text)
+        if m:
+            cjk_hits.append((path, text[max(0, m.start() - 35):m.end() + 35]))
+    chk(not cjk_hits, "ERR", "no CJK characters on non-CJK pages",
+        "CJK characters on a non-CJK page: "
+        + "; ".join(f"{p}: …{s}…" for p, s in cjk_hits[:4]))
 
     # ---- mock-panel gate: no "sample data" captions, ledger parts add up ----
     ph_hits = []

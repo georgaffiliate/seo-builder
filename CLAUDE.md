@@ -194,7 +194,8 @@ tools/brand_icons.py    favicon/og з палітри плану (rsvg-convert + 
 tools/mobile_lint.py    статичний мобільний гейт (viewport/tbl-scroll/inline grid)
 tools/profile_write.py  реєстрація profiles/<domain>.json + взаємні siblings
 tools/blog_content.py   блог-пак (3–5 статей) одним LLM-викликом → content/<domain>-blog.json
-blog_assemble.py         блог-шар: teaser на головній + статті (3 структурні стилі), валідатор паку
+blog_assemble.py         блог-шар: teaser + хаб guide.php + статті (3 стилі, власні обкладинки), валідатор паку
+blocks/blog.css          стилі хаба/обкладинок (лише для сторінок із plan.blog)
 resources/blog-topics.json  банк 20 тем для --blog
 resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
 assemble.py             конструктор: plan(+content) → sites/<domain> + gates

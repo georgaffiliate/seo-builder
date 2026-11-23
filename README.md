@@ -92,14 +92,25 @@ python3 gen_plan.py --brand "Infinity Shop" --lang it --domain infinity-shop.sit
   якщо модель не дала валідний JSON — детермінований offline-пак, щоб збірка не падала.
 - **3 структурні стилі** (`a` editorial / `b` magazine + TOC / `c` compact brief),
   які обирає план. Хедер, футер, livebar, палітра, скін і шрифти — від основного сайту.
-- **Teaser на головній** (`#guides`) лінкує кожну статтю → жодної сироти; кожна
-  стаття має CTA на форму, related-статті та `BlogPosting` + `BreadcrumbList` (+`FAQPage`)
-  JSON-LD. Усі статті потрапляють у `sitemap.xml` і проходять `seo_audit`,
-  `mobile_lint`, `twin_check`.
+- **Хаб** `guide.php` (локальний слаг із `plan.blog.hub_slug`) + teaser на головній:
+  обидва лінкують усі статті, хлібні крихти статей ведуть на хаб, а не на `#guides`.
+- **Кожна стаття має власну обкладинку 1200×630** (детермінований SVG/PNG з палітри,
+  `img/blog-<slug>.png`), яка йде в `og:image` і `BlogPosting.image`.
+- `BlogPosting` містить повний `publisher` (name + logo), `mainEntityOfPage`, `wordCount`;
+  `BreadcrumbList` веде `Home → хаб → стаття`; `FAQPage` — лише видимі питання.
+- Дати в teaser/byline — мовою сайту (`6 ottobre 2026`), ISO лишається в `<time datetime>`
+  і sitemap. `title` разом із бренд-префіксом обмежений 70 символами.
+- Гейт блогу ловить: дублі слагов/абзаців, майбутні дати, залишкові `{brand}`, `TODO`
+  (лише великими літерами — слово `metodo` не рахується), емодзі, чужу писемність
+  (кирилиця/китайська на латинському сайті) і задовгі title.
+- Усі сторінки потрапляють у `sitemap.xml` і проходять `seo_audit` (schema/image/publisher,
+  hub ItemList, CTA, дата, обсяг), `mobile_lint`, `twin_check`.
 
 Тільки для тестів / без ключа: `--blog --build --offline` (пише generic offline-пак,
 не для продакшну — замініть контент перед деплоєм).
 
+
+## API
 
 Авторизація: заголовок `Authorization: Bearer <API_TOKEN>` на всіх ендпоінтах
 крім `/healthz`.

@@ -22,15 +22,20 @@ Three structural styles, not recolours:
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import json
+import pathlib
 import re
+import shutil
+import subprocess
 
 import assemble as A
 
 BLOG_STYLES = ("a", "b", "c")
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-RESERVED_SLUGS = {"index", "thanks", "404", "_postback", "privacy", "terms"}
+RESERVED_SLUGS = {"index", "thanks", "404", "_postback", "privacy", "terms",
+                  "api_local", "sitemap", "robots"}
 DEPOSIT_RE = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|100\s?000\s?Ft)", re.I)
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", re.I)
 TOKEN_PATTERNS = (
@@ -42,6 +47,41 @@ TOKEN_PATTERNS = (
 EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF]")
 HTML_RE = re.compile(r"</?[a-z][^>]*>", re.I)
 
+# Month names used in the visible byline/teaser (ISO stays in <time datetime> and sitemap).
+# Languages outside this map fall back to 06.10.2026, which is still local enough.
+BLOG_MONTHS = {
+    "it": ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio",
+           "agosto", "settembre", "ottobre", "novembre", "dicembre"],
+    "en": ["January", "February", "March", "April", "May", "June", "July",
+           "August", "September", "October", "November", "December"],
+    "es": ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+           "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+    "cs": ["ledna", "února", "března", "dubna", "května", "června", "července",
+           "srpna", "září", "října", "listopadu", "prosince"],
+    "de": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
+           "August", "September", "Oktober", "November", "Dezember"],
+    "fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
+           "août", "septembre", "octobre", "novembre", "décembre"],
+    "pl": ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca",
+           "sierpnia", "września", "października", "listopada", "grudnia"],
+    "pt": ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+           "agosto", "setembro", "outubro", "novembro", "dezembro"],
+}
+
+# A site in one script must not ship characters from a foreign script (the live bug
+# was a Chinese 允许 inside an Italian article). Cyrillic/Greek/CJK sites keep their
+# own script; every other site is Latin-only.
+SCRIPT_RANGES = {
+    "cjk": re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]"),
+    "cyrillic": re.compile(r"[\u0400-\u04ff]"),
+    "greek": re.compile(r"[\u0370-\u03ff]"),
+    "arabic": re.compile(r"[\u0600-\u06ff\u0750-\u077f]"),
+    "hebrew": re.compile(r"[\u0590-\u05ff]"),
+    "georgian": re.compile(r"[\u10a0-\u10ff]"),
+    "armenian": re.compile(r"[\u0530-\u058f]"),
+}
+
+
 
 def _words(text: str) -> int:
     return len(re.findall(r"\w+", str(text or ""), re.UNICODE))
@@ -49,6 +89,35 @@ def _words(text: str) -> int:
 
 def _cjk(lang: str) -> bool:
     return (lang or "").lower() in ("ja", "zh", "ko")
+
+
+def fmt_blog_date(iso: str, lang: str) -> str:
+    """'2026-10-06' → '6 ottobre 2026' (it) / '6 October 2026' (en) / '06.10.2026'."""
+    try:
+        d = _dt.date.fromisoformat(str(iso or ""))
+    except ValueError:
+        return str(iso or "")
+    months = BLOG_MONTHS.get((lang or "en").lower())
+    if months:
+        return f"{d.day} {months[d.month - 1]} {d.year}"
+    return d.strftime("%d.%m.%Y")
+
+
+def _allowed_scripts(lang: str) -> set[str]:
+    lang = (lang or "").lower()
+    if lang in ("ru", "uk", "bg", "sr", "mk"):
+        return {"latin", "cyrillic"}
+    if lang == "el":
+        return {"latin", "greek"}
+    if lang in ("zh", "ja", "ko"):
+        return {"latin", "cjk"}
+    if lang == "ka":
+        return {"latin", "georgian"}
+    if lang == "he":
+        return {"latin", "hebrew"}
+    if lang == "ar":
+        return {"latin", "arabic"}
+    return {"latin"}
 
 
 def _iter_strings(node):
@@ -72,8 +141,14 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
     blog = plan.get("blog") or {}
     topics = blog.get("topics") or []
     lang = plan["params"].get("lang", "en")
+    brand = plan["params"]["brand"]
     today = _dt.date.today().isoformat()
     base_slugs = set((plan.get("layout", {}).get("slugs") or {}).values()) | RESERVED_SLUGS
+    hub_slug = str(blog.get("hub_slug") or "guides").strip()
+    if not SLUG_RE.fullmatch(hub_slug):
+        errs.append(f"blog.hub_slug is not a lowercase hyphenated slug: '{hub_slug}'")
+    elif hub_slug in base_slugs:
+        errs.append(f"blog.hub_slug '{hub_slug}' collides with an existing page")
 
     if not B or not isinstance(B, dict):
         return ["blog pack is empty"]
@@ -108,12 +183,18 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
             errs.append(f"{tag}.slug '{slug}' collides with an existing page")
         elif slug in seen_slugs:
             errs.append(f"{tag}.slug '{slug}' is duplicated")
+        elif slug == hub_slug:
+            errs.append(f"{tag}.slug '{slug}' collides with the hub page")
         seen_slugs.add(slug)
         title = str(a.get("title") or "").strip()
         h1 = str(a.get("h1") or "").strip()
         excerpt = str(a.get("excerpt") or "").strip()
         if not 18 <= len(title) <= 72:
             errs.append(f"{tag}.title length {len(title)} (18..72)")
+        final_title = A.brand_first(title, brand)
+        if len(final_title) > 70:
+            errs.append(f"{tag}.title becomes {len(final_title)} chars with the brand prefix "
+                        f"(max 70) — shorten it by {len(final_title) - 70}: “{final_title}”")
         if title.casefold() in seen_titles:
             errs.append(f"{tag}.title duplicates another article")
         seen_titles.add(title.casefold())
@@ -227,7 +308,21 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
         if EMAIL_RE.search(text):
             errs.append(f"{path}: plain-text email (contacts are JS-assembled on offer pages)")
             break
-    brand = plan["params"]["brand"]
+    allowed = _allowed_scripts(lang)
+    _script_hits = 0
+    for path, text in _walk_paths(B):
+        for name, rx in SCRIPT_RANGES.items():
+            if name in allowed:
+                continue
+            m = rx.search(text)
+            if not m:
+                continue
+            snippet = " ".join(text[max(0, m.start() - 35):m.end() + 35].split())
+            errs.append(f"{path}: {name} script inside a {lang} text — “{snippet}”")
+            _script_hits += 1
+            break
+        if _script_hits >= 2:
+            break
     glue = re.compile(rf"[a-zà-ÿ]{re.escape(brand)}", re.I)
     for path, text in _walk_paths(B):
         if glue.search(text):
@@ -248,58 +343,138 @@ def _walk_paths(node, path=""):
 
 
 # ------------------------------------------------------------------ rendering
-def teaser_html(plan, B) -> str:
-    """Home-page section that links every article (crawl path + no orphan pages)."""
+def _cover_img(covers, slug: str, cls: str) -> str:
+    c = (covers or {}).get(slug) or {}
+    rel = c.get("rel")
+    if not rel:
+        return ""
+    return (f'<img class="{cls}" src="{A.esc(rel)}" alt="" style="width:100%;height:auto" '
+            f'width="1200" height="630" loading="lazy" decoding="async">')
+
+
+def _teaser_inner(plan, B, covers=None) -> str:
     hub = B.get("hub") or {}
     arts = B.get("articles") or []
-    if not arts:
-        return ""
     style = (plan.get("blog") or {}).get("style") or "a"
-    eyebrow = A.esc(hub.get("eyebrow") or "Guides")
-    title = A.esc(hub.get("title") or "Guides")
-    lead = A.esc(hub.get("lead") or "")
+    lang = plan["params"].get("lang", "en")
+    min_label = A.esc(hub.get("min_read_label") or "min")
 
-    def card(a, extra=""):
-        return (f'<a class="blog-card{extra}" href="{A.esc(a["slug"])}.php">'
+    def meta(a):
+        return (f'<span class="blog-card-meta">{A.esc(fmt_blog_date(a["date"], lang))} · '
+                f'{int(a.get("read_min") or 1)} {min_label}</span>')
+
+    def card(a):
+        return (f'<a class="blog-card" href="{A.esc(a["slug"])}.php">'
+                f'{_cover_img(covers, a["slug"], "blog-card-cover")}'
                 f'<span class="blog-card-k">{A.esc(hub.get("eyebrow") or "Guide")}</span>'
                 f'<h3>{A.esc(a["title"])}</h3>'
-                f'<p>{A.esc(a["excerpt"])}</p>'
-                f'<span class="blog-card-meta">{A.esc(a["date"])} · {int(a.get("read_min") or 1)} '
-                f'{A.esc(hub.get("min_read_label") or "min")}</span></a>')
+                f'<p>{A.esc(a["excerpt"])}</p>{meta(a)}</a>')
 
     if style == "b" and len(arts) > 1:
         feature = arts[0]
         rows = "".join(
             f'<a class="blog-row" href="{A.esc(a["slug"])}.php"><time datetime="{A.esc(a["date"])}">'
-            f'{A.esc(a["date"])}</time><span>{A.esc(a["title"])}</span>'
-            f'<em>{int(a.get("read_min") or 1)} {A.esc(hub.get("min_read_label") or "min")}</em></a>'
+            f'{A.esc(fmt_blog_date(a["date"], lang))}</time><span>{A.esc(a["title"])}</span>'
+            f'<em>{int(a.get("read_min") or 1)} {min_label}</em></a>'
             for a in arts[1:])
-        inner = (f'<div class="blog-teaser-split"><a class="blog-feature" href="{A.esc(feature["slug"])}.php">'
-                 f'<span class="blog-card-k">{A.esc(hub.get("eyebrow") or "Guide")}</span>'
-                 f'<h3>{A.esc(feature["title"])}</h3><p>{A.esc(feature["excerpt"])}</p>'
-                 f'<span class="blog-card-meta">{A.esc(feature["date"])} · '
-                 f'{int(feature.get("read_min") or 1)} {A.esc(hub.get("min_read_label") or "min")}</span>'
-                 f'</a><div class="blog-rows">{rows}</div></div>')
-    elif style == "c":
+        return (f'<div class="blog-teaser-split"><a class="blog-feature" href="{A.esc(feature["slug"])}.php">'
+                f'{_cover_img(covers, feature["slug"], "blog-card-cover")}'
+                f'<span class="blog-card-k">{A.esc(hub.get("eyebrow") or "Guide")}</span>'
+                f'<h3>{A.esc(feature["title"])}</h3><p>{A.esc(feature["excerpt"])}</p>{meta(feature)}'
+                f'</a><div class="blog-rows">{rows}</div></div>')
+    if style == "c":
         rows = "".join(
             f'<a class="blog-num-row" href="{A.esc(a["slug"])}.php"><i>{i + 1:02d}</i>'
             f'<span><b>{A.esc(a["title"])}</b><small>{A.esc(a["excerpt"])}</small></span>'
-            f'<em>{int(a.get("read_min") or 1)} {A.esc(hub.get("min_read_label") or "min")}</em></a>'
+            f'<em>{int(a.get("read_min") or 1)} {min_label}</em></a>'
             for i, a in enumerate(arts))
-        inner = f'<div class="blog-num-list">{rows}</div>'
-    else:
-        inner = '<div class="blog-teaser-grid">' + "".join(card(a) for a in arts) + "</div>"
+        return f'<div class="blog-num-list">{rows}</div>'
+    return '<div class="blog-teaser-grid">' + "".join(card(a) for a in arts) + "</div>"
 
+
+def teaser_html(plan, B, covers=None) -> str:
+    """Home-page section that links the hub and every article (crawl path, no orphans)."""
+    hub = B.get("hub") or {}
+    arts = B.get("articles") or []
+    if not arts:
+        return ""
+    style = (plan.get("blog") or {}).get("style") or "a"
+    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+    eyebrow = A.esc(hub.get("eyebrow") or "Guides")
+    title = A.esc(hub.get("title") or "Guides")
+    lead = A.esc(hub.get("lead") or "")
+    all_label = A.esc(hub.get("all_label") or hub.get("eyebrow") or "Guides")
     return (f'<section class="section sec sec-blog-teaser" id="guides" data-blog-teaser="{style}">'
             f'<div class="wrap"><div class="blog-teaser-head"><div class="eyebrow">{eyebrow}</div>'
-            f'<h2>{title}</h2><p>{lead}</p></div>{inner}</div></section>')
+            f'<h2>{title}</h2><p>{lead}</p>'
+            f'<a class="blog-all" href="{A.esc(hub_slug)}.php">{all_label} '
+            f'<span aria-hidden="true">→</span></a></div>'
+            f'{_teaser_inner(plan, B, covers)}</div></section>')
+
+
+def hub_jsonld(plan, B, url: str) -> str:
+    brand = plan["params"]["brand"]
+    dom = plan["params"]["domain"]
+    hub = B.get("hub") or {}
+    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+    home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
+    items = []
+    for i, a in enumerate(B.get("articles") or [], start=1):
+        u = f"https://{dom}/{a['slug']}.php"
+        items.append({"@type": "ListItem", "position": i, "name": a.get("title") or "",
+                      "url": u})
+    return json.dumps({"@context": "https://schema.org", "@graph": [
+        {"@type": "CollectionPage", "@id": f"{url}#page", "url": url,
+         "name": str(hub.get("title") or "Guides"), "description": str(hub.get("lead") or ""),
+         "inLanguage": plan["params"].get("locale", ""),
+         "isPartOf": {"@id": f"https://{dom}/#site"},
+         "mainEntity": {"@id": f"{url}#list"}},
+        {"@type": "ItemList", "@id": f"{url}#list", "numberOfItems": len(items),
+         "itemListElement": items},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
+            {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
+             "item": f"https://{dom}/{hub_slug}.php"}]}]},
+        ensure_ascii=False, separators=(",", ":"))
+
+
+def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
+    """Real /guide.php hub: breadcrumb target, one crawl entry point for all articles."""
+    brand = plan["params"]["brand"]
+    dom = plan["params"]["domain"]
+    hub = B.get("hub") or {}
+    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+    url = f"https://{dom}/{hub_slug}.php"
+    home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
+    livebar, header, footer = A.build_header_footer(plan, C)
+    body = (f'{livebar}{header}<main>'
+            f'<nav class="blog-crumbs" aria-label="{A.esc(hub.get("eyebrow") or "Guides")}">'
+            f'<a href="index.php">{A.esc(home)}</a><span aria-hidden="true">›</span>'
+            f'<span>{A.esc(hub.get("eyebrow") or "Guides")}</span></nav>'
+            f'<section class="section sec sec-blog-hub" data-blog-hub="1"><div class="wrap">'
+            f'<div class="blog-teaser-head"><div class="eyebrow">{A.esc(hub.get("eyebrow") or "Guides")}</div>'
+            f'<h1>{A.h1_with_brand(hub.get("title"), brand)}</h1>'
+            f'<p class="blog-lead">{A.esc(hub.get("lead") or "")}</p></div>'
+            f'{_teaser_inner(plan, B, covers)}</div></section></main>{footer}')
+    title = A.brand_first(hub.get("title") or "", brand)
+    descr = A.clamp_meta(hub.get("lead") or "")
+    keywords = str((C.get("meta") or {}).get("keywords") or "")
+    page = A.page_shell(title, descr,
+                        keywords.replace("{Brand}", brand).replace("{dom}", dom),
+                        f"/{hub_slug}.php",
+                        plan["params"].get("locale") or plan["params"].get("lang"),
+                        css_vars, fonts_import, theme, body,
+                        jsonld=hub_jsonld(plan, B, url), blog=True)
+    page = page.replace('href="#claim"', 'href="index.php#claim"')
+    return A.finish_page(page, plan, C)
 
 
 def _meta_line(plan, B, art) -> str:
     hub = B.get("hub") or {}
     return (f'<div class="blog-byline"><span class="blog-author">{A.esc(art.get("author"))}'
             f'<small>{A.esc(art.get("author_role"))}</small></span>'
-            f'<time datetime="{A.esc(art.get("date"))}">{A.esc(art.get("date"))}</time>'
+            f'<time datetime="{A.esc(art.get("date"))}">'
+            f'{A.esc(fmt_blog_date(art.get("date"), plan["params"].get("lang", "en")))}</time>'
             f'<span>{int(art.get("read_min") or 1)} {A.esc(hub.get("min_read_label") or "min")}</span></div>')
 
 
@@ -363,26 +538,41 @@ def _cta_block(plan, C, B, art):
             f'<h2>{A.esc(title)}</h2><p>{A.esc(text)}</p>{btn_html}</section>')
 
 
-def article_jsonld(plan, B, art, url: str) -> str:
+def article_jsonld(plan, B, art, url: str, image_url: str = "") -> str:
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
+    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
-    graph = [
-        {"@type": "BlogPosting", "@id": f"{url}#article", "mainEntityOfPage": {"@id": url},
-         "headline": str(art.get("h1") or art.get("title") or ""),
-         "description": str(art.get("excerpt") or ""),
-         "datePublished": art.get("date"), "dateModified": art.get("date"),
-         "inLanguage": plan["params"].get("locale", ""),
-         "author": {"@type": "Person", "name": str(art.get("author") or brand)},
-         "publisher": {"@id": f"https://{dom}/#org"},
-         "url": url},
-        {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
-            {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
-             "item": f"https://{dom}/#guides"},
-            {"@type": "ListItem", "position": 3, "name": art.get("title") or "", "item": url}]},
-    ]
+    words = sum(_words(s.get("h2")) + sum(_words(p) for p in (s.get("p") or []))
+                + sum(_words(x) for x in (s.get("points") or []))
+                for s in (art.get("sections") or []) if isinstance(s, dict))
+    post = {
+        "@type": "BlogPosting", "@id": f"{url}#article",
+        "mainEntityOfPage": {"@type": "WebPage", "@id": url},
+        "headline": str(art.get("h1") or art.get("title") or ""),
+        "description": str(art.get("excerpt") or ""),
+        "image": {"@type": "ImageObject", "url": image_url or f"https://{dom}/og-image.png",
+                  "width": 1200, "height": 630},
+        "datePublished": art.get("date"), "dateModified": art.get("date"),
+        "inLanguage": plan["params"].get("locale", ""),
+        "author": {"@type": "Person", "name": str(art.get("author") or brand),
+                   **({"jobTitle": str(art["author_role"])} if art.get("author_role") else {})},
+        "publisher": {"@type": "Organization", "@id": f"https://{dom}/#org", "name": brand,
+                      "url": f"https://{dom}/",
+                      "logo": {"@type": "ImageObject", "url": f"https://{dom}/favicon.svg",
+                               "width": 64, "height": 64}},
+        "url": url,
+        "isPartOf": {"@id": f"https://{dom}/#site"},
+        "articleSection": str(hub.get("eyebrow") or ""),
+        "wordCount": words,
+    }
+    graph = [post,
+             {"@type": "BreadcrumbList", "itemListElement": [
+                 {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
+                 {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
+                  "item": f"https://{dom}/{hub_slug}.php"},
+                 {"@type": "ListItem", "position": 3, "name": art.get("title") or "", "item": url}]}]
     faq = [x for x in (art.get("faq") or []) if isinstance(x, dict) and x.get("q") and x.get("a")]
     if faq:
         graph.append({"@type": "FAQPage", "@id": f"{url}#faq", "mainEntity": [
@@ -392,7 +582,7 @@ def article_jsonld(plan, B, art, url: str) -> str:
                       ensure_ascii=False, separators=(",", ":"))
 
 
-def build_article(plan, C, B, art, css_vars, fonts_import, theme) -> str:
+def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -> str:
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     style = (plan.get("blog") or {}).get("style") or "a"
@@ -401,6 +591,9 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme) -> str:
     slug = art["slug"]
     url = f"https://{dom}/{slug}.php"
     hub = B.get("hub") or {}
+    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+    cover = (covers or {}).get(slug) or {}
+    image_url = cover.get("url") if cover.get("png") else f"https://{dom}/og-image.png"
     livebar, header, footer = A.build_header_footer(plan, C)
 
     secs = [s for s in (art.get("sections") or []) if isinstance(s, dict)]
@@ -424,17 +617,23 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme) -> str:
         layout = (f'{_takeaways(B, art)}<div class="blog-body">{blocks}</div>')
 
     taken = _takeaways(B, art) if style != "a" else ""
+    cover_html = (f'<figure class="blog-cover"><img src="{A.esc(cover["rel"])}" '
+                  f'alt="{A.esc(art.get("title"))}" style="width:100%;height:auto" '
+                  f'width="1200" height="630" '
+                  f'loading="eager" fetchpriority="high" decoding="async"></figure>'
+                  if cover.get("rel") else "")
     body = (f"{livebar}{header}<main>"
             f'<nav class="blog-crumbs" aria-label="{A.esc(hub.get("eyebrow") or "Guides")}">'
             f'<a href="index.php">{A.esc((plan.get("layout", {}).get("menu") or ["Home"])[0])}</a>'
-            f'<span aria-hidden="true">›</span><a href="index.php#guides">{A.esc(hub.get("eyebrow") or "Guides")}</a>'
+            f'<span aria-hidden="true">›</span>'
+            f'<a href="{A.esc(hub_slug)}.php">{A.esc(hub.get("eyebrow") or "Guides")}</a>'
             f'<span aria-hidden="true">›</span><span>{A.esc(art.get("title"))}</span></nav>'
             f'<article class="blk-blog blk-blog-{style}" data-blog-article="{style}">'
             f'<header class="blog-head"><div class="eyebrow">{A.esc(hub.get("eyebrow") or "Guide")}'
             f' · {int(art.get("read_min") or 1)} {A.esc(hub.get("min_read_label") or "min")}</div>'
             f'<h1>{A.h1_with_brand(art.get("h1"), brand)}</h1>'
             f'<p class="blog-lead">{A.esc(art.get("excerpt"))}</p>{_meta_line(plan, B, art)}</header>'
-            f'{taken}{layout}{_faq_block(B, art)}{_cta_block(plan, C, B, art)}'
+            f'{cover_html}{taken}{layout}{_faq_block(B, art)}{_cta_block(plan, C, B, art)}'
             f'{_related_block(plan, C, B, art)}</article></main>{footer}')
 
     title = A.brand_first(art.get("title") or art.get("h1") or "", brand)
@@ -445,7 +644,111 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme) -> str:
                         f"/{slug}.php",
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
-                        jsonld=article_jsonld(plan, B, art, url), og_type="article")
+                        jsonld=article_jsonld(plan, B, art, url, image_url),
+                        og_type="article", og_image=image_url, blog=True)
     page = page.replace('href="#claim"', 'href="index.php#claim"')
     page = A.finish_page(page, plan, C)
     return page
+
+
+def _palette(plan) -> dict:
+    try:
+        data = json.loads(A.PALETTES.read_text(encoding="utf-8"))
+        p = next((x for x in data.get("palettes", []) if x.get("id") == plan["design"]["palette_id"]), None)
+        return (p or {}).get("vars") or {}
+    except Exception:
+        return {}
+
+
+def _wrap(text: str, max_chars: int, max_lines: int = 3) -> list[str]:
+    words, lines, cur = str(text or "").split(), [], ""
+    for w in words:
+        if not cur or len(cur) + 1 + len(w) <= max_chars:
+            cur = (cur + " " + w).strip()
+        else:
+            lines.append(cur)
+            cur = w
+            if len(lines) == max_lines:
+                break
+    if cur and len(lines) < max_lines:
+        lines.append(cur)
+    if len(lines) == max_lines and " ".join(lines) != " ".join(str(text or "").split()):
+        lines[-1] = lines[-1].rstrip(" .,;:—-") + "…"
+    return lines or [""]
+
+
+def _cover_svg(plan, B, art) -> str:
+    v = _palette(plan)
+    bg = v.get("bg", "#111111")
+    ink = v.get("ink", "#ffffff")
+    acc = v.get("acc", "#c8a24a")
+    acc2 = v.get("acc_2", acc)
+    brand = plan["params"]["brand"]
+    dom = plan["params"]["domain"]
+    head = plan["design"]["fonts"]["head"]
+    hub = B.get("hub") or {}
+    eyebrow = str(hub.get("eyebrow") or "Guide")[:42]
+    title = str(art.get("title") or art.get("h1") or "")
+    title_len = len(title)
+    if title_len <= 46:
+        fs, maxc = 72, 30
+    elif title_len <= 62:
+        fs, maxc = 62, 36
+    else:
+        fs, maxc = 54, 42
+    lines = _wrap(title, maxc, 3)
+    seed = int(hashlib.sha1(str(art.get("slug") or "").encode()).hexdigest()[:6], 16) % 3
+    if seed == 0:
+        decor = (f'<circle cx="1040" cy="190" r="210" fill="{acc}" opacity=".09"/>'
+                 f'<circle cx="1040" cy="190" r="120" fill="{acc2}" opacity=".08"/>')
+    elif seed == 1:
+        decor = (f'<path d="M760 630 L1200 170 V630 Z" fill="{acc}" opacity=".08"/>'
+                 f'<path d="M900 630 L1200 340 V630 Z" fill="{acc2}" opacity=".07"/>')
+    else:
+        decor = "".join(
+            f'<rect x="{880 + (i % 3) * 90}" y="{110 + (i // 3) * 90}" width="64" height="64" '
+            f'rx="10" fill="{acc}" opacity=".07"/>' for i in range(9))
+    title_svg = "".join(
+        f'<text x="72" y="{300 + i * (fs + 10)}" font-family="{A.esc(head)}, Georgia, serif" '
+        f'font-size="{fs}" font-weight="700" fill="{ink}">{A.esc(line)}</text>'
+        for i, line in enumerate(lines))
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="{A.esc(title)}">
+<rect width="1200" height="630" fill="{bg}"/>
+{decor}
+<text x="72" y="112" font-family="{A.esc(head)}, Georgia, serif" font-size="28" font-weight="700" fill="{ink}" opacity=".62">{A.esc(brand)}</text>
+<rect x="72" y="140" width="88" height="6" rx="3" fill="{acc}"/>
+<text x="72" y="205" font-family="Helvetica, Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="2.6" fill="{acc}">{A.esc(eyebrow.upper())}</text>
+{title_svg}
+<rect x="72" y="592" width="1056" height="1" fill="{ink}" opacity=".16"/>
+<text x="72" y="566" font-family="Helvetica, Arial, sans-serif" font-size="23" fill="{ink}" opacity=".58">{A.esc(dom)}</text>
+</svg>
+'''
+
+
+def write_covers(out, plan, B) -> dict:
+    """Deterministic 1200×630 article covers from the offer palette.
+
+    PNG is used for og:image / BlogPosting.image when rsvg-convert is available;
+    the SVG stays in the site either way (and is the <img> fallback).
+    """
+    out = pathlib.Path(out)
+    img = out / "img"
+    img.mkdir(parents=True, exist_ok=True)
+    dom = plan["params"]["domain"]
+    covers = {}
+    for art in B.get("articles") or []:
+        slug = art.get("slug")
+        if not slug:
+            continue
+        svg_path = img / f"blog-{slug}.svg"
+        svg_path.write_text(_cover_svg(plan, B, art), encoding="utf-8")
+        png_path = img / f"blog-{slug}.png"
+        png = False
+        if shutil.which("rsvg-convert"):
+            rc = subprocess.run(["rsvg-convert", "-w", "1200", "-h", "630",
+                                 str(svg_path), "-o", str(png_path)],
+                                capture_output=True).returncode
+            png = rc == 0 and png_path.exists()
+        rel = f"img/blog-{slug}.png" if png else f"img/blog-{slug}.svg"
+        covers[slug] = {"rel": rel, "png": png, "url": f"https://{dom}/{rel}"}
+    return covers

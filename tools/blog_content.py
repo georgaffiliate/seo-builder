@@ -43,6 +43,8 @@ def brief(plan: dict) -> dict:
     blog = plan["blog"]
     topics = blog.get("topics") or []
     lang = plan["params"].get("lang", "en")
+    brand = plan["params"]["brand"]
+    title_max = max(18, 70 - len(brand) - 3)
     return {
         "task": "Write ONE JSON object: the guides/blog pack for the offer below. "
                 "No HTML, no markdown, no commentary — only the JSON object.",
@@ -55,11 +57,13 @@ def brief(plan: dict) -> dict:
                       "site language, with a title/h1/excerpt that a local reader would search for. "
                       "Keep the topic id and the date exactly as given.",
         "article_count": len(topics),
+        "title_max_chars": title_max,
         "topics": topics,
         "shape": {
             "hub": {"eyebrow": "section label, e.g. Guides",
-                    "title": "section heading on the home page",
+                    "title": "hub page heading on the home page",
                     "lead": "one sentence, 80..160 chars",
+                    "all_label": "short link label, e.g. All guides",
                     "toc_label": "contents",
                     "takeaways_label": "key points",
                     "related_title": "read next",
@@ -70,7 +74,7 @@ def brief(plan: dict) -> dict:
             "articles": [{
                 "topic": "topic id from the brief",
                 "slug": "lowercase-latin-words-with-hyphens",
-                "title": "page title phrase without the brand, 18..72 chars",
+                "title": f"page title phrase without the brand, up to {title_max} chars",
                 "h1": "on-page headline, 12..90 chars, may differ from title",
                 "excerpt": "90..180 chars, used as meta description and card text",
                 "date": "YYYY-MM-DD, exactly as in the brief",
@@ -94,6 +98,8 @@ def brief(plan: dict) -> dict:
             "index/privacy/terms/thanks/404.",
             "Titles and descriptions must be unique across the pack and must not repeat the "
             "brand at the start (the assembler adds it).",
+            f"Title budget: the assembler prepends '{brand} — ', so the title field itself must be "
+            f"<= {title_max} characters; the final <title> must stay <= 70 characters.",
             "Each article: 3..7 sections, 2..4 paragraphs per section, 380+ words of body copy; "
             "at least one section carries 2..6 bullets.",
             "Vary openings, examples and section angles between articles. Never reuse a paragraph.",
@@ -101,6 +107,9 @@ def brief(plan: dict) -> dict:
             "FAQPage JSON-LD.",
             "Related must point to other slugs in this same pack.",
             "Write in the site language, not English. No English boilerplate.",
+            "Use only the script of the site language: no Chinese, Cyrillic, Greek, Arabic or other "
+            "foreign characters inside Latin-script copy (a stray 允许 shipped on a live Italian site).",
+            "Proofread grammar and spelling before answering: agreement, double letters, accents.",
             "No HTML tags, no markdown, no emoji, no e-mail addresses, no deposit amounts, "
             "no promises of profit or guaranteed returns.",
             "Dates are ISO YYYY-MM-DD and must equal the brief.",
@@ -146,10 +155,13 @@ def offline_pack(plan: dict) -> dict:
                     for x in [s["h2"], *s["p"], *s.get("points", [])])
         faq = [{"q": q.format(topic=topic, brand=brand), "a": a.format(topic=topic, brand=brand, geo=geo)}
                for q, a in T["faq"]]
+        title = T["title"].format(topic=topic, brand=brand)
+        if len(brand) + 3 + len(title) > 70:
+            title = T.get("short_title", "Guide: {topic}").format(topic=topic)
         arts.append({
             "topic": t["id"],
             "slug": slugs[i],
-            "title": T["title"].format(topic=topic, brand=brand),
+            "title": title,
             "h1": T["h1"].format(topic=topic, brand=brand),
             "excerpt": T["excerpt"].format(topic=topic, brand=brand, geo=geo),
             "date": t.get("date") or "2026-01-01",
@@ -322,10 +334,12 @@ def main():
 _OFFLINE = {
     "en": {
         "hub": {"eyebrow": "Guides", "title": "Practical guides", "lead": "Short, factual notes on costs, risk and the everyday mechanics of the platform.",
+                "all_label": "All guides",
                 "toc_label": "Contents", "takeaways_label": "Key points", "related_title": "Read next",
                 "min_read_label": "min", "faq_label": "Frequently asked questions",
                 "facts_sections_label": "sections", "facts_words_label": "words"},
         "title": "A practical guide to {topic}",
+        "short_title": "Guide: {topic}",
         "h1": "How to think about {topic}",
         "excerpt": "A plain-language look at {topic}: what to check, what it costs and which details are easy to miss.",
         "role": "Editorial team",
@@ -366,10 +380,12 @@ _OFFLINE = {
     },
     "it": {
         "hub": {"eyebrow": "Guide", "title": "Guide pratiche", "lead": "Note brevi e concrete su costi, rischio e funzionamento quotidiano della piattaforma.",
+                "all_label": "Tutte le guide",
                 "toc_label": "Indice", "takeaways_label": "Punti chiave", "related_title": "Leggi anche",
                 "min_read_label": "min", "faq_label": "Domande frequenti",
                 "facts_sections_label": "sezioni", "facts_words_label": "parole"},
         "title": "Guida pratica a {topic}",
+        "short_title": "Guida: {topic}",
         "h1": "Come valutare {topic}",
         "excerpt": "Uno sguardo concreto a {topic}: cosa verificare, quanto costa e quali dettagli sfuggono più spesso.",
         "role": "Redazione",

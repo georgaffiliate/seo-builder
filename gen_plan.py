@@ -280,8 +280,21 @@ def bins_pick(rng,key,taken):
     return (fresh or bins)[0]
 
 # ---------------------------------------------------------------- builder ----
-def build_blog_block(rng, args, hist: list) -> dict | None:
-    """3–5 article briefs from resources/blog-topics.json + a structural style.
+BLOG_HUB_POOLS = {
+    "it": ["guide", "risorse", "approfondimenti"],
+    "cs": ["pruvodce", "clanky", "zdroje"],
+    "es": ["guias", "recursos", "articulos"],
+    "en": ["guides", "resources", "insights"],
+    "de": ["ratgeber", "ressourcen", "wissen"],
+    "fr": ["guides", "ressources", "articles"],
+    "pl": ["poradniki", "artykuly", "zasoby"],
+    "pt": ["guias", "recursos", "artigos"],
+    "fallback": ["guides", "resources", "insights"],
+}
+
+
+def build_blog_block(rng, args, hist: list, base_slugs: set[str] | None = None) -> dict | None:
+    """3–5 article briefs + a structural style + a real hub slug.
 
     Topic ids used by the last five plans are skipped first, so a fleet does not
     publish the same guide over and over. Dates are fixed here (not by the model):
@@ -308,6 +321,9 @@ def build_blog_block(rng, args, hist: list) -> dict | None:
         rest.sort(key=lambda t: last.get(t["id"], 999), reverse=True)
         picks += rest[:need - len(picks)]
     style = rng.choice(["a", "b", "c"])
+    pool = [s for s in BLOG_HUB_POOLS.get(args.lang, BLOG_HUB_POOLS["fallback"])
+            if s not in (base_slugs or set())]
+    hub_slug = (pool or BLOG_HUB_POOLS["fallback"])[0]
     today = datetime.date.today()
     topics = []
     for i, t in enumerate(picks):
@@ -315,7 +331,8 @@ def build_blog_block(rng, args, hist: list) -> dict | None:
         topics.append({"id": t["id"], "intent": t.get("intent", ""),
                        "angle": t.get("angle", ""), "keywords": t.get("keywords") or [],
                        "date": day.isoformat()})
-    return {"enabled": True, "style": style, "count": len(topics), "topics": topics}
+    return {"enabled": True, "style": style, "hub_slug": hub_slug,
+            "count": len(topics), "topics": topics}
 
 
 ARCHETYPES = {"clear-operator", "calm-analyst", "quiet-desk", "market-observer"}
@@ -687,7 +704,7 @@ def build_plan(rng, args, hist)->dict|None:
         "content_hint":f"content/{args.domain}-content.json",
     }
     if getattr(args, "blog", False):
-        bl = build_blog_block(rng, args, hist)
+        bl = build_blog_block(rng, args, hist, set(plan["layout"]["slugs"].values()))
         if bl:
             plan["blog"] = bl
     if widgets["G3"] == "pulse-sim":
@@ -1084,6 +1101,11 @@ def validate(plan,hist)->list[str]:
             errs.append(f"blog needs 3..5 topics, got {len(topics)}")
         if len({t.get("id") for t in topics}) != len(topics):
             errs.append("blog topics repeat")
+        hub_slug = bl.get("hub_slug")
+        if not hub_slug or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(hub_slug)):
+            errs.append(f"blog hub_slug is invalid: {hub_slug!r}")
+        elif hub_slug in set((plan.get("layout", {}).get("slugs") or {}).values()):
+            errs.append(f"blog hub_slug '{hub_slug}' collides with a page slug")
     return errs
 
 def sync_plan_from_content(plan: dict, content_f: pathlib.Path) -> list[str]:
@@ -1329,7 +1351,8 @@ def main():
     print(f"  slugs    : {d['layout']['slugs']}")
     if d.get("blog"):
         bl = d["blog"]
-        print(f"  blog     : style {bl.get('style')} · {len(bl.get('topics') or [])} articles · "
+        print(f"  blog     : style {bl.get('style')} · hub {bl.get('hub_slug') or 'guides'}.php · "
+              f"{len(bl.get('topics') or [])} articles · "
               + ", ".join(t.get("id", "") for t in (bl.get("topics") or [])))
     if d.get("_warnings"): print("  WARN:",d["_warnings"])
     if a.llm_model:
