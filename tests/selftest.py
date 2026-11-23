@@ -169,6 +169,11 @@ _stray = [k for k in (_lay.get("variants") or {}) if k not in ("logo", "header",
 chk(_rc.returncode == 0 and _pd and not _stray,
     f"no variant left behind for a dropped screen ({_stray or 'clean'})")
 _calc_plan.unlink(missing_ok=True)
+# menu words are localised: no English leftovers in a non-English nav pool
+_eng = {"start", "about", "contact", "tech", "method", "platform", "support", "tools", "login"}
+_bad_menus = [f"{lg}:{w}" for lg, rows in _gp.MENU_POOLS.items() if lg != "fallback"
+              for r in rows for w in r if w.lower() in _eng]
+chk(not _bad_menus, f"menu pools are localised ({_bad_menus[:3] or 'clean'})")
 # number formatting follows the language: comma decimals for tr/de/it…, dot for en/ja
 # a quote pair is an instrument: BTC/EUR must not borrow the BTC/JPY price
 chk(_asm3._sym_pair("BTC/EUR") != _asm3._sym_pair("BTC/JPY")

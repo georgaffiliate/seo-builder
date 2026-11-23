@@ -277,8 +277,8 @@ INNER_SKELETONS = {
     "who": [["page-intro", "team-band", "features", "numbers", "cta"], ["page-intro", "pipeline", "compare", "cta"], ["page-intro", "stack", "figures", "cta"]],
 }
 MENU_POOLS = {
-    "cs": [["Domů", "Program", "Technologie", "Kontakt"], ["Start", "Jak to funguje", "Motor", "Napište nám"], ["Domů", "O projektu", "Metoda", "Kontakt"]],
-    "it": [["Home", "Panoramica", "Strumenti", "Aiuto"], ["Start", "Come funziona", "Motore", "Scrivici"], ["Home", "Metodo", "Piattaforma", "Supporto"], ["Home", "Programma", "Tecnologia", "Contatti"]],
+    "cs": [["Domů", "Program", "Technologie", "Kontakt"], ["Úvod", "Jak to funguje", "Motor", "Napište nám"], ["Domů", "O projektu", "Metoda", "Kontakt"]],
+    "it": [["Home", "Panoramica", "Strumenti", "Aiuto"], ["Inizio", "Come funziona", "Motore", "Scrivici"], ["Home", "Metodo", "Piattaforma", "Supporto"], ["Home", "Programma", "Tecnologia", "Contatti"]],
     "es": [["Inicio", "Programa", "Tecnología", "Contacto"], ["Inicio", "Cómo funciona", "Método", "Escríbenos"],
            ["Inicio", "Quiénes somos", "Plataforma", "Soporte"], ["Inicio", "Proyecto", "Motor", "Contáctanos"]],
     "fallback": [["Home","About","Tech","Contact"],["Home","Method","Platform","Support"],["Home","About","Tools","Contact"]]
