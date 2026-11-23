@@ -123,6 +123,22 @@ chk(len(_gp.pick_people(__import__("random").Random(3), "pt", _worn)) == 3,
 _pp = {"params": {"lang": "pt"}}
 chk(len(_gp.VARIANTS["header"]) >= 9 and len(_gp.VARIANTS["footer"]) >= 5,
     f"shell pools: {len(_gp.VARIANTS['header'])} headers × {len(_gp.VARIANTS['footer'])} footers")
+# every generated plan must satisfy the assembler's own structural rules
+_ap = ROOT / "plans" / "selftest-anchors.site.json"
+__import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "AnchorSel",
+                             "--lang", "si", "--domain", "selftest-anchors.site",
+                             "--seed", "777", "--force"], capture_output=True, cwd=ROOT)
+if _ap.exists():
+    _apd = json.loads(_ap.read_text()); _ap.unlink()
+    try:
+        _asm3.validate_plan(_apd)
+        _plan_ok = True
+    except SystemExit:
+        _plan_ok = False
+    chk(_plan_ok, "generated plan passes assemble.validate_plan (anchors, order budget)")
+else:
+    chk(False, "generated plan passes assemble.validate_plan (anchors, order budget)")
+
 chk(_gp.pick_variant(__import__("random").Random(1), "header", ["b", "c", "d"], 
                      [{"variants": {"header": "b"}}] * 5, 5) in ("c", "d"),
     "header variant avoids the last five plans")

@@ -456,6 +456,26 @@ def build_plan(rng, args, hist)->dict|None:
         for s in ("notes","ticker","streams","glance","timeline"):
             if s not in order: order.append(s)
             if len(order)>=10: break
+    # dedupe pass above can swallow anchors (compare dropped next to faq, numbers
+    # dropped next to people-e). Assemble refuses a page with fewer than two, so make
+    # sure the order always carries them instead of failing at the very end.
+    def _anchors():
+        return [t for t in order if t in ANCHOR_TYPES]
+
+    if len(_anchors()) < 2:
+        for cand in ("numbers", "people", "office", "cta", "compare"):
+            if cand in order: continue
+            if cand == "compare" and ("faq" in order or "mini-faq" in order): continue
+            if cand == "numbers" and "stats-intro" in order: continue
+            if len(order) >= 18:                      # keep the 10..18 budget
+                for filler in ("streams", "notes", "ticker", "glance", "timeline"):
+                    if filler in order and filler not in ANCHOR_TYPES:
+                        drop_slot(filler)
+                        break
+                else:
+                    break
+            order.append(cand)
+            if len(_anchors()) >= 2: break
 
     inner={pg:rng.choice(v) for pg,v in sorted(INNER_SKELETONS.items())}
     for _ in range(10):
@@ -866,6 +886,12 @@ def validate(plan,hist)->list[str]:
     if len(used_people)+3<=bank_size and used_people & set(plan["people"]):
         errs.append("persona reused")
     lay=plan["layout"]; types=types_of(lay["section_order"])
+    if len([t for t in lay["section_order"] if t in ANCHOR_TYPES]) < 2:
+        errs.append("fewer than 2 anchor screens")
+    if len([t for t in lay["section_order"] if t in ("faq", "compare", "mini-faq")]) > 1:
+        errs.append("more than one Q/A screen")
+    if "numbers" in lay["section_order"] and "stats-intro" in lay["section_order"]:
+        errs.append("numbers and stats-intro together")
     for h in hist[-3:]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.65:
             errs.append(f"section inventory too close to {h['domain']}"); break
