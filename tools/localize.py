@@ -161,7 +161,9 @@ def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "")
                         f"({PH_RE.findall(text)} → {PH_RE.findall(new)})")
         if sorted(TAG_RE.findall(text)) != sorted(TAG_RE.findall(new)):
             errs.append(f"{path}: html tags changed ({TAG_RE.findall(text)} → {TAG_RE.findall(new)})")
-        if DIGITS_RE.findall(text) != DIGITS_RE.findall(new):
+        # languages reorder numbers ("2,4% in the last 30 days" → "son 30 günde %2,4"),
+        # so compare the multiset — a dropped or altered figure is still an error
+        if sorted(DIGITS_RE.findall(text)) != sorted(DIGITS_RE.findall(new)):
             errs.append(f"{path}: numbers changed ({' '.join(DIGITS_RE.findall(text))} → "
                         f"{' '.join(DIGITS_RE.findall(new))})")
         if brand_key and brand_key in re.sub(r"\s+", "", text).casefold() \

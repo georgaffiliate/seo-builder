@@ -469,6 +469,10 @@ _labels = {"content.ui.aria_menu": "Menu", "content.sections.ladder.rows.0.k": "
            "content.sections.ladder.rows.1.k": "Pro"}
 chk(not _lz.validate(_labels, dict(_labels), "pt", "Bitnova"),
     "localize: a label that reads the same in both languages is accepted")
+_reordered = {"content.hero.device_delta": "↗ 2,4% in the last 30 days"}
+chk(not _lz.validate(_reordered, {"content.hero.device_delta": "Son 30 günde ↗ %2,4"}, "tr")
+    and bool(_lz.validate(_reordered, {"content.hero.device_delta": "Son günde ↗ %2,4"}, "tr")),
+    "localize: reordered numbers pass, a dropped figure fails")
 _partial_bank = json.loads(json.dumps(_bank_all))
 _partial_bank["es"] = {"hero": {"device_label": "Cuenta operativa"}}   # 1 key instead of 235
 try:

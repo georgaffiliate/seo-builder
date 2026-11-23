@@ -400,8 +400,10 @@ def missing_fragment_keys(pack: dict, plan: dict) -> list:
         if not cand.exists():
             continue
         for path in sorted(set(re.findall(r"\{\{c:([\w.]+)\}\}", cand.read_text(encoding="utf-8")))):
+            if path.startswith("ui.aria_"):
+                continue          # assembled from UI_L10N defaults, not model copy
             if not str(_pack_get(pack, path) or "").strip():
-                out.append(f"{slot}.{path}")
+                out.append(path)
     return out
 
 
