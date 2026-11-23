@@ -229,9 +229,15 @@ def novel_need(hist:list)->int:
 def anchors_of(od:list)->set:
     return types_of(od) & set(ANCHOR_TYPES)
 
+def rotating_anchors(od: list) -> set:
+    """Anchor screens that must rotate. `people` is now on every offer (social proof),
+    so it is structural and never counts as a shared/duplicated anchor."""
+    return anchors_of(od) - {"people"}
+
+
 def order_ok(od:list,hist:list,brand:str="")->bool:
     """Hard structural separation from the nearest plans and same-brand siblings."""
-    types=types_of(od); anch=anchors_of(od)
+    types=types_of(od); anch=rotating_anchors(od)
     for h in hist[-3:]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.65: return False
     for h in hist[:-3]:
@@ -239,10 +245,10 @@ def order_ok(od:list,hist:list,brand:str="")->bool:
     for h in hist[-2:]:
         if h["order"] and seq_overlap(od,h["order"])>=0.5: return False
     # anchors rotate: at most one shared with the previous plan or the last sibling
-    if hist[-1:] and len(anch & anchors_of(hist[-1]["order"]))>1: return False
+    if hist[-1:] and len(anch & rotating_anchors(hist[-1]["order"]))>1: return False
     sib=next((h for h in reversed(hist)
               if h.get("brand")==brand and h["order"] and h.get("domain")), None)
-    if sib and len(anch & anchors_of(sib["order"]))>1: return False
+    if sib and len(anch & rotating_anchors(sib["order"]))>1: return False
     near=set()
     for h in hist[-3:]:
         near |= types_of(h["order"])
@@ -250,7 +256,7 @@ def order_ok(od:list,hist:list,brand:str="")->bool:
     return True
 
 def structure_score(od:list,hist:list,brand:str="")->float:
-    types=types_of(od); anch=anchors_of(od); sc=0.0
+    types=types_of(od); anch=rotating_anchors(od); sc=0.0
     for h in hist[-3:]:
         if not h["order"]: continue
         sc+=1.0-jac(types,types_of(h["order"]))
@@ -258,8 +264,8 @@ def structure_score(od:list,hist:list,brand:str="")->float:
     sc+=0.25*len(types-{t for h in hist[-1:] for t in types_of(h["order"])})
     sib=next((h for h in reversed(hist) if h.get("brand")==brand and h.get("order")), None)
     if sib:
-        sc+=0.4*len(set(ANCHOR_TYPES)-anchors_of(sib["order"]))     # fresh anchors bonus
-        sc-=0.6*len(anch & anchors_of(sib["order"]))                # shared screens penalty
+        sc+=0.4*len(set(ANCHOR_TYPES)-rotating_anchors(sib["order"]))  # fresh anchors bonus
+        sc-=0.6*len(anch & rotating_anchors(sib["order"]))            # shared screens penalty
     return sc
 
 def bins_pick(rng,key,taken):
@@ -429,11 +435,11 @@ def build_plan(rng, args, hist)->dict|None:
         for a in picked_a:
             if a not in {TYPE_OF.get(x,x) for x in od}:
                 od.append(rng.choice(pool_types[a]) if a in pool_types else a)
-        # trust proof: every offer keeps at least one of people/faq — a site with
-        # neither reads as a thin template (overlap of 1 with a neighbour is allowed)
+        # trust proof: social proof is not optional — every offer carries the reviews
+        # screen (a site without a single review reads as a thin template)
         have={TYPE_OF.get(x,x) for x in od}
-        if not ({"people","faq"} & have):
-            od.append(rng.choice(("people","faq")))
+        if "people" not in have:
+            od.insert(min(len(od), rng.randint(3, 8)), "people")
         if "scarcity" not in od and rng.random()<0.8: od.insert(rng.randrange(3,len(od)-2),"scarcity")
         # numbers and stats-intro are the same "stat screen" family: never both
         if "numbers" in od and "stats-intro" in od: od.remove("stats-intro")
@@ -963,8 +969,10 @@ def validate(plan,hist)->list[str]:
     if len(used_people)+3<=bank_size and used_people & set(plan["people"]):
         errs.append("persona reused")
     lay=plan["layout"]; types=types_of(lay["section_order"])
-    if len([t for t in lay["section_order"] if t in ANCHOR_TYPES]) < 2:
-        errs.append("fewer than 2 anchor screens")
+    if "people" not in lay["section_order"]:
+        errs.append("no reviews screen (people) — social proof is required")
+    if len(rotating_anchors(lay["section_order"])) < 1:
+        errs.append("no rotating anchor besides people")
     if len([t for t in lay["section_order"] if t in ("faq", "compare", "mini-faq")]) > 1:
         errs.append("more than one Q/A screen")
     if "numbers" in lay["section_order"] and "stats-intro" in lay["section_order"]:

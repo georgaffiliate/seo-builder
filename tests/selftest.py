@@ -68,6 +68,17 @@ chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
 _dup = ('<p>The same long paragraph that must appear only once in the final page.</p>'
         '<article aria-hidden="true"><p>The same long paragraph that must appear only once in the final page.</p></article>'
         '<p>The same long paragraph that must appear only once in the final page.</p>')
+# every offer carries the reviews screen (social proof is not a rotation option)
+_pp2 = ROOT / "plans" / "selftest-people.site.json"
+__import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "PeopleSel",
+                             "--lang", "it", "--domain", "selftest-people.site",
+                             "--seed", "808", "--force"], capture_output=True, cwd=ROOT)
+if _pp2.exists():
+    _ppd = json.loads(_pp2.read_text()); _pp2.unlink()
+    chk("people" in _ppd["layout"]["section_order"],
+        "every plan carries the reviews screen")
+else:
+    chk(False, "every plan carries the reviews screen")
 # validator findings are turned into a targeted repair request (keys, not the whole pack)
 import repair_content as _rc
 _keys = _rc.suspects(["faq answer too short (3 chars): Sì.…",
