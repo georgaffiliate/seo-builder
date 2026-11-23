@@ -451,9 +451,12 @@ chk(_lz.needs_translation("content.hero.lead", "Keeps listings") and
     not _lz.needs_translation("content.meta.email", "info@bitnova-pt.site"),
     "localize: copy is translated, tickers/emails are not")
 chk(not _lz.needs_translation("content.meta.keywords", "Bitnova, bitnova login") and
-    not _lz.needs_translation("content.hero.eyebrow", "BITNOVA · PT") and
-    not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU"),
-    "localize: keywords / BRAND · GEO / ticker symbols are not sent to the model")
+    not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU") and
+    _lz.mark_eyebrow("BITNOVA · PT", "Bitnova") and _lz.mark_eyebrow("ALIAS · SI", "Alias Test") and
+    not _lz.mark_eyebrow("PLATFORM", "Bitnova") and
+    _lz.needs_translation("content.sections.risk.eyebrow", "RISKS") and
+    _lz.needs_translation("content.legal.privacy", "<p>Rights via info@{domain}.</p>"),
+    "localize: mark eyebrows stay, upper-case copy and legal text are translated")
 _labels = {"content.ui.aria_menu": "Menu", "content.sections.ladder.rows.0.k": "Base",
            "content.sections.ladder.rows.1.k": "Pro"}
 chk(not _lz.validate(_labels, dict(_labels), "pt", "Bitnova"),

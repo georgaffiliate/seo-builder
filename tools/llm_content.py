@@ -433,6 +433,15 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     if _miss:
         errs.append("fragments need these content keys (missing or empty): "
                     + ", ".join(_miss[:12]))
+    # pages assembled outside the section fragments (legal, thanks, footer, meta) are
+    # not covered by the fragment scan — a missing legal body used to fall back to an
+    # English stub on a translated site
+    _extra = [k for k in ("meta.title_home", "meta.description", "footer.tagline",
+                          "footer.disclaimer", "footer.risk_line", "legal.terms",
+                          "legal.privacy", "thanks.h1", "thanks.lead")
+              if not str(_pack_get(pack, k) or "").strip()]
+    if _extra:
+        errs.append("these page-level keys are missing or empty: " + ", ".join(_extra))
     # deposit rule: keep in sync with tools/seo_audit.py dep_pat — meta/og/JSON-LD text
     # (meta.description feeds the JSON-LD org.description) must never mention a deposit
     dep_pat = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|min(?:imální|minimāl)|100\s?000\s?Ft|100000\s?Ft)")

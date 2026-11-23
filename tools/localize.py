@@ -73,6 +73,9 @@ def _get_path(tree, path):
     return node
 
 
+EMAIL_RE = re.compile(r"^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$")
+
+
 def needs_translation(path: str, value) -> bool:
     """Everything the visitor reads, minus numbers, tickers, emails and fixed codes."""
     if not isinstance(value, str):
@@ -84,9 +87,9 @@ def needs_translation(path: str, value) -> bool:
         return False
     if path.endswith("meta.keywords"):
         return False          # search queries: brand + "login" stay as people type them
-    if path.endswith(".eyebrow") and re.fullmatch(r"[A-Z0-9 ·/\-]+", text):
-        return False          # BRAND · GEO, all caps: nothing to translate
-    if "@" in text or text.startswith(("http://", "https://")):
+    # a bare address or URL is not copy — but a paragraph that merely mentions
+    # info@{domain} is (legal.privacy / thanks.warn used to stay English because of this)
+    if EMAIL_RE.match(text) or text.startswith(("http://", "https://")):
         return False
     if _is_ticker(text) or text.lower() in WHITELIST_WORDS:
         return False
@@ -95,13 +98,25 @@ def needs_translation(path: str, value) -> bool:
     return True
 
 
+def mark_eyebrow(value, brand: str) -> bool:
+    """True when an eyebrow is the brand mark itself ("BITNOVA · PT", "ALIAS · SI"),
+    which must never be translated. A plain "PLATFORM"/"RISKS" is copy and is."""
+    raw = str(value or "").strip()
+    key = re.sub(r"\s+", "", str(brand or "")).casefold()
+    if key and key in re.sub(r"\s+", "", raw).casefold():
+        return True
+    return "·" in raw and not re.search(r"[a-z\u00e0-\u024f]", raw)
+
+
 def collect(pack: dict, plan: dict) -> dict:
     """Flatten every translatable string: {'content.…': text, 'plan.…': text}."""
     out = {}
+    brand = plan["params"]["brand"]
     for path, value in _leaves(pack):
+        if path.endswith(".eyebrow") and mark_eyebrow(value, brand):
+            continue          # brand mark + geo code, nothing to translate
         if needs_translation(path, value):
             out[f"content.{path}"] = value
-    brand = plan["params"]["brand"]
     domain = plan["params"]["domain"]
     for path, value in _leaves(plan):
         if not path.startswith(PLAN_TEXT_ROOTS) or not needs_translation(path, value):

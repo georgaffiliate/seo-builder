@@ -21,6 +21,10 @@ from __future__ import annotations
 import argparse, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent          # static-create-sites/
+# country codes people type instead of the language code: with "si" every per-language
+# table (404 page, footer, aria labels) fell back to English
+LANG_ALIASES = {"si": "sl", "cz": "cs", "gr": "el", "dk": "da", "se": "sv",
+                "no": "nb", "ua": "uk", "il": "he", "jp": "ja", "cn": "zh", "br": "pt"}
 PLANS = ROOT / "plans"
 PALETTES_F = ROOT / "content" / "palettes-blk.json"
 REG_F = ROOT / "resources" / "regulators.json"
@@ -1105,6 +1109,7 @@ def main():
     ap.add_argument("--llm-provider",default="",choices=("", "auto", "http", "cli"),
                     help="transport for --with-llm (default auto: HTTP when key exists)")
     a=ap.parse_args()
+    a.lang = LANG_ALIASES.get(a.lang.lower(), a.lang.lower())
     if not a.seed:
         a.seed=int(hashlib.sha256((a.domain+a.brand).encode()).hexdigest()[:8],16)%10_000_000
     hist0=[h for h in load_history() if h["domain"]!=a.domain]

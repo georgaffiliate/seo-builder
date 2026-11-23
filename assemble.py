@@ -1326,9 +1326,13 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
     reg = plan.get("regulator") or {}
     livebar, header, footer = build_header_footer(plan, C)
     reg_line = f"Reference supervisory authority: {reg.get('name','')}" if reg else ""
-    bodyLegal = C.get("legal", {}).get(which) or (
-        f"<p>This page describes the {which} of {brand} in summary form. "
-        f"{reg_line}. Full personalised terms are provided during onboarding.</p>")
+    bodyLegal = (C.get("legal") or {}).get(which)
+    if not bodyLegal:
+        if plan["params"].get("lang", "en") != "en":
+            die(f"content pack has no legal.{which} — an English legal stub must not ship "
+                f"on a {plan['params'].get('lang')} site")
+        bodyLegal = (f"<p>This page describes the {which} of {brand} in summary form. "
+                     f"{reg_line}. Full personalised terms are provided during onboarding.</p>")
     tl = TERMS_L10N.get(plan["params"]["lang"], TERMS_L10N["en"])
     terms_l = {"terms": tl[0], "privacy": tl[1]}
     title_map = {"terms": brand_first(tl[0], brand), "privacy": brand_first(tl[1], brand)}
