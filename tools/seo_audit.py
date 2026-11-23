@@ -432,6 +432,10 @@ def main():
         chk(len(d["title"]) <= 75, "WARN", None, f"title >75ch /{path}: '{d['title'][:60]}…'")
         chk(len(d["h1s"]) == 1, "ERR", f"one h1 /{path}", f"{len(d['h1s'])} h1 on /{path}")
         chk(d["brand_in_h1_line"], "ERR", f"h1.brand-line /{path}", f"h1 lacks span.brand-line /{path}")
+        if site_brand["v"] and d["h1s"]:
+            _dup = d["h1s"][0].lower().count(site_brand["v"].lower())
+            chk(_dup <= 1, "ERR", f"h1 brand once /{path}",
+                f"h1 repeats the brand ({_dup}x) /{path}: “{d['h1s'][0][:70]}”")
         chk(bool(d["metas"].get("description")), "ERR", f"desc /{path}", f"no meta description /{path}")
         chk(bool(d["metas"].get("keywords")), "WARN", None, f"no meta keywords /{path}")
         chk(bool(d["canonical"]), "ERR", f"canonical /{path}", f"no canonical /{path}")

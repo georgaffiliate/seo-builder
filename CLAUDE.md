@@ -155,7 +155,11 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   `tests/selftest.py` перевіряє, що клон справді ловиться.
 
 ## Жорсткі правила
-- `h1 .brand-line` + бренд-first `<title>` + 1 h1/сторінка — audit ловить.
+- `h1 .brand-line` + бренд-first `<title>` + 1 h1/сторінка — audit ловить. Бренд у h1 рівно
+  ОДИН раз: шаблон hero друкує його в `.brand-line`, тому `hero.h1_rest`/`h1_accent` його не
+  повторюють (модель закривала заголовок брендом → «Starling Aegistra … Starling Aegistra» на
+  starlingaegistra.site). Валідатор пакує це в repair, `assemble.sanitize_hero_copy` чистить
+  легасі-паки, `seo_audit` валить сторінку з подвійним брендом у h1.
 - Контракт форми/інтеграції незмінний: `form.lead-form`, `js-lead-phone` без name,
   base-поля (country/lang/funnel/domain/buyer) інжектить server-side `api.php` з `config.php`
   (у HTML їх НІКОЛИ не рендеримо — анти-фінгерпринт),

@@ -1216,8 +1216,41 @@ def fix_anchors(html: str) -> str:
     return html
 
 
+def sanitize_hero_copy(C, brand: str) -> None:
+    """The hero template prints the brand in h1 .brand-line, so the authored lines
+    must not repeat it. A model that closes the headline with the brand printed
+    "Starling Aegistra … Starling Aegistra" (starlingaegistra.site, FR pack).
+    Strips a leading/trailing brand from h1_rest and h1_accent; an accent that was
+    only the brand is dropped (the fragment then loses its last line)."""
+    hero = C.get("hero")
+    if not isinstance(hero, dict) or not brand:
+        return
+    low = brand.lower()
+
+    def trim(text) -> str:
+        t = str(text or "").strip()
+        if not t or low not in t.lower():
+            return t
+        if t.lower() == low:
+            return ""
+        cut_lead = t.lower().startswith(low)
+        if cut_lead:
+            t = t[len(brand):]
+        if t.lower().endswith(low):
+            t = t[:-len(brand)]
+        t = t.strip(" —–-:·,.")
+        # "Starling Aegistra — pilotez…" must not leave a lowercase sentence start
+        if cut_lead and t[:1].islower():
+            t = t[0].upper() + t[1:]
+        return t
+
+    for key in ("h1_rest", "h1_accent"):
+        hero[key] = trim(hero.get(key))
+
+
 def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
+    sanitize_hero_copy(C, brand)
     order = plan["layout"]["section_order"]
     for slot in order:
         canon = CANON.get(slot)
@@ -1248,6 +1281,7 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
     body = ensure_anchors(body)
+    body = re.sub(r"<br>\s*<span>\s*</span>", "", body)
     body = add_brandnote_links(body, plan, C)
     m = C["meta"]
     jsonld = build_jsonld(plan, C, body)

@@ -273,6 +273,7 @@ def brief(plan: dict) -> dict:
         "rules": [
             "Cover EVERY content_keys path listed per slot, plus meta/hero/bands/ui/reviews/scarcity/faq/office/brand_note/inner_*/legal/footer/thanks.",
             "Brand-first title_home <= 70 chars; unique titles/descriptions per page; description <= 155 chars.",
+            "hero.h1_rest continues the sentence after the brand; hero.h1_accent is the closing accent (2-4 words). NEVER repeat the brand in either line: the h1 already prints it in .brand-line.",
             "No deposit amount in meta, hero, or any h2. Deposit only in bands.form_consent inside <small>.",
             "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
             "Numbers: rating exactly as given; reviews/users/latency inside their bins; hero.stats uses rating, users, latency.",
@@ -427,6 +428,12 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
         errs.append(f"title_home longer than 70 chars ({len(title)})")
     if not title.lower().startswith(plan["params"]["brand"].lower()):
         errs.append("meta.title_home must start with the brand")
+    _brand = plan["params"]["brand"].lower()
+    _hero = pack.get("hero") or {}
+    for _f in ("h1_rest", "h1_accent"):
+        if _brand and _brand in str(_hero.get(_f) or "").lower():
+            errs.append(f"hero.{_f} repeats the brand — the h1 prints it in .brand-line already; "
+                        f"write the rest of the sentence / a 2-4 word accent instead")
     # hero ledger mock: the model authors the caption and the numbers, the gate only
     # checks it did not forget — a placeholder caption or rows that do not add up go
     # straight back as a repair instruction
