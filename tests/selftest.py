@@ -170,6 +170,15 @@ chk(_rc.returncode == 0 and _pd and not _stray,
     f"no variant left behind for a dropped screen ({_stray or 'clean'})")
 _calc_plan.unlink(missing_ok=True)
 # number formatting follows the language: comma decimals for tr/de/it…, dot for en/ja
+# a quote pair is an instrument: BTC/EUR must not borrow the BTC/JPY price
+chk(_asm3._sym_pair("BTC/EUR") != _asm3._sym_pair("BTC/JPY")
+    and _asm3._sym_pair("XAU/EUR") == _asm3._sym_pair("GOLD/EUR")
+    and _asm3._sym_pair("BTC / EUR") == _asm3._sym_pair("BTC/EUR"),
+    "symbol pairs keep the quote currency (no BTC/EUR ← BTC/JPY price)")
+_lb_ja = _gp.build_livebar(__import__("random").Random(2), "a", "ja", "JP")["subs"]
+_lb_de = _gp.build_livebar(__import__("random").Random(2), "a", "de", "DE")["subs"]
+chk("." in _lb_ja.get("LB_S2V", "") and "," in _lb_de.get("LB_S2V", ""),
+    "API uptime follows the language separators")
 chk(_gp.decimal_comma("tr") and _gp.decimal_comma("de") and _gp.decimal_comma("fr")
     and not _gp.decimal_comma("en") and not _gp.decimal_comma("ja")
     and _gp._fmt_num(1234.5, "tr") == "1.234,50" and _gp._fmt_num(1234.5, "en") == "1,234.50",

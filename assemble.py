@@ -366,6 +366,15 @@ SYM_ALIASES = {"XAU": "GOLD", "XAG": "SILVER", "WTI": "OIL", "USOIL": "OIL",
                "DAX": "DAX40", "US500": "SP500", "SPX": "SP500"}
 
 
+def _sym_pair(sym) -> tuple:
+    """('BTC/EUR', 'btc / eur') → ('BTC', 'EUR'); aliases applied to the base symbol."""
+    base = re.sub(r"\s+", "", str(sym or "").upper().replace("\u00a0", ""))
+    head, _, quote = base.partition("/")
+    head = re.sub(r"[^A-Z0-9]", "", head)
+    quote = re.sub(r"[^A-Z0-9]", "", quote)
+    return (SYM_ALIASES.get(head, head), quote)
+
+
 def _sym_keys(sym) -> list:
     """Every way the same instrument can be written: 'BTC / EUR', 'btc-eur', 'XAU/EUR',
     'GOLD/EUR', 'DAX 40', 'DAX40'. Models and the generator do not agree on spelling,
@@ -431,16 +440,14 @@ def reconcile_numbers(plan, C: dict) -> None:
             subs[f"LB_S{i}V"] = API_UPTIME
     # instrument quotes: the content rows (ticker/markets) win, so the strip agrees
     rows = ((C.get("sections") or {}).get("markets") or {}).get("rows") or []
-    by_sym = {}
-    for r in rows:
-        if isinstance(r, dict) and r.get("sym"):
-            for alias in _sym_keys(r["sym"]):
-                by_sym.setdefault(alias, r)
+    pairs = [(r, _sym_pair(r.get("sym"))) for r in rows if isinstance(r, dict) and r.get("sym")]
     for i in range(1, 7):
         sym = subs.get(f"LB{i}S")
         if not isinstance(sym, str):
             continue
-        row = next((by_sym[k] for k in _sym_keys(sym) if k in by_sym), None)
+        head, quote = _sym_pair(sym)
+        row = next((r for r, (h, q) in pairs
+                    if h == head and (not quote or not q or quote == q)), None)
         if not row:
             continue
         if str(row.get("v") or "").strip():
@@ -1019,7 +1026,10 @@ def footer_html(plan, C):
     fb = FOOTER_L10N.get(lang, ("Terms", "Privacy", "All rights reserved."))
     flabels = [(ft.get("terms_label") or fb[0], "terms.php"),
                (ft.get("privacy_label") or fb[1], "privacy.php")]
-    rights = ft.get("rights") or fb[2]
+    rights = str(ft.get("rights") or fb[2]).strip()
+    rights = re.sub(r"^\s*©?\s*(20\d{2})?\s*", "", rights)
+    rights = re.sub(rf"^{re.escape(brand)}[.,:]?\s*", "", rights, flags=re.I).strip()
+    rights = rights or fb[2]
     tagline = ft.get("tagline", "")
     disclaimer = ft.get("disclaimer", "")
     risk = ft.get("risk_line", "")

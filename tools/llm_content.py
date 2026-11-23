@@ -431,6 +431,30 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     # checks it did not forget — a placeholder caption or rows that do not add up go
     # straight back as a repair instruction
     errs += ledger_errors(pack.get("hero") or {})
+    # English boilerplate inside a translated pack (the model loves "All rights reserved"
+    # and "Bank transfer"): name the path and let the repair pass rewrite it
+    if plan["params"].get("lang") != "en":
+        _leak = re.compile(r"\b(all rights reserved|bank transfer|back to home|page not found|"
+                           r"terms of service|privacy policy|read more|learn more|sign up|"
+                           r"get started|how it works)\b", re.I)
+
+        def _leaks(node, path=""):
+            if isinstance(node, str):
+                m = _leak.search(node)
+                if m:
+                    out.append(f"{path}: English boilerplate '{m.group(0)}'")
+            elif isinstance(node, dict):
+                for k, v in node.items():
+                    _leaks(v, f"{path}.{k}".strip("."))
+            elif isinstance(node, list):
+                for i, v in enumerate(node):
+                    _leaks(v, f"{path}.{i}")
+
+        out = []
+        _leaks(pack)
+        if out:
+            errs.append("English left in a translated pack: " + "; ".join(out[:6]))
+
     _miss = missing_fragment_keys(pack, plan)
     if _miss:
         errs.append("fragments need these content keys (missing or empty): "
@@ -444,6 +468,7 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
                           "ui.terms_title", "ui.privacy_title", "ui.not_found_title",
                           "ui.not_found_back", "ui.back_home",
                           "footer.terms_label", "footer.privacy_label", "footer.rights",
+                          "footer.pay_chips",
                           "page_labels.about", "page_labels.who", "page_labels.contact",
                           "page_labels.register")
               if not str(_pack_get(pack, k) or "").strip()]
