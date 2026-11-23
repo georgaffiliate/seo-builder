@@ -109,6 +109,18 @@ def main():
         "manual": ["DNS", "IP whitelist", "real-device 360/390/768 look", "prod not tested (submit = CRM lead)"],
     }
     PROFILES.mkdir(exist_ok=True)
+    if (plan.get("blog") or {}).get("enabled"):
+        bl = plan["blog"]
+        prof["blog"] = {"style": bl.get("style"),
+                        "topics": [t.get("id") for t in (bl.get("topics") or [])],
+                        "articles": []}
+        bp = ROOT / "content" / f"{dom}-blog.json"
+        if bp.exists():
+            try:
+                bd = json.loads(bp.read_text(encoding="utf-8"))
+                prof["blog"]["articles"] = [a.get("slug") for a in (bd.get("articles") or [])]
+            except Exception:
+                pass
     out = PROFILES / f"{dom}.json"
     out.write_text(json.dumps(prof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for sib in siblings:

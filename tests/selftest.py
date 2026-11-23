@@ -242,6 +242,43 @@ chk(_gp.content_route(_pp) == "invent" and
     _gp.content_route(_pp, translate=True) == "localize" and
     _gp.content_route(_pp, offline=True) == "bank",
     "copy route: invent by default, --translate / --offline opt-in")
+
+print("== 6c. blog layer (--blog)")
+import copy as _copy
+import blog_assemble as _ba
+_bp = ROOT / "plans" / "selftest-blog.site.json"
+_bf = ROOT / "content" / "selftest-blog.site-blog.json"
+_subprocess = __import__("subprocess")
+_subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "BlogSel",
+                 "--lang", "it", "--domain", "selftest-blog.site", "--seed", "5151",
+                 "--blog", "--force"], capture_output=True, cwd=ROOT)
+if _bp.exists():
+    _bd = json.loads(_bp.read_text())
+    _bt = (_bd.get("blog") or {}).get("topics") or []
+    chk(3 <= len(_bt) <= 5, f"--blog draws 3..5 topics ({len(_bt)})")
+    chk((_bd.get("blog") or {}).get("style") in ("a", "b", "c"),
+        f"--blog picks one of 3 structural styles ({(_bd.get('blog') or {}).get('style')})")
+    chk(all(str(t.get("date", "")) <= __import__("datetime").date.today().isoformat() for t in _bt),
+        "--blog article dates are never in the future")
+    _r = _subprocess.run([sys.executable, str(ROOT / "tools" / "blog_content.py"),
+                          "--plan", str(_bp), "--offline"], capture_output=True, text=True, cwd=ROOT)
+    _pack = json.loads(_bf.read_text()) if _bf.exists() else {}
+    _berrs = _ba.validate_blog(_bd, _pack) if _pack else ["no pack"]
+    chk(_r.returncode == 0 and not _berrs,
+        f"offline blog pack is structure-valid ({_berrs[:2] or 'ok'})")
+    if _pack:
+        _broken = _copy.deepcopy(_pack)
+        _broken["articles"][1]["slug"] = _broken["articles"][0]["slug"]
+        chk(any("duplicated" in e for e in _ba.validate_blog(_bd, _broken)),
+            "blog gate rejects a duplicate article slug")
+        _broken2 = _copy.deepcopy(_pack)
+        _broken2["articles"][0]["date"] = "2099-01-01"
+        chk(any("future" in e for e in _ba.validate_blog(_bd, _broken2)),
+            "blog gate rejects a future article date")
+    _bp.unlink(missing_ok=True)
+    _bf.unlink(missing_ok=True)
+else:
+    chk(False, "--blog plan generated")
 # a model that answers null for an array must produce a repair instruction, not a traceback
 _broken = {"sections": {"facts": {"points": None}, "portal": {"cards": None}},
            "reviews": {"items": None}, "faq": {"items": None},
@@ -399,6 +436,7 @@ r = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "Selft
                     capture_output=True, text=True, cwd=ROOT)
 chk(r.returncode == 0, f"gen_plan smoke: rc={r.returncode}")
 _p = json.loads(plan_f.read_text()) if plan_f.exists() else {}
+chk(_p and "blog" not in _p, "classic plan (no --blog) carries no blog block — old flow untouched")
 _lb = (_p.get("livebar") or {}).get("variant")
 _lb_css = (ROOT / "blocks" / "blocks.css").read_text()
 chk(all(f".blk-livebar.{c}" in _lb_css for c in ("lb-board", "lb-rows", "lb-meters")),

@@ -548,6 +548,17 @@ def validate_plan(plan: dict) -> None:
     if not any(s in order for s in ("access-band", "claim-band", "enroll-band")):
         die("section_order must contain a form band")
     if "hero" not in order: die("section_order must start with hero-ish block")
+    bl = plan.get("blog")
+    if bl:
+        topics = bl.get("topics") or []
+        if not bl.get("enabled"):
+            die("plan.blog present but not enabled")
+        if bl.get("style") not in ("a", "b", "c"):
+            die(f"plan.blog.style must be a|b|c, got {bl.get('style')!r}")
+        if not 3 <= len(topics) <= 5:
+            die(f"plan.blog needs 3..5 topics, got {len(topics)}")
+        if len({t.get("id") for t in topics}) != len(topics):
+            die("plan.blog topics repeat")
 
 def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     errs = []
@@ -842,7 +853,8 @@ def safe_emails(html: str) -> str:
     return "".join(out)
 
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
-               theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True):
+               theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True,
+               og_type="website"):
     body = safe_emails(body)
     dom_css = f"<style>{esc(css_vars)}</style>"
     rob = "noindex,follow" if noindex else "index,follow"
@@ -872,7 +884,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 {canon}<meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(og_desc or descr)}">
 <meta property="og:locale" content="{esc(locale.replace('-', '_'))}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{esc(og_type)}">
 <meta property="og:site_name" content="{{BRAND}}">
 <meta property="og:url" content="https://{{DOM}}{canonical_path}">
 <meta property="og:image" content="https://{{DOM}}/og-image.png">
@@ -1186,7 +1198,7 @@ def fix_anchors(html: str) -> str:
     return html
 
 
-def build_index(plan, C, css_vars, fonts_import, theme):
+def build_index(plan, C, css_vars, fonts_import, theme, B=None):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     order = plan["layout"]["section_order"]
     for slot in order:
@@ -1212,6 +1224,9 @@ def build_index(plan, C, css_vars, fonts_import, theme):
         if slot in SLOT_REMAP:
             html = html.replace("c:sections.intro.", SLOT_REMAP[slot])
         body_parts.append(html)
+    if B and (plan.get("blog") or {}).get("enabled"):
+        import blog_assemble
+        body_parts.append(blog_assemble.teaser_html(plan, B))
     body_parts.append("</main>"); body_parts.append(footer)
     body = "\n".join(body_parts)
     body = ensure_anchors(body)
@@ -1712,15 +1727,25 @@ PHP_CANON_GUARD = (
     "?>\n"
 )
 
-def write_seo_files(out: pathlib.Path, plan, pages: list[str]):
+def write_seo_files(out: pathlib.Path, plan, pages: list[str], blog: dict | None = None):
     dom = plan["params"]["domain"]
     pages = [p for p in pages if p not in ("404.php", "thanks.php")]
     lastmod = time.strftime("%Y-%m-%d")
+    article_dates = {}
+    for a in ((blog or {}).get("articles") or []):
+        d = str(a.get("date") or "")
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) and a.get("slug"):
+            article_dates[f"{a['slug']}.php"] = d
     urls = []
     for p in pages:
         loc = f"https://{dom}/" if p == "index.php" else f"https://{dom}/{p}"
-        freq, pri = ("weekly", "1.0") if p == "index.php" else ("monthly", "0.7")
-        urls.append(f"<url><loc>{loc}</loc><lastmod>{lastmod}</lastmod>"
+        if p == "index.php":
+            freq, pri = "weekly", "1.0"
+        elif p in article_dates:
+            freq, pri = "monthly", "0.6"
+        else:
+            freq, pri = "monthly", "0.7"
+        urls.append(f"<url><loc>{loc}</loc><lastmod>{article_dates.get(p, lastmod)}</lastmod>"
                     f"<changefreq>{freq}</changefreq><priority>{pri}</priority></url>")
     (out / "sitemap.xml").write_text(SITEMAP_T.format(urls="\n".join(urls)), encoding="utf-8")
     (out / "robots.txt").write_text(f"""User-agent: *
@@ -1759,6 +1784,17 @@ def cmd_build(a):
         reconcile_numbers(plan, C); ok("content: seeded placeholders")
         _cnt = contacts_for(plan, C)
         C["meta"]["email"], C["meta"]["telephone"] = _cnt["email"], _cnt["telephone"]
+    B = None
+    if (plan.get("blog") or {}).get("enabled"):
+        blog_path = ROOT / "content" / f"{dom}-blog.json"
+        B = load(blog_path)
+        if not B:
+            die(f"blog plan needs {blog_path.relative_to(ROOT)} — run tools/blog_content.py --plan {a.plan}")
+        import blog_assemble
+        _berrs = blog_assemble.validate_blog(plan, B)
+        if _berrs:
+            die("blog pack invalid: " + "; ".join(_berrs[:8]))
+        ok(f"blog: {len(B.get('articles') or [])} articles · style {plan['blog'].get('style')}")
     css_vars, fonts_import, theme = css_link_block(plan)
     ok(f"design: {plan['design']['palette_id']} × skin-{plan['design'].get('skin','rounded-air')}")
     C.setdefault("meta", {})["keywords"] = C["meta"].get("keywords", "{Brand}, {dom}")
@@ -1776,10 +1812,16 @@ def cmd_build(a):
                            (BLOCKS / "calculator.js").read_bytes() +
                            (BLOCKS / "pulse-sim.js").read_bytes()).hexdigest()[:8]
     has_calc = "calculator" in plan["layout"]["section_order"]
-    pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme)}
+    pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme, B=B)}
     for which in ("about", "who", "contact", "register"):
         slug = plan["layout"].get("slugs", {}).get(which, which)
         pages[f"{slug}.php"] = build_inner(plan, C, css_vars, fonts_import, theme, which)
+    if B:
+        import blog_assemble
+        for art in B.get("articles") or []:
+            pages[f"{art['slug']}.php"] = blog_assemble.build_article(plan, C, B, art,
+                                                                     css_vars, fonts_import, theme)
+        ok(f"blog pages: {', '.join(a['slug'] + '.php' for a in B['articles'])}")
     pages["thanks.php"] = build_thanks(plan, C, css_vars, fonts_import, theme)
     pages["terms.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "terms")
     pages["privacy.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "privacy")
@@ -1793,7 +1835,7 @@ def cmd_build(a):
 
     write_assets(out, plan); ok("assets: app.js/calculator.js/blocks.css/skin.css")
     write_integration(out, plan); ok(f"integration: config filled (cc={plan['params'].get('cc','') or plan['params']['lang'].upper()[:2]})")
-    write_seo_files(out, plan, list(pages.keys())); ok("sitemap/robots/.htaccess")
+    write_seo_files(out, plan, list(pages.keys()), B); ok("sitemap/robots/.htaccess")
     # brand icons are part of the build (never ship an iconless offer)
     rc = subprocess.run([sys.executable, str(ROOT / "tools" / "brand_icons.py"),
                          "--plan", str(pathlib.Path(a.plan)), "--site", str(out)]).returncode

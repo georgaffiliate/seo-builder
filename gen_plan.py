@@ -18,7 +18,7 @@ With --build the chain continues: content pack, assemble+gates, brand icons, JS 
 static mobile lint and profiles/<domain>.json registration (deploy stays manual).
 """
 from __future__ import annotations
-import argparse, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys
+import argparse, datetime, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent          # static-create-sites/
 # Country codes people type instead of the language code. Without this every
@@ -51,6 +51,7 @@ def decimal_comma(lang: str) -> bool:
 PLANS = ROOT / "plans"
 PALETTES_F = ROOT / "content" / "palettes-blk.json"
 REG_F = ROOT / "resources" / "regulators.json"
+BLOG_TOPICS_F = ROOT / "resources" / "blog-topics.json"
 PEOPLE_DIR = ROOT / "people"
 
 # ---------------------------------------------------------------- registries --
@@ -210,6 +211,8 @@ def load_history()->list[dict]:
             "photos": d.get("photos",[]) or [],
             "bins": (d.get("numbers",{}).get("reviews_bin"), d.get("numbers",{}).get("users_bin"),
                      tuple(d.get("numbers",{}).get("latency_bin") or ())),
+            "blog_topics": [str(t.get("id") or "") for t in
+                            ((d.get("blog") or {}).get("topics") or []) if isinstance(t, dict)],
         })
     return out
 
@@ -277,6 +280,44 @@ def bins_pick(rng,key,taken):
     return (fresh or bins)[0]
 
 # ---------------------------------------------------------------- builder ----
+def build_blog_block(rng, args, hist: list) -> dict | None:
+    """3–5 article briefs from resources/blog-topics.json + a structural style.
+
+    Topic ids used by the last five plans are skipped first, so a fleet does not
+    publish the same guide over and over. Dates are fixed here (not by the model):
+    they are deterministic, never in the future, and survive a rebuild.
+    """
+    raw = load(BLOG_TOPICS_F, {}) or {}
+    bank = [t for t in (raw.get("topics") or []) if isinstance(t, dict) and t.get("id")]
+    if not bank:
+        return None
+    used = {tid for h in hist[-5:] for tid in (h.get("blog_topics") or [])}
+    fresh = [t for t in bank if t["id"] not in used]
+    rng.shuffle(fresh)
+    need = min(rng.randint(3, 5), len(bank))
+    picks = fresh[:need]
+    if len(picks) < need:
+        # the recent plans already used most of the bank: fill from the least recently
+        # used topics instead of shrinking the blog to one article
+        last = {}
+        for age, h in enumerate(reversed(hist)):
+            for tid in (h.get("blog_topics") or []):
+                last.setdefault(tid, age)
+        rest = [t for t in bank if t not in picks]
+        rng.shuffle(rest)
+        rest.sort(key=lambda t: last.get(t["id"], 999), reverse=True)
+        picks += rest[:need - len(picks)]
+    style = rng.choice(["a", "b", "c"])
+    today = datetime.date.today()
+    topics = []
+    for i, t in enumerate(picks):
+        day = today - datetime.timedelta(days=rng.randint(4, 70) + i * 7)
+        topics.append({"id": t["id"], "intent": t.get("intent", ""),
+                       "angle": t.get("angle", ""), "keywords": t.get("keywords") or [],
+                       "date": day.isoformat()})
+    return {"enabled": True, "style": style, "count": len(topics), "topics": topics}
+
+
 ARCHETYPES = {"clear-operator", "calm-analyst", "quiet-desk", "market-observer"}
 TONES = {"pragmatic", "plain", "sober", "factual"}
 INNER_SKELETONS = {
@@ -645,6 +686,10 @@ def build_plan(rng, args, hist)->dict|None:
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }
+    if getattr(args, "blog", False):
+        bl = build_blog_block(rng, args, hist)
+        if bl:
+            plan["blog"] = bl
     if widgets["G3"] == "pulse-sim":
         plan["pulse_sim"] = build_pulse_sim(rng, args.lang)
     return plan
@@ -1030,6 +1075,15 @@ def validate(plan,hist)->list[str]:
             shared=set(var)&set(hv)
             same=sum(1 for k in shared if var[k]==hv[k])
             if shared and same/len(shared) > 0.70: errs.append("variants too close to neighbour")
+    bl = plan.get("blog")
+    if bl:
+        topics = bl.get("topics") or []
+        if bl.get("style") not in ("a", "b", "c"):
+            errs.append("blog style must be a|b|c")
+        if not 3 <= len(topics) <= 5:
+            errs.append(f"blog needs 3..5 topics, got {len(topics)}")
+        if len({t.get("id") for t in topics}) != len(topics):
+            errs.append("blog topics repeat")
     return errs
 
 def sync_plan_from_content(plan: dict, content_f: pathlib.Path) -> list[str]:
@@ -1144,6 +1198,20 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                  [sys.executable, str(ROOT / "tools" / "repair_content.py"),
                   "--plan", str(plan), "--content", str(content)])
 
+    if (plan_data.get("blog") or {}).get("enabled"):
+        step(f"BLOG CONTENT ({len(plan_data['blog'].get('topics') or [])} articles)")
+        bcmd = [sys.executable, str(ROOT / "tools" / "blog_content.py"), "--plan", str(plan)]
+        if offline:
+            bcmd.append("--offline")
+        if os.environ.get("LLM_MODEL"):
+            bcmd += ["--model", os.environ["LLM_MODEL"]]
+        if os.environ.get("LLM_PROVIDER"):
+            bcmd += ["--provider", os.environ["LLM_PROVIDER"]]
+        rc = subprocess.run(bcmd, cwd=str(ROOT)).returncode
+        if rc != 0:
+            print("✗ blog content failed — build stopped (the classic build is untouched)")
+            sys.exit(rc)
+
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
     rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
     if rc != 0 and ship_anyway:
@@ -1201,6 +1269,9 @@ def main():
     ap.add_argument("--with-llm",action="store_true",
                     help="kept for compatibility: the model writing the pack is the default; "
                          "implies --build")
+    ap.add_argument("--blog",action="store_true",
+                    help="add the optional guides layer: 3-5 articles from the topic bank + a "
+                         "teaser section on the home page (classic build is unchanged without it)")
     ap.add_argument("--llm-model",default="",help="override model id for --with-llm (default from resources/llm.json)")
     ap.add_argument("--llm-provider",default="",choices=("", "auto", "http", "cli"),
                     help="transport for --with-llm (default auto: HTTP when key exists)")
@@ -1233,6 +1304,9 @@ def main():
         w="paint combo (skin+palette) already used in history — reused per duplicates-warn policy"
         chosen.setdefault("_warnings",[]).append(w)
         print("WARN: "+w)
+    if a.blog and not chosen.get("blog"):
+        print(f"✗ --blog requested but {BLOG_TOPICS_F.relative_to(ROOT)} has no usable topics")
+        sys.exit(1)
     content_f = ROOT / "content" / f"{a.domain}-content.json"
     if content_f.exists() and not a.force:
         sync = sync_plan_from_content(chosen, content_f)
@@ -1253,6 +1327,10 @@ def main():
     print(f"  variants : {' '.join(f'{k}:{v}' for k,v in sorted(d['layout'].get('variants',{}).items())) or '—'}")
     print(f"  novel    : {', '.join(d['structure']['novel_slots']) or '—'}")
     print(f"  slugs    : {d['layout']['slugs']}")
+    if d.get("blog"):
+        bl = d["blog"]
+        print(f"  blog     : style {bl.get('style')} · {len(bl.get('topics') or [])} articles · "
+              + ", ".join(t.get("id", "") for t in (bl.get("topics") or [])))
     if d.get("_warnings"): print("  WARN:",d["_warnings"])
     if a.llm_model:
         os.environ["LLM_MODEL"] = a.llm_model

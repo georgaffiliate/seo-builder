@@ -3,6 +3,7 @@
 #   ./client/example.sh                      -> build only
 #   DEPLOY=1 ./client/example.sh             -> build + upload to the panel
 #   WAIT=1 ./client/example.sh               -> hold the connection until done
+#   BLOG=1 ./client/example.sh               -> build the offer + 3-5 guide pages
 set -eu
 
 BUILDER_URL="${BUILDER_URL:-https://localhost:8443}"
@@ -18,6 +19,8 @@ CURRENCY="${CURRENCY:-CZK}"
 DOMAIN="${DOMAIN:-infinity-shop.site}"
 DEPLOY="${DEPLOY:-0}"
 WAIT="${WAIT:-0}"
+BLOG="${BLOG:-0}"
+LLM="${LLM:-1}"
 
 PAYLOAD=$(cat <<EOF
 {
@@ -27,7 +30,8 @@ PAYLOAD=$(cat <<EOF
   "geo": "${GEO}",
   "currency": "${CURRENCY}",
   "domain": "${DOMAIN}",
-  "with_llm": true,
+  "with_llm": ${LLM},
+  "blog": ${BLOG},
   "deploy": ${DEPLOY},
   "wait": ${WAIT}
 }

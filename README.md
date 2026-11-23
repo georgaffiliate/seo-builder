@@ -72,7 +72,34 @@ TLS — self-signed сертифікат, який `scripts/deploy.sh` гене�
 
 ---
 
-## API
+## Блог-сторінки (`--blog`)
+
+Класична збірка не змінюється: без `--blog` план не містить блоку `blog`, і
+`assemble.py` взагалі не завантажує блог-модуль.
+
+```bash
+python3 gen_plan.py --brand "Infinity Shop" --lang it --domain infinity-shop.site \
+  --blog --build
+```
+
+Що додається:
+
+- **3–5 статей** (рандомно) з банку `resources/blog-topics.json` (20 тем). Теми,
+  використані останніми планами, пропускаються першими; дати фіксуються планом і
+  ніколи не бувають у майбутньому.
+- **Один LLM-виклик** на весь пак: `tools/blog_content.py` відправляє бриф тем і
+  отримує `content/<domain>-blog.json` (статті, FAQ, related, CTA). Один repair-пас;
+  якщо модель не дала валідний JSON — детермінований offline-пак, щоб збірка не падала.
+- **3 структурні стилі** (`a` editorial / `b` magazine + TOC / `c` compact brief),
+  які обирає план. Хедер, футер, livebar, палітра, скін і шрифти — від основного сайту.
+- **Teaser на головній** (`#guides`) лінкує кожну статтю → жодної сироти; кожна
+  стаття має CTA на форму, related-статті та `BlogPosting` + `BreadcrumbList` (+`FAQPage`)
+  JSON-LD. Усі статті потрапляють у `sitemap.xml` і проходять `seo_audit`,
+  `mobile_lint`, `twin_check`.
+
+Тільки для тестів / без ключа: `--blog --build --offline` (пише generic offline-пак,
+не для продакшну — замініть контент перед деплоєм).
+
 
 Авторизація: заголовок `Authorization: Bearer <API_TOKEN>` на всіх ендпоінтах
 крім `/healthz`.
@@ -124,6 +151,7 @@ curl -sk -X POST https://seo-builder-tls:8443/build \
 | `seed`       | int      | ні          | Фіксація варіації плану (інакше детерміновано з brand+domain) |
 | `calculator` | string   | ні          | `auto` (за замовчуванням) / `on` / `off` |
 | `with_llm`   | bool     | ні          | `true` — унікальні тексти пише LLM (потрібен `VENICE_API_KEY`); `false` — мовний банк |
+| `blog`       | bool     | ні          | `true` — додати блог-шар: 3–5 статей з банку тем + teaser на головній |
 | `llm_model`  | string   | ні          | Перевизначити модель LLM |
 | `deploy`     | bool     | ні          | `true` — після успішної збірки залити сайт на панель |
 | `force`      | bool     | ні          | `true` — перезібрати домен, план якого вже існує |

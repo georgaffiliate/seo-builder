@@ -30,6 +30,10 @@ pheira-voltreksc.site
 
 # 1. План + КОНТЕНТ + збірка + гейти + іконки + перевірки + профіль — однією командою:
 python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltreksc.site --build
+#   + --blog  → додає 3–5 статей з resources/blog-topics.json + teaser на головній.
+#               Без --blog план/збірка байт-у-байт як раніше (блог-модуль не викликається).
+#               Контент статей: tools/blog_content.py (один LLM-виклик) → content/<domain>-blog.json.
+#               3 стилі (a|b|c) обирає план; header/footer/livebar/палітра — від основного сайту.
 #   план    → plans/<domain>.json (палітра × скін × hero × порядок × віджети × слуги × меню ×
 #             числа × персони+фото × регулятор; валідатор упав → --seed +1)
 #   контент → content/<domain>-content.json. Маршрути (обирає gen_plan):
@@ -189,6 +193,9 @@ tools/llm_content.py    LLM-пак: бриф → модель пише JSON → 
 tools/brand_icons.py    favicon/og з палітри плану (rsvg-convert + PIL)
 tools/mobile_lint.py    статичний мобільний гейт (viewport/tbl-scroll/inline grid)
 tools/profile_write.py  реєстрація profiles/<domain>.json + взаємні siblings
+tools/blog_content.py   блог-пак (3–5 статей) одним LLM-викликом → content/<domain>-blog.json
+blog_assemble.py         блог-шар: teaser на головній + статті (3 структурні стилі), валідатор паку
+resources/blog-topics.json  банк 20 тем для --blog
 resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
 assemble.py             конструктор: plan(+content) → sites/<domain> + gates
 tools/seo_audit.py      SEO/форма/помилки gate (порт сам обирає)

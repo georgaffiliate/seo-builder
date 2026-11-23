@@ -138,6 +138,8 @@ def _execute(job: dict) -> None:
         cmd += ["--with-llm"]
     else:
         cmd += ["--build"]
+    if req.get("blog"):
+        cmd += ["--blog"]
 
     try:
         code, out, err = _run(cmd, BUILD_TIMEOUT, job)
@@ -335,6 +337,8 @@ def _validate(req: dict) -> str | None:
         return "llm_provider must be auto|http|cli"
     if "seed" in req and not isinstance(req["seed"], int):
         return "seed must be an integer"
+    if "blog" in req and not isinstance(req["blog"], bool):
+        return "blog must be a boolean"
     return None
 
 

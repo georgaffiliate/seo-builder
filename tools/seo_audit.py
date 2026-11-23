@@ -471,6 +471,34 @@ def main():
         for obj in d["jsonld"]:
             if "__invalid__" in obj:
                 chk(False, "ERR", None, f"INVALID JSON-LD /{path}: {obj['__invalid__']}")
+
+    # ---- guides/articles (plan.blog): schema, date and a readable body ----
+    for path, (code, html) in seen_pages.items():
+        if code != 200 or 'data-blog-article=' not in html:
+            continue
+        m = re.search(r'<article[^>]*data-blog-article=[^>]*>(.*?)</article>', html, re.S | re.I)
+        art_html = m.group(1) if m else ""
+        types = set()
+        dates = []
+        for node in extract(html, path)["jsonld"]:
+            for item in (node.get("@graph") or [node]) if isinstance(node, dict) else []:
+                if not isinstance(item, dict):
+                    continue
+                types.add(item.get("@type"))
+                if item.get("datePublished"):
+                    dates.append(str(item["datePublished"]))
+        chk(bool(types & {"BlogPosting", "Article", "NewsArticle"}), "ERR",
+            f"article schema /{path}", f"article page /{path} lacks BlogPosting/Article JSON-LD")
+        chk(any(re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) and d <= time.strftime("%Y-%m-%d")
+                for d in dates), "ERR", f"article date /{path}",
+            f"article page /{path} has no valid non-future datePublished ({dates[:2]})")
+        chk(bool(re.search(r"<time[^>]+datetime=", art_html)), "ERR", f"article time /{path}",
+            f"article page /{path} shows no <time datetime> byline")
+        body_words = len(re.findall(r"\w+", unescape(" ".join(_page_text_nodes(art_html).split()))))
+        chk(body_words >= 300, "ERR", f"article body /{path}",
+            f"article body on /{path} is {body_words} words — thin copy (<300)")
+        chk('href="index.php#claim"' in art_html, "ERR", f"article CTA /{path}",
+            f"article page /{path} does not link to the offer's form (index.php#claim)")
     # broken internal links (skip assets with ?v=, they're static not pages)
     ASSETS = (".css", ".png", ".jpg", ".svg", ".ico", ".woff", ".webp", ".js")
     for il in sorted(internal_links):

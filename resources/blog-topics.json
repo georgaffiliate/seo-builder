@@ -1,0 +1,125 @@
+{
+  "_doc": "Topic bank for gen_plan.py --blog. Each build draws 3–5 unused topics. The model receives intent/angle/keywords and writes the article in the plan language; these entries are briefs, not the final copy. Keep ids stable: plans and profiles remember them to avoid repeating a topic in the same fleet.",
+  "topics": [
+    {
+      "id": "platform-fees-explained",
+      "intent": "fees",
+      "angle": "Break down the true cost of using a platform: spreads, commissions, conversion, inactivity and withdrawal fees. Show a worked example and explain what to compare instead of the headline fee.",
+      "keywords": ["platform fees", "trading costs", "spread", "commission"]
+    },
+    {
+      "id": "spread-vs-commission",
+      "intent": "pricing",
+      "angle": "Explain the difference between an all-in spread and a separate commission, when each model costs more, and how to calculate the effective cost of a single position.",
+      "keywords": ["spread vs commission", "pricing model", "effective cost"]
+    },
+    {
+      "id": "how-to-verify-a-licence",
+      "intent": "trust",
+      "angle": "Give a practical procedure for checking a financial platform's registration: regulator register, legal entity name, licence number, country of operation and red flags.",
+      "keywords": ["licence check", "regulator register", "verify broker"]
+    },
+    {
+      "id": "risk-management-basics",
+      "intent": "risk",
+      "angle": "Explain position risk in plain language: how much of an account a single position should risk, why stop levels matter, and how to keep a losing streak survivable.",
+      "keywords": ["risk management", "position risk", "stop level"]
+    },
+    {
+      "id": "position-sizing",
+      "intent": "risk",
+      "angle": "Show how position size follows from account size, risk per position and distance to the stop. Include a simple formula and a worked example without promising outcomes.",
+      "keywords": ["position sizing", "lot size", "risk per trade"]
+    },
+    {
+      "id": "volatility-explained",
+      "intent": "education",
+      "angle": "Explain what volatility measures, why quiet and fast markets need different position sizes, and how volatility affects stops, spreads and slippage.",
+      "keywords": ["volatility", "market conditions", "spread widening"]
+    },
+    {
+      "id": "market-orders-vs-limit",
+      "intent": "execution",
+      "angle": "Compare market and limit orders by certainty of execution versus certainty of price. Explain when each is appropriate and how slippage appears in practice.",
+      "keywords": ["market order", "limit order", "slippage", "execution"]
+    },
+    {
+      "id": "diversification-mistakes",
+      "intent": "portfolio",
+      "angle": "Describe the common ways a portfolio only looks diversified: correlated pairs, one theme in different wrappers, and concentration that appears after a big move.",
+      "keywords": ["diversification", "correlation", "concentration risk"]
+    },
+    {
+      "id": "reading-a-quote",
+      "intent": "basics",
+      "angle": "Walk through the parts of a price quote: base and quote currency, bid, ask, spread, change and timestamp. Explain why two screens can show different numbers.",
+      "keywords": ["price quote", "bid ask", "base currency"]
+    },
+    {
+      "id": "liquidity-and-slippage",
+      "intent": "execution",
+      "angle": "Explain liquidity in practical terms: why large orders move the price, when depth disappears, and how to reduce slippage around news and thin sessions.",
+      "keywords": ["liquidity", "order book", "slippage", "thin market"]
+    },
+    {
+      "id": "demo-vs-live-account",
+      "intent": "basics",
+      "angle": "Explain what a demo account can and cannot teach, which habits transfer to a live account, and how to move from practice to small real size without fooling yourself.",
+      "keywords": ["demo account", "live account", "practice trading"]
+    },
+    {
+      "id": "building-a-trading-plan",
+      "intent": "planning",
+      "angle": "Outline the minimum viable trading plan: market, timeframe, entry and exit rules, risk cap, review cadence and what counts as a reason to stop for the day.",
+      "keywords": ["trading plan", "rules", "review routine"]
+    },
+    {
+      "id": "common-beginner-mistakes",
+      "intent": "education",
+      "angle": "List the mistakes beginners repeat: oversized first trades, moving stops, averaging into a loser, changing strategy after two losses and skipping a written record.",
+      "keywords": ["beginner mistakes", "averaging down", "stop loss"]
+    },
+    {
+      "id": "account-security-checklist",
+      "intent": "security",
+      "angle": "Give a concrete account-security checklist: strong unique password, two-factor authentication, device review, withdrawal whitelist and how to react to a suspicious login.",
+      "keywords": ["account security", "two-factor", "withdrawal whitelist"]
+    },
+    {
+      "id": "withdrawal-checklist",
+      "intent": "operations",
+      "angle": "Explain what to check before requesting a withdrawal: verification status, payment method rules, processing windows, fees and the fields that most often cause a delay.",
+      "keywords": ["withdrawal", "verification", "payment method"]
+    },
+    {
+      "id": "taxes-on-trading",
+      "intent": "operations",
+      "angle": "Explain, in general terms, why trading records matter for tax reporting: statements, cost basis, holding periods and when to ask a local accountant instead of guessing.",
+      "keywords": ["trading taxes", "cost basis", "tax reporting"]
+    },
+    {
+      "id": "economic-calendar",
+      "intent": "education",
+      "angle": "Explain how to read an economic calendar: which releases move markets, what the forecast and previous columns mean, and why spreads widen around a release.",
+      "keywords": ["economic calendar", "data release", "market volatility"]
+    },
+    {
+      "id": "leverage-explained",
+      "intent": "risk",
+      "angle": "Explain leverage as borrowed exposure, not free money: how margin works, how quickly losses grow, and why lower leverage is a risk decision rather than a limitation.",
+      "keywords": ["leverage", "margin", "liquidation"]
+    },
+    {
+      "id": "journaling-trades",
+      "intent": "planning",
+      "angle": "Describe a lightweight trade journal: what to record, how to review a month of entries, and how to spot a pattern without turning the journal into a second job.",
+      "keywords": ["trade journal", "review", "trading routine"]
+    },
+    {
+      "id": "choosing-a-timeframe",
+      "intent": "basics",
+      "angle": "Explain how timeframe choice changes noise, holding time and the number of decisions per week. Help the reader match a timeframe to available time, not to ambition.",
+      "keywords": ["timeframe", "swing trading", "intraday"]
+    }
+  ]
+}
