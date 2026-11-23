@@ -41,6 +41,8 @@ DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-
 
 _lock = threading.Lock()
 _jobs: dict[str, dict] = {}
+# running child processes live OUTSIDE the job dict: json.dumps() must never meet a Popen
+_procs: dict[str, subprocess.Popen] = {}
 _queue: "queue.Queue[str]" = queue.Queue()
 
 
@@ -60,8 +62,10 @@ def _run(cmd: list[str], timeout: int, job: dict | None = None) -> tuple[int, st
     """Run a child with a hard timeout; the handle is kept so the job can be cancelled."""
     p = subprocess.Popen(cmd, cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, start_new_session=True)
-    if job is not None:
-        job["_proc"] = p
+    jid = (job or {}).get("job_id")
+    if jid:
+        with _lock:
+            _procs[jid] = p
     try:
         out, err = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -69,8 +73,9 @@ def _run(cmd: list[str], timeout: int, job: dict | None = None) -> tuple[int, st
         out, err = p.communicate()
         raise
     finally:
-        if job is not None:
-            job.pop("_proc", None)
+        if jid:
+            with _lock:
+                _procs.pop(jid, None)
     return p.returncode, out or "", err or ""
 
 
@@ -212,7 +217,11 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _job_public(self, job: dict) -> dict:
-        pub = {k: v for k, v in job.items() if k != "log"}
+        # only JSON-safe fields: a Popen (or any live object) in the job dict used to
+        # raise "Object of type Popen is not JSON serializable" and Caddy answered 502
+        pub = {k: v for k, v in job.items()
+               if k != "log" and not k.startswith("_")
+               and isinstance(v, (str, int, float, bool, list, dict, type(None)))}
         pub["log_tail"] = "\n".join(job["log"][-12:])
         return pub
 
@@ -256,7 +265,8 @@ class Handler(BaseHTTPRequestHandler):
             job = _jobs.get(cancel.group(1))
             if job is None:
                 return self._send(404, {"ok": False, "error": "job not found"})
-            proc = job.get("_proc")
+            with _lock:
+                proc = _procs.get(job["job_id"])
             if proc is not None and proc.poll() is None:
                 _kill_tree(proc)
             job["status"] = "failed"

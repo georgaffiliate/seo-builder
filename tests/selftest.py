@@ -519,6 +519,13 @@ _cf = {"params": {"brand": "Acme", "lang": "ja", "domain": "x.site"},
        "layout": {"slugs": {}, "menu": ["a", "b", "c", "d"], "variants": {}}}
 _cfc = {"footer": {"rights": "© 2026 Acme. All rights reserved."},
         "bands": {"submit_nav": "x"}, "ui": {"aria_nav": "n", "aria_menu": "m"}}
+# builder API: a live process handle must never reach json.dumps (that was a 502)
+sys.path.insert(0, str(ROOT / "server"))
+import api as _bapi
+_pub = _bapi.Handler._job_public(object.__new__(_bapi.Handler),
+                                 {"job_id": "x", "status": "running", "log": [], "_proc": object()})
+chk("_proc" not in _pub and json.dumps(_pub) is not None,
+    "builder API response strips live handles (no Popen in JSON)")
 chk("All rights reserved" not in _asm3.footer_html(_cf, _cfc),
     "an English rights line is dropped on a translated site")
 chk(not _lz.validate(_reordered, {"content.hero.device_delta": "Son 30 günde ↗ %2,4"}, "tr")
