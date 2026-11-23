@@ -68,6 +68,12 @@ chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
 _dup = ('<p>The same long paragraph that must appear only once in the final page.</p>'
         '<article aria-hidden="true"><p>The same long paragraph that must appear only once in the final page.</p></article>'
         '<p>The same long paragraph that must appear only once in the final page.</p>')
+# validator findings are turned into a targeted repair request (keys, not the whole pack)
+import repair_content as _rc
+_keys = _rc.suspects(["faq answer too short (3 chars): Sì.…",
+                      "office.addr_label is a sentence, use a short label: Indirizzo completo"])
+chk("faq.items.0.a" in _keys and "office.addr_label" in _keys,
+    "repair stage maps validator findings to exact keys")
 _healed = _asm3.self_heal_page(_dup, "Acme")
 chk(_healed.count("The same long paragraph") == 2 and 'aria-hidden="true"' in _healed and
     "Acme" in _asm3.self_heal_page("<p>oAcme panel</p>", "Acme"),

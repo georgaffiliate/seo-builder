@@ -1067,6 +1067,13 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
             cmd.append("--force")
         step_run("CONTENT PACK (bank)", cmd)
 
+    if not offline:
+        # validator findings go back to the model once more (exact keys, exact problems)
+        # instead of shipping weak copy or relaxing the rule
+        step_run("CONTENT REPAIR",
+                 [sys.executable, str(ROOT / "tools" / "repair_content.py"),
+                  "--plan", str(plan), "--content", str(content)])
+
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
     rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
     if rc != 0 and ship_anyway:
