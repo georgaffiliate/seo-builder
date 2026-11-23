@@ -61,7 +61,7 @@ PALETTE = ("--bg:#f7f6f2;--bg-soft:#efece5;--panel:#ffffff;--ink:#1b1c26;"
 
 HEADER = """<header class="blk-header" data-var="i"><a class="blk-logo" data-var="f" href="#" aria-label="Jandervoq"><span class="caps">jandervoq</span></a>
 <a class="blk-btn" href="#claim">Iscriviti</a>
-<nav class="blk-nav" aria-label="Navigazione principale"><a href="#">Home</a><a href="#">Chi siamo</a><a href="#">A chi si rivolge</a><a href="#">Contatti</a></nav>
+<nav class="blk-nav" aria-label="Navigazione principale"><a href="#" aria-current="page">Home</a><a href="#">Chi siamo</a><a href="#">A chi si rivolge</a><a href="#">Contatti</a></nav>
 <button class="menu-toggle" aria-label="Menu" aria-expanded="false">☰</button></header>"""
 
 HERO = """<section class="blk-hero hero-ledger sec sec-hero" id="top" data-var="c">
