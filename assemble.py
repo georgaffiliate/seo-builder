@@ -1029,7 +1029,10 @@ def footer_html(plan, C):
     rights = str(ft.get("rights") or fb[2]).strip()
     rights = re.sub(r"^\s*©?\s*(20\d{2})?\s*", "", rights)
     rights = re.sub(rf"^{re.escape(brand)}[.,:]?\s*", "", rights, flags=re.I).strip()
-    rights = rights or fb[2]
+    if lang != "en" and re.search(r"all rights reserved|tutti i diritti|todos los derechos|"
+                                  r"všechna práva|alle rechte|tous droits", rights, re.I):
+        rights = ""            # the pack left an English boilerplate line: print © only
+    rights = rights or ("" if lang != "en" else fb[2])
     tagline = ft.get("tagline", "")
     disclaimer = ft.get("disclaimer", "")
     risk = ft.get("risk_line", "")
@@ -1049,7 +1052,8 @@ def footer_html(plan, C):
         return "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in items)
 
     v = (plan["layout"].get("variants") or {}).get("footer", "") or ""
-    base = (f'<div class="foot-base"><span>© 2026 {esc(brand)}. {esc(rights)}</span>'
+    _copy = f"© 2026 {esc(brand)}." + (f" {esc(rights)}" if rights else "")
+    base = (f'<div class="foot-base"><span>{_copy}</span>'
             f'<span class="pay-chips">{esc(pays)}</span></div>')
     if v == "b":       # brand block + two link columns
         return (f'<footer class="blk-footer" data-var="b"><div class="foot-grid">'

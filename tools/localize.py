@@ -166,10 +166,16 @@ def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "")
         if sorted(TAG_RE.findall(text)) != sorted(TAG_RE.findall(new)):
             errs.append(f"{path}: html tags changed ({TAG_RE.findall(text)} → {TAG_RE.findall(new)})")
         # languages reorder numbers ("2,4% in the last 30 days" → "son 30 günde %2,4"),
-        # so compare the multiset — a dropped or altered figure is still an error
-        if sorted(DIGITS_RE.findall(text)) != sorted(DIGITS_RE.findall(new)):
-            errs.append(f"{path}: numbers changed ({' '.join(DIGITS_RE.findall(text))} → "
-                        f"{' '.join(DIGITS_RE.findall(new))})")
+        # so compare the multiset — a dropped or altered figure is still an error.
+        # A source without digits may gain them: Japanese/Chinese write "3つの手順" for
+        # "three steps". Small counters (1–12) are fine, invented figures (100, 250) are not.
+        src_nums, dst_nums = DIGITS_RE.findall(text), DIGITS_RE.findall(new)
+        if src_nums:
+            if sorted(src_nums) != sorted(dst_nums):
+                errs.append(f"{path}: numbers changed ({' '.join(src_nums)} → "
+                            f"{' '.join(dst_nums)})")
+        elif dst_nums and any(int(d) > 12 for d in dst_nums):
+            errs.append(f"{path}: invented number ({', '.join(dst_nums)}) — the source has none")
         if brand_key and brand_key in re.sub(r"\s+", "", text).casefold() \
                 and brand_key not in re.sub(r"\s+", "", new).casefold():
             errs.append(f"{path}: brand name lost")

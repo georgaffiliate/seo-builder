@@ -511,6 +511,16 @@ _labels = {"content.ui.aria_menu": "Menu", "content.sections.ladder.rows.0.k": "
 chk(not _lz.validate(_labels, dict(_labels), "pt", "Bitnova"),
     "localize: a label that reads the same in both languages is accepted")
 _reordered = {"content.hero.device_delta": "↗ 2,4% in the last 30 days"}
+# Japanese may add small counters ("3つの手順") but never invent a figure
+chk(not _lz.validate({"x.y": "Three steps"}, {"x.y": "3つのステップ"}, "ja")
+    and bool(_lz.validate({"x.y": "Three steps"}, {"x.y": "100つのステップ"}, "ja")),
+    "localize: counters allowed, invented figures rejected")
+_cf = {"params": {"brand": "Acme", "lang": "ja", "domain": "x.site"},
+       "layout": {"slugs": {}, "menu": ["a", "b", "c", "d"], "variants": {}}}
+_cfc = {"footer": {"rights": "© 2026 Acme. All rights reserved."},
+        "bands": {"submit_nav": "x"}, "ui": {"aria_nav": "n", "aria_menu": "m"}}
+chk("All rights reserved" not in _asm3.footer_html(_cf, _cfc),
+    "an English rights line is dropped on a translated site")
 chk(not _lz.validate(_reordered, {"content.hero.device_delta": "Son 30 günde ↗ %2,4"}, "tr")
     and bool(_lz.validate(_reordered, {"content.hero.device_delta": "Son günde ↗ %2,4"}, "tr")),
     "localize: reordered numbers pass, a dropped figure fails")
