@@ -386,6 +386,8 @@ if _p:
     _c404 = {"ui": {"not_found_title": "ZZZ404-SAYFA", "not_found_back": "ZZZ404-GERI",
                     "aria_nav": "n", "aria_menu": "m"},
              "bands": {"submit_nav": "Go"}, "footer": {}, "meta": {}}
+    chk(_asm.page_nav_label(_p, {"page_labels": {"about": "YYY-about"}}, "about") == "YYY-about",
+        "nav label comes from the pack's page_labels, not from a language table")
     _h404 = _asm.build_404(_p, _c404, "", "", "#000")
     chk("ZZZ404-SAYFA" in _h404 and "ZZZ404-GERI" in _h404,
         "404 copy comes from the content pack (any language)")

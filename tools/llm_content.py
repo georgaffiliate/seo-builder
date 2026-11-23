@@ -442,7 +442,10 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
                           "footer.disclaimer", "footer.risk_line", "legal.terms",
                           "legal.privacy", "thanks.eyebrow", "thanks.h1", "thanks.lead",
                           "ui.terms_title", "ui.privacy_title", "ui.not_found_title",
-                          "ui.not_found_back", "ui.back_home")
+                          "ui.not_found_back", "ui.back_home",
+                          "footer.terms_label", "footer.privacy_label", "footer.rights",
+                          "page_labels.about", "page_labels.who", "page_labels.contact",
+                          "page_labels.register")
               if not str(_pack_get(pack, k) or "").strip()]
     if _extra:
         errs.append("these page-level keys are missing or empty: " + ", ".join(_extra))

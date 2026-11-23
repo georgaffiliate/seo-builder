@@ -139,6 +139,10 @@ def _label_like(text: str) -> bool:
     return 0 < len(words) <= 3 and all(LABEL_WORD.match(w) for w in words)
 
 
+NON_LATIN_LANGS = {"ja", "zh", "ko", "ru", "uk", "bg", "mk", "el", "he", "ar", "fa",
+                   "hi", "bn", "ta", "te", "th", "ka", "hy", "ur", "sr"}
+
+
 def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "") -> list[str]:
     """Structural + copy checks: same keys, placeholders, digits, tags, real translation."""
     errs = []
@@ -174,6 +178,10 @@ def validate(src: dict, dst: dict, lang: str, brand: str = "", domain: str = "")
         if path.startswith("plan.layout.slugs."):
             if not SLUG_RE.match(new) or not 2 < len(new) <= 34:
                 errs.append(f"{path}: '{new}' is not a kebab-case ascii slug")
+            continue
+        if path.startswith("plan.layout.menu.") and lang in NON_LATIN_LANGS \
+                and re.search(r"[A-Za-z]{2,}", new):
+            errs.append(f"{path}: menu label still in Latin script for '{lang}' ('{new[:24]}')")
             continue
         if new.strip() == text.strip() and lang != "en" and re.search(r"[^\W\d_]{3,}", text, re.UNICODE):
             if _label_like(text):

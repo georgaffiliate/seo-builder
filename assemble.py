@@ -985,6 +985,12 @@ def page_nav_label(plan, C, which: str) -> str:
     audience page). A page's own title is coherent by construction.
     """
     brand = plan["params"]["brand"]
+    # the pack names the pages itself (model-written, translated) — the table below only
+    # covers a handful of languages and used to leak "Registration"/"Who it's for" into
+    # a Japanese footer
+    own = str((C.get("page_labels") or {}).get(which) or "").strip()
+    if own:
+        return own
     labels = PAGE_LABELS.get(plan["params"].get("lang", "en"), PAGE_LABELS["en"])
     cp = C.get(f"inner_{which}") or {}
     raw = str(cp.get("title") or "").strip()
@@ -993,7 +999,7 @@ def page_nav_label(plan, C, which: str) -> str:
         cand = re.sub(r"\s{2,}", " ", cand).strip(" .,;:—–|")
         words = cand.split()
         head = " ".join(words[:4])
-        if (2 <= len(words) <= 4 and len(head) <= 26
+        if (1 <= len(words) <= 4 and len(head) <= 26
                 and words[-1].lower().strip(".,") not in WEAK_TAIL):
             return head
     return labels.get(which, which.title())
