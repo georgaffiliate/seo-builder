@@ -440,7 +440,9 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     # English stub on a translated site
     _extra = [k for k in ("meta.title_home", "meta.description", "footer.tagline",
                           "footer.disclaimer", "footer.risk_line", "legal.terms",
-                          "legal.privacy", "thanks.h1", "thanks.lead")
+                          "legal.privacy", "thanks.eyebrow", "thanks.h1", "thanks.lead",
+                          "ui.terms_title", "ui.privacy_title", "ui.not_found_title",
+                          "ui.not_found_back", "ui.back_home")
               if not str(_pack_get(pack, k) or "").strip()]
     if _extra:
         errs.append("these page-level keys are missing or empty: " + ", ".join(_extra))

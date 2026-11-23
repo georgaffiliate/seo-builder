@@ -70,7 +70,12 @@
     "aria_timer":      "aria-label таймера зворотного відліку",
     "aria_chart":      "aria-label графіка калькулятора",
     "aria_illustration":"aria-label ілюстрації (demo)",
-    "aria_direction":  "aria-label лінії напрямку (demo)"
+    "aria_direction":  "aria-label лінії напрямку (demo)",
+    "terms_title":     "назва сторінки умов (H1 + title)",
+    "privacy_title":   "назва сторінки приватності",
+    "not_found_title": "текст 404-сторінки («сторінку не знайдено»)",
+    "not_found_back":  "кнопка повернення на 404",
+    "back_home":       "лінк повернення на сторінці подяки"
   },
 
   "sections": {

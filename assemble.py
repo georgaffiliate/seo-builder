@@ -1372,8 +1372,11 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
         bodyLegal = (f"<p>This page describes the {which} of {brand} in summary form. "
                      f"{reg_line}. Full personalised terms are provided during onboarding.</p>")
     tl = TERMS_L10N.get(plan["params"]["lang"], TERMS_L10N["en"])
-    terms_l = {"terms": tl[0], "privacy": tl[1]}
-    title_map = {"terms": brand_first(tl[0], brand), "privacy": brand_first(tl[1], brand)}
+    ui = C.get("ui") or {}
+    terms_l = {"terms": ui.get("terms_title") or tl[0],
+               "privacy": ui.get("privacy_title") or tl[1]}
+    title_map = {"terms": brand_first(terms_l["terms"], brand),
+                 "privacy": brand_first(terms_l["privacy"], brand)}
     body = f"""{livebar}{header}<main>
 <section class="page-intro">
 <h1>{esc(brand)}<br><span class="brand-line">{esc(terms_l[which])}</span></h1></section>
@@ -1396,7 +1399,8 @@ def build_thanks(plan, C, css_vars, fonts_import, theme):
     lang = plan["params"].get("lang", "en")
     th = C.get("thanks", {})
     tl = TERMS_L10N.get(lang, TERMS_L10N["en"])
-    back = NOTFOUND_L10N.get(lang, ("", "Back to home"))[1]
+    ui = C.get("ui") or {}
+    back = ui.get("back_home") or NOTFOUND_L10N.get(lang, ("", "Back to home"))[1]
     livebar, header, footer = build_header_footer(plan, C)
     body = f"""{livebar}{header}<main><section class="section"><div class="wrap blk-center">
 <div class="eyebrow center">{esc(th.get('eyebrow') or THANKS_EYEBROW.get(lang, THANKS_EYEBROW['en']))}</div>
@@ -1404,7 +1408,8 @@ def build_thanks(plan, C, css_vars, fonts_import, theme):
 <p class="fine">{esc(th.get('warn',''))}</p>
 <a class="blk-btn" href="index.php">← {esc(back)}</a>
 </div></section></main>{footer}"""
-    page = page_shell(brand_first(tl[2], brand), clamp_meta(th.get("lead", "")), "", "/thanks.php",
+    _thanks_title = brand_first(th.get("h1") or tl[2], brand)
+    page = page_shell(_thanks_title, clamp_meta(th.get("lead", "")), "", "/thanks.php",
                        plan["params"].get("locale") or lang, css_vars, fonts_import, theme,
                        body, noindex=True, canonical=False)
     page = finish_page(page, plan, C)
@@ -1414,7 +1419,9 @@ def build_thanks(plan, C, css_vars, fonts_import, theme):
 def build_404(plan, C, css_vars, fonts_import, theme):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     lang = plan["params"]["lang"]
-    nf = NOTFOUND_L10N.get(lang, ("Page not found", "Back home"))
+    _tbl = NOTFOUND_L10N.get(lang, ("Page not found", "Back home"))
+    _ui = C.get("ui") or {}
+    nf = (_ui.get("not_found_title") or _tbl[0], _ui.get("not_found_back") or _tbl[1])
     livebar, header, footer = build_header_footer(plan, C)
     body = f"""{livebar}{header}<main><section class="section"><div class="wrap blk-center">
 <h1>404<br><span class="brand-line">{esc(brand)}</span></h1><p>{nf[0]}</p><a class="blk-btn" href="index.php">{nf[1]}</a>

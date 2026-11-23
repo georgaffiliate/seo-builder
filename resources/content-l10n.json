@@ -150,7 +150,12 @@
    "aria_timer": "Conto alla rovescia",
    "aria_chart": "Grafico di proiezione",
    "aria_illustration": "Illustrazione",
-   "aria_direction": "Illustrazione della direzione"
+   "aria_direction": "Illustrazione della direzione",
+   "terms_title": "Termini",
+   "privacy_title": "Privacy",
+   "not_found_title": "Pagina non trovata",
+   "not_found_back": "Torna all'inizio",
+   "back_home": "Torna all'inizio"
   },
   "sections": {
    "intro": {
@@ -922,7 +927,12 @@
    "aria_timer": "Časovač",
    "aria_chart": "Graf projekce",
    "aria_illustration": "Ilustrace",
-   "aria_direction": "Ilustrace směru"
+   "aria_direction": "Ilustrace směru",
+   "terms_title": "Podmínky",
+   "privacy_title": "Soukromí",
+   "not_found_title": "Stránka nenalezena",
+   "not_found_back": "Zpět na úvod",
+   "back_home": "Zpět na úvod"
   },
   "sections": {
    "intro": {
@@ -1699,7 +1709,12 @@
    "aria_timer": "Timer",
    "aria_chart": "Projection chart",
    "aria_illustration": "Illustration",
-   "aria_direction": "Direction illustration"
+   "aria_direction": "Direction illustration",
+   "terms_title": "Terms",
+   "privacy_title": "Privacy",
+   "not_found_title": "Page not found",
+   "not_found_back": "Back home",
+   "back_home": "Back to home"
   },
   "sections": {
    "intro": {
@@ -2942,7 +2957,12 @@
    "aria_timer": "Temporizador",
    "aria_chart": "Gráfico de proyección",
    "aria_illustration": "Ilustración",
-   "aria_direction": "Ilustración de la dirección"
+   "aria_direction": "Ilustración de la dirección",
+   "terms_title": "Términos",
+   "privacy_title": "Privacidad",
+   "not_found_title": "Página no encontrada",
+   "not_found_back": "Volver al inicio",
+   "back_home": "Volver al inicio"
   },
   "reviews": {
    "eyebrow": "PERSONAS",
