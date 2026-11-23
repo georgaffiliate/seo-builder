@@ -39,9 +39,16 @@ COMMA_DECIMAL = {
 }
 
 
+SPACE_THOUSANDS = {"cs", "sk", "pl", "fr", "ru", "uk", "sv", "fi", "no", "nb",
+                   "da", "sl", "hr", "hu", "lv", "lt", "et"}
+
+
 def num_sep(lang: str) -> tuple[str, str]:
-    """(thousands, decimal) for the site language — ja/en use 1,234.56, de/tr 1.234,56."""
+    """(thousands, decimal) for the site language: ja/en 1,234.56 · de/tr 1.234,56 ·
+    sk/cs/fr/pl 1 234,56 (the strip already used a space — one helper now)."""
     lang = (lang or "en").lower()
+    if lang in SPACE_THOUSANDS:
+        return (" ", ",")
     if lang in COMMA_DECIMAL:
         return (".", ",")
     return (",", ".")
