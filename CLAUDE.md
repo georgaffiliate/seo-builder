@@ -101,6 +101,14 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
 - **Ротація екранів:** тільки `hero` і form-band фіксовані як типи; якірні екрани
   (`people/faq/numbers/cta/office/compare`) — опціональні, план бере 2–3 і НЕ повторює якорі
   попереднього плану та сиблінгів того ж бренду (спільних якорів ≤1; fillers сиблінга теж під баном).
+- **Hero — 5 композицій, без «трійки цифр»:** концепт у `HEROES` визначає фрагмент через
+  `HERO_LETTER` (`variant`) — `d` заява (тип + 3 обіцянки), `e` доказ (мокап + відгук з іменем),
+  `f` кроки 01/02/03, `g` компактна смуга, `h` картка відгуку. Доказ живе в `hero.proof`
+  (claims×3 без цифр / quote / quote_by / steps×3), довжини тримає `proof_errors`, банк офлайну —
+  `resources/hero-proof.json` (en/it/cs). Рейтинг/користувачі/латентність у hero більше НЕ
+  рендеряться: їх показує смуга `numbers`, а `hero.stats` лишається каноном для `reconcile_numbers`.
+  Концепт (`layout.hero`) і фрагмент (`layout.variants.hero`) тепер завжди збігаються — раніше
+  7 концептів мапились у 3 фрагменти, тому всі hero виглядали однаково.
 - **Форма не привʼязана до 2-го екрана:** позиція ротується (35% одразу після hero, 65% — на 2–4 екрани
   глибше); варіанти form-band b/c/d/e (d — форма-first із ledger-точками, e — центрована картка з chips).
   Контракт форми (`lead-form`, `js-lead-phone`, consent-депозит) незмінний в усіх варіантах.
@@ -212,6 +220,7 @@ blog_assemble.py         блог-шар: teaser + хаб guide.php + статт
 blocks/blog.css          стилі хаба/обкладинок (лише для сторінок із plan.blog)
 resources/blog-topics.json  банк 20 тем для --blog
 resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
+resources/hero-proof.json  докази hero: claims / quote / quote_by / steps (en/it/cs)
 assemble.py             конструктор: plan(+content) → sites/<domain> + gates
 tools/seo_audit.py      SEO/форма/помилки gate (порт сам обирає)
 tools/twin_check.py     анти-близнюк gate: inventory/порядок/варіанти/слаги/класи (проти plans/*);

@@ -1,0 +1,25 @@
+<section class="blk-hero hero-proof sec sec-hero" id="top" data-var="e">
+  <div class="hero-copy">
+    <h1><span class="brand-line">{{BRAND}}</span> {{c:hero.h1_rest}}<br><span class="h1-accent">{{c:hero.h1_accent}}</span></h1>
+    <p class="blk-hero-lead">{{c:hero.lead}}</p>
+    <div class="hero-cta">
+      <a class="blk-btn" href="#claim">{{c:hero.cta_primary}} <span>↗</span></a>
+      <a class="text-link" href="#come">{{c:hero.cta_secondary}} →</a>
+    </div>
+    <figure class="hero-quote">
+      <blockquote>{{c:hero.proof.quote}}</blockquote>
+      <figcaption>{{c:hero.proof.quote_by}}</figcaption>
+    </figure>
+  </div>
+  <div class="hero-panel ledger" role="img" aria-label="{{c:hero.device_aria}}">
+    <div class="ledger-head"><span>{{c:hero.device_bal}}</span><em class="up">{{c:hero.device_delta}}</em></div>
+    <svg class="hero-chart" viewBox="0 0 320 96" aria-hidden="true">
+      <defs><linearGradient id="hg-e" x2="0" y2="1"><stop stop-color="var(--acc)" stop-opacity=".22"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 76L26 64 52 70 78 50 104 58 130 40 156 48 182 30 208 38 234 22 260 30 288 14 320 18V96H0Z" fill="url(#hg-e)"/>
+      <path d="M0 76L26 64 52 70 78 50 104 58 130 40 156 48 182 30 208 38 234 22 260 30 288 14 320 18" fill="none" stroke="var(--acc)" stroke-width="2"/>
+    </svg>
+    <div class="ledger-row"><b>{{c:hero.device_rows.0.n}}</b><small>{{c:hero.device_rows.0.s}}</small><span>{{c:hero.device_rows.0.v}}</span><em class="up">{{c:hero.device_rows.0.d}}</em></div>
+    <div class="ledger-row"><b>{{c:hero.device_rows.1.n}}</b><small>{{c:hero.device_rows.1.s}}</small><span>{{c:hero.device_rows.1.v}}</span><em class="up">{{c:hero.device_rows.1.d}}</em></div>
+    <p class="demo-label">{{c:hero.device_note}}</p>
+  </div>
+</section>

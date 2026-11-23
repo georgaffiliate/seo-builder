@@ -577,7 +577,7 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     # LLM list would otherwise reach esc()/fill() and render as junk)
     if strict:
         for k, v in (content.get("hero") or {}).items():
-            if isinstance(v, (list, dict)) and k not in ("stats", "device_rows"):
+            if isinstance(v, (list, dict)) and k not in ("stats", "device_rows", "proof"):
                 errs.append(f"hero.{k} is a list/dict"); continue
             if isinstance(v, str) and not v.strip(): errs.append(f"hero.{k} empty")
         for grp, keys in (("bands", ("mid_eyebrow", "mid_h2", "mid_lead", "form_title",
@@ -729,7 +729,12 @@ def seed_content(plan: dict) -> dict:
                   "stats": [{"v": n.get("rating","4,7"), "l": "rating"},
                              {"v": fmt_int(n.get("users", 12500), plan["params"].get("lang", "en")), "l": "users"},
                              {"v": f"{n.get('latency_ms',52)} ms", "l": "latency"}],
-                  "device_bal": "€0,00", "device_delta": "↗ placeholder", "device_rows": []},
+                  "device_bal": "€0,00", "device_delta": "↗ placeholder", "device_rows": [],
+                  "proof": {"claims": ["Point one", "Point two", "Point three"],
+                             "quote": "Placeholder quote.", "quote_by": "Name · City",
+                             "steps": [{"t": "Step one", "d": "Placeholder."},
+                                        {"t": "Step two", "d": "Placeholder."},
+                                        {"t": "Step three", "d": "Placeholder."}]}},
         "bands": {"mid_eyebrow": "ACCESS", "mid_h2": "Get access", "mid_lead": "Leave details.",
                    "mid_points": ["Point one", "Point two", "Point three", "Point four"],
                    "form_title": "Free registration", "form_sub": "",

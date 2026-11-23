@@ -1,0 +1,87 @@
+{
+  "_doc": "Hero proof content: the evidence a hero shows instead of the rating/users/latency trio. claims = short promises (no digits, no deposit); quote/quote_by = a named review written for the hero (never a copy of reviews.items); steps = three onboarding steps. Languages without an entry fall back to en.",
+  "en": {
+    "claims": [
+      "Withdrawals within 24 hours",
+      "No hidden fees",
+      "Free demo first",
+      "Support in your language",
+      "Segregated funds",
+      "Public spreads"
+    ],
+    "quote": [
+      "I place orders from my phone between client visits: price alerts took away the need to watch charts every hour.",
+      "The demo let me practise for two weeks without rushing; by the time I moved to a real account I already knew where everything was.",
+      "The panel stays quiet: balance, positions and spreads on one screen, no tab switching."
+    ],
+    "quote_by": ["Roberto F. · Bergamo", "Danilo C. · Parma", "Marta L. · Turin"],
+    "steps": [
+      [
+        {"t": "Open the account", "d": "Name, email and phone: thirty seconds is enough."},
+        {"t": "Verify your identity", "d": "One document and a proof of address, then the check runs on its own."},
+        {"t": "Try the demo", "d": "Orders and charts with virtual money, no strings attached."}
+      ],
+      [
+        {"t": "Fill the form", "d": "Three fields, no mandatory call."},
+        {"t": "Upload the documents", "d": "Verification starts at once and updates you by email."},
+        {"t": "Trade when you are ready", "d": "Unlimited demo before the first order."}
+      ]
+    ]
+  },
+  "it": {
+    "claims": [
+      "Prelievi entro 24 ore",
+      "Nessun costo nascosto",
+      "Demo gratuita",
+      "Assistenza in italiano",
+      "Fondi segregati",
+      "Spread pubblici"
+    ],
+    "quote": [
+      "Ordino dal telefono mentre sono in giro per clienti: gli avvisi di prezzo mi hanno tolto il bisogno di guardare i grafici ogni ora.",
+      "La demo mi ha fatto esercitare due settimane senza fretta; quando sono passato al conto reale sapevo già dove mettere le mani.",
+      "Il pannello resta sobrio: saldo, posizioni e spread in una sola schermata, senza cambiare scheda."
+    ],
+    "quote_by": ["Roberto F. · Bergamo", "Danilo C. · Parma", "Marta L. · Torino"],
+    "steps": [
+      [
+        {"t": "Apri il conto", "d": "Nome, email e telefono: bastano trenta secondi."},
+        {"t": "Verifica l'identità", "d": "Un documento e una prova di residenza, poi il controllo parte da solo."},
+        {"t": "Prova la demo", "d": "Ordini e grafici con denaro virtuale, senza alcun vincolo."}
+      ],
+      [
+        {"t": "Compila il modulo", "d": "Tre campi, nessuna chiamata obbligatoria."},
+        {"t": "Carica i documenti", "d": "La verifica parte subito e ti aggiorna via email."},
+        {"t": "Opera quando vuoi", "d": "Demo illimitata prima del primo ordine."}
+      ]
+    ]
+  },
+  "cs": {
+    "claims": [
+      "Výběry do 24 hodin",
+      "Žádné skryté poplatky",
+      "Demo zdarma",
+      "Podpora v češtině",
+      "Oddělené fondy",
+      "Veřejné spready"
+    ],
+    "quote": [
+      "Objednávky zadávám z telefonu mezi schůzkami: cenové alerty mi vzaly potřebu kontrolovat grafy každou hodinu.",
+      "Demo mi dalo dva týdny na trénink bez spěchu; než jsem přešel na ostrý účet, věděl jsem, kam sáhnout.",
+      "Panel zůstává střídmý: zůstatek, pozice a spready na jedné obrazovce, bez přepínání záložek."
+    ],
+    "quote_by": ["Petr H. · Brno", "Jana K. · Praha", "Tomáš V. · Ostrava"],
+    "steps": [
+      [
+        {"t": "Otevřete účet", "d": "Jméno, e-mail a telefon: stačí třicet sekund."},
+        {"t": "Ověřte totožnost", "d": "Jeden dokument a potvrzení adresy, kontrolu spustíme sami."},
+        {"t": "Vyzkoušejte demo", "d": "Objednávky a grafy s virtuálními penězi, bez závazků."}
+      ],
+      [
+        {"t": "Vyplňte formulář", "d": "Tři pole, žádné povinné volání."},
+        {"t": "Nahrajte dokumenty", "d": "Ověření začne hned a dá vám vědět e-mailem."},
+        {"t": "Obchodujte, až budete chtít", "d": "Neomezené demo před první objednávkou."}
+      ]
+    ]
+  }
+}

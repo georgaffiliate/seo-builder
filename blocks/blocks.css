@@ -411,6 +411,107 @@ button,input,textarea,select{font:inherit;color:inherit}
 .trust-line{margin-top:22px;font-size:12px;color:var(--muted-text)}
 .trust-line .stars{color:var(--stars);letter-spacing:2px}
 
+/* ---- hero compositions (d-e-f-g-h) -------------------------------------
+   The evidence in the hero is a type, not three dashboard figures: 3 promise
+   claims, one named quote, three onboarding steps, or a compact band. Every
+   composition keeps one primary action and the same copy slots. */
+.blk-hero[data-var="d"] .brand-line,
+.blk-hero[data-var="e"] .brand-line,
+.blk-hero[data-var="f"] .brand-line,
+.blk-hero[data-var="g"] .brand-line,
+.blk-hero[data-var="h"] .brand-line{display:inline}
+
+/* claims: short promises, no figures */
+.hero-claims{list-style:none;display:flex;flex-wrap:wrap;gap:10px;margin:30px 0 0;padding:0}
+.hero-claims li{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.3;
+  color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+.hero-claims li::before{content:'✓';color:var(--acc-text);font-weight:700}
+.hero-claims.compact{flex-direction:column;align-items:flex-start;gap:9px;margin-top:24px}
+.hero-claims.compact li{border:0;padding:0;font-size:13.5px;color:var(--muted-text)}
+
+/* d — statement: type only, centred, one action */
+.blk-hero[data-var="d"]{display:block;max-width:880px;text-align:center;padding:64px 22px 72px}
+.blk-hero[data-var="d"] h1{font-size:clamp(34px,4.8vw,60px);line-height:1.06;max-width:20ch;
+  margin:0 auto}
+.blk-hero[data-var="d"] .blk-hero-lead{margin:16px auto 0;max-width:58ch}
+.blk-hero[data-var="d"] .hero-cta{justify-content:center}
+.blk-hero[data-var="d"] .hero-claims{justify-content:center}
+.blk-hero[data-var="d"] .trust-line{text-align:center}
+
+/* e — proof: the copy leads the DOM, the mock takes the leading column */
+.blk-hero[data-var="e"]{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+  gap:clamp(28px,4vw,60px);align-items:stretch}
+.blk-hero[data-var="e"] .hero-copy{grid-column:2;grid-row:1;display:flex;flex-direction:column;
+  justify-content:center}
+.blk-hero[data-var="e"] .hero-copy h1{font-size:clamp(30px,3.6vw,46px)}
+.blk-hero[data-var="e"] .hero-panel{grid-column:1;grid-row:1;display:flex;flex-direction:column}
+.blk-hero[data-var="e"] .hero-chart{width:100%;height:auto;margin:8px 0 10px}
+.blk-hero[data-var="e"] .demo-label{position:static;margin-top:auto;padding-top:12px;
+  border-top:1px solid var(--line)}
+.hero-quote{margin:28px 0 0;padding-block-start:18px;border-top:1px solid var(--line);max-width:46ch}
+.hero-quote blockquote{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink);text-wrap:pretty}
+.hero-quote figcaption{margin-top:10px;font-size:12px;color:var(--muted-text)}
+
+/* f — steps: headline and action share the top row, the steps are the visual */
+.blk-hero[data-var="f"]{display:block}
+.blk-hero[data-var="f"] .hero-top{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:clamp(20px,3vw,40px);align-items:end}
+.blk-hero[data-var="f"] h1{max-width:24ch;font-size:clamp(30px,3.9vw,48px);margin:0}
+.blk-hero[data-var="f"] .blk-hero-lead{margin-top:14px}
+.hero-steps{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+  margin:34px 0 0;padding:0;border-top:1px solid var(--line)}
+.hero-steps li{padding:20px 26px 0;border-inline-start:1px solid var(--line);min-width:0}
+.hero-steps li:first-child{border-inline-start:0;padding-inline-start:0}
+.hero-steps .n{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--acc-text)}
+.hero-steps b{display:block;margin-top:8px;font-size:17px;line-height:1.25;color:var(--ink)}
+.hero-steps li>span:last-child{display:block;margin-top:6px;font-size:12px;line-height:1.45;
+  color:var(--muted-text)}
+
+/* g — band: one compact row between two hairlines */
+.blk-hero[data-var="g"]{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:clamp(20px,3vw,40px);align-items:center;padding:26px 22px;
+  border-block:1px solid var(--line)}
+.blk-hero[data-var="g"] h1{font-size:clamp(24px,2.6vw,34px);line-height:1.14;max-width:34ch;margin:0}
+.blk-hero[data-var="g"] .hero-band-lead{margin:8px 0 0;max-width:60ch;font-size:14.5px;
+  color:var(--muted-text)}
+.hero-band-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero-band-note{margin:0;max-width:26ch;font-size:12px;line-height:1.45;color:var(--muted-text)}
+
+/* h — review: copy plus a named review card */
+.blk-hero[data-var="h"]{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(28px,4vw,60px);align-items:center}
+.blk-hero[data-var="h"] .hero-copy h1{font-size:clamp(30px,3.7vw,46px)}
+.hero-card{justify-self:end;max-width:430px;margin:0;padding:26px;background:var(--card);
+  color:var(--card-ink);border:1px solid var(--line);border-radius:var(--r-card);
+  box-shadow:var(--shadow-card)}
+.hero-card .stars{color:var(--stars);letter-spacing:2px;font-size:13px}
+.hero-card blockquote{margin:12px 0 0;font-size:16px;line-height:1.5;color:var(--ink)}
+.hero-card figcaption{margin-top:14px;font-size:12px;color:var(--muted-text)}
+
+@media (max-width:900px){
+  .blk-hero[data-var="e"],.blk-hero[data-var="h"]{grid-template-columns:minmax(0,1fr)}
+  .blk-hero[data-var="e"] .hero-copy,.blk-hero[data-var="e"] .hero-panel{grid-column:auto;grid-row:auto}
+  .hero-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero-steps li:nth-child(n+3){padding-inline-start:0;border-inline-start:0;
+    border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+  .hero-card{justify-self:stretch;max-width:100%}
+}
+@media (max-width:700px){
+  .blk-hero[data-var="d"]{padding:44px 18px 52px}
+  .blk-hero[data-var="d"] h1{font-size:clamp(28px,7.2vw,38px)}
+  .blk-hero[data-var="e"] .hero-panel{display:none}
+  .blk-hero[data-var="f"] .hero-top{grid-template-columns:minmax(0,1fr)}
+  .blk-hero[data-var="f"] .hero-top .blk-btn{justify-self:start}
+  .blk-hero[data-var="g"]{grid-template-columns:minmax(0,1fr);padding:22px 18px}
+  .blk-hero[data-var="g"] .hero-band-actions{margin-top:16px}
+  .hero-steps{grid-template-columns:minmax(0,1fr)}
+  .hero-steps li{padding-inline-start:0;border-inline-start:0;border-top:1px solid var(--line);
+    margin-top:16px;padding-top:16px}
+  .hero-steps li:first-child{margin-top:0;border-top:0;padding-top:20px}
+  .hero-claims{justify-content:flex-start}
+  .blk-hero[data-var="d"] .hero-claims{justify-content:flex-start}
+}
+
 /* hero visual frame (phone/terminal/dash-agnostic) */
 .blk-visual{position:relative;min-height:480px;display:grid;place-items:center}
 .blk-orb{position:absolute;width:min(430px,90%);aspect-ratio:1;border-radius:50%;

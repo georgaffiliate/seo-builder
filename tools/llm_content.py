@@ -273,6 +273,9 @@ def brief(plan: dict) -> dict:
         "rules": [
             "Cover EVERY content_keys path listed per slot, plus meta/hero/bands/ui/reviews/scarcity/faq/office/brand_note/inner_*/legal/footer/thanks.",
             "Brand-first title_home <= 70 chars; unique titles/descriptions per page; description <= 155 chars.",
+            "hero.proof is the evidence shown in the hero: 3 claims (2-5 words, NO digits, no deposit), "
+            "1 first-person quote under 240 characters with quote_by as 'Name I. · City' (invented, not a copy "
+            "of reviews.items), and 3 onboarding steps {t: 1-4 words, d: one line under 130 characters}.",
             "hero.h1_rest continues the sentence after the brand; hero.h1_accent is the closing accent (2-4 words). NEVER repeat the brand in either line: the h1 already prints it in .brand-line.",
             "No deposit amount in meta, hero, or any h2. Deposit only in bands.form_consent inside <small>.",
             "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
@@ -306,7 +309,8 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
     expand = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
               "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
               "sections.security.cards": 3, "sections.streams.cards": 3,
-              "hero.stats": 3, "hero.device_rows": 2, "bands.mid_points": 4,
+              "hero.stats": 3, "hero.device_rows": 2, "hero.proof.claims": 3,
+              "hero.proof.steps": 3, "bands.mid_points": 4,
               "scarcity.units": 4, "inner_about.blocks": 4,
               "sections.facts.points": 4, "sections.portal.cards": 3,
               "bands.side_stats": 3, "bands.side_labels": 3,
@@ -365,6 +369,44 @@ def ledger_errors(hv: dict) -> list[str]:
         if bal and all(v is not None for v in vals) and abs(sum(vals) - bal) > 0.02:
             errs.append(f"hero.device_rows do not add up: {vals[0]:,.2f} + {vals[1]:,.2f} != "
                         f"hero.device_bal {bal:,.2f} — make the two rows sum to the headline balance")
+    return errs
+
+
+def proof_errors(hv: dict, brand: str = "") -> list[str]:
+    """Hero proof block: claims / quote / steps are the evidence the hero shows instead
+    of the rating-users-latency trio. These checks keep it short, number-free and named."""
+    errs = []
+    pr = hv.get("proof") if isinstance(hv.get("proof"), dict) else {}
+    claims = [str(c).strip() for c in (pr.get("claims") or []) if str(c).strip()]
+    if len(claims) != 3:
+        errs.append(f"hero.proof.claims needs exactly 3 promises, got {len(claims)}")
+    for c in claims:
+        if len(c.split()) > 6 or len(c) > 46:
+            errs.append(f"hero.proof.claims item is too long ('{c[:40]}') — 2-5 words")
+        if re.search(r"\d", c):
+            errs.append(f"hero.proof.claims must not carry numbers ('{c}')")
+    q = str(pr.get("quote") or "").strip()
+    if len(q) < 40:
+        errs.append("hero.proof.quote is too short — one first-person sentence")
+    elif len(q) > 240:
+        errs.append("hero.proof.quote is too long — keep it under 240 characters")
+    if brand and brand.lower() in q.lower():
+        errs.append("hero.proof.quote repeats the brand")
+    by = str(pr.get("quote_by") or "").strip()
+    if not by or "·" not in by:
+        errs.append("hero.proof.quote_by must read 'Name I. · City'")
+    steps = [st for st in (pr.get("steps") or []) if isinstance(st, dict)]
+    if len(steps) != 3:
+        errs.append(f"hero.proof.steps needs exactly 3 steps, got {len(steps)}")
+    for st in steps:
+        t, d = str(st.get("t") or "").strip(), str(st.get("d") or "").strip()
+        if not t or not d:
+            errs.append("hero.proof.steps items need both t (title) and d (one line)")
+            break
+        if len(t.split()) > 5:
+            errs.append(f"hero.proof.steps title is too long ('{t[:30]}') — 1-4 words")
+        if len(d) > 130:
+            errs.append("hero.proof.steps line is too long — keep it under 130 characters")
     return errs
 
 
@@ -438,6 +480,7 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     # checks it did not forget — a placeholder caption or rows that do not add up go
     # straight back as a repair instruction
     errs += ledger_errors(pack.get("hero") or {})
+    errs += proof_errors(pack.get("hero") or {}, plan["params"].get("brand", ""))
     # English boilerplate inside a translated pack (the model loves "All rights reserved"
     # and "Bank transfer"): name the path and let the repair pass rewrite it
     if plan["params"].get("lang") != "en":
@@ -544,7 +587,8 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     mins = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
             "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
             "sections.security.cards": 3, "sections.streams.cards": 3,
-            "hero.stats": 3, "hero.device_rows": 2, "bands.mid_points": 4,
+            "hero.stats": 3, "hero.device_rows": 2, "hero.proof.claims": 3,
+            "hero.proof.steps": 3, "bands.mid_points": 4,
             "scarcity.units": 4, "inner_about.blocks": 4,
             "inner_tech.blocks": 3, "inner_who.blocks": 3, "inner_register.points": 3}
     for path, n in mins.items():

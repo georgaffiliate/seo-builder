@@ -16,6 +16,7 @@ import argparse, json, pathlib, random, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 L10N = ROOT / "resources" / "content-l10n.json"
+HERO_PROOF = ROOT / "resources" / "hero-proof.json"
 
 PHONE_CC = {"IT": "+39 ", "CZ": "+420 ", "SK": "+421 ", "PL": "+48 ", "DE": "+49 ",
             "AT": "+43 ", "FR": "+33 ", "BE": "+32 ", "NL": "+31 ", "ES": "+34 ",
@@ -52,6 +53,27 @@ CHOICE_KEYS = {"title", "h1", "description", "og", "h1_rest", "h1_accent", "lead
                "cta_primary", "cta_secondary", "eyebrow", "h2", "mid_eyebrow", "mid_h2",
                "mid_lead", "form_title", "form_sub", "submit_nav", "btn", "stat_rating",
                "stat_users", "stat_latency", "device_delta", "asset_1", "asset_2"}
+
+
+def _hero_proof_bank() -> dict:
+    """Short hero proofs (claims/quote/steps) kept out of the giant l10n bank."""
+    try:
+        d = json.loads(HERO_PROOF.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return {k: v for k, v in d.items() if not k.startswith("_")}
+
+
+def _hero_proof(rng, lang: str, ctx: dict) -> dict:
+    bank = _hero_proof_bank()
+    pb = bank.get(lang) or bank.get("en") or {}
+    claims = list(pb.get("claims") or [])
+    rng.shuffle(claims)
+    steps = list((rng.choice(pb.get("steps") or [[]]) or [])[:3])
+    return {"claims": claims[:3],
+            "quote": pick(rng, pb.get("quote") or [""], ctx),
+            "quote_by": pick(rng, pb.get("quote_by") or [""], ctx),
+            "steps": steps}
 
 
 def deep(rng, node, ctx, key=""):
@@ -250,6 +272,7 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
                 {"n": pick(rng, bank["hero"]["asset_2"], ctx), "s": "BND-EU",
                  "v": money(_r2, cur, True), "vv": f"{_r2:.2f}", "d": f"+{rng.uniform(0.1, 0.9):.1f}%".replace(".", ",")},
             ],
+            "proof": _hero_proof(rng, lang, ctx),
         },
         "bands": deep(rng, {k: bank["bands"][k] for k in
                            ("mid_eyebrow", "mid_h2", "mid_lead", "mid_points", "form_title", "form_sub",

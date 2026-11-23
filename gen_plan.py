@@ -66,8 +66,12 @@ WIDGET_GROUPS = {
 }
 SKINS = ["rounded-air", "sharp-flat", "brutalist-block", "glass-soft",
           "classic-border", "dense-terminal"]
-HEROES = ["hero-split-terminal", "hero-phone", "hero-dash", "hero-converter",
-          "hero-centered", "hero-kpis", "hero-watchlist"]
+# Hero concepts: each one is a composition with its own evidence (claims / quote /
+# steps / band), rendered by blocks/blk-hero-<letter>.html. The concept avoids the
+# last two plans; the letter is what assemble renders.
+HEROES = ["hero-statement", "hero-proof", "hero-steps", "hero-band", "hero-review"]
+HERO_LETTER = {"hero-statement": "d", "hero-proof": "e", "hero-steps": "f",
+               "hero-band": "g", "hero-review": "h"}
 FORM_BANDS = ["access-band", "claim-band", "enroll-band"]
 SECTION_POOL = ["intro-center", "features", "steps", "steps-live", "markets", "ladder",
                  "streams", "security", "demo", "risk", "cta-band", "trust-band",
@@ -83,7 +87,7 @@ TYPE_OF = {"claim-band": "band", "access-band": "band", "enroll-band": "band",
            "steps-live": "steps", "brand-note": "brandnote"}
 def types_of(order): return {TYPE_OF.get(t, t) for t in order}
 VARIANTS = {  # structural fragment variants per slot ("" = canonical file, always allowed)
-    "hero": ["b", "c"], "claim-band": ["b", "c", "d", "e"], "access-band": ["b", "c", "d", "e"],
+    "claim-band": ["b", "c", "d", "e"], "access-band": ["b", "c", "d", "e"],
     "enroll-band": ["b", "c", "d", "e"],
     "features": ["b", "c"],
     "people": ["b", "c", "e", "f", "g", "h"],   # d renders quotes without portraits
@@ -555,6 +559,9 @@ def build_plan(rng, args, hist)->dict|None:
     variants["header"]=pick_variant(rng, "header", VARIANTS["header"], hist, 5)
     variants["footer"]=pick_variant(rng, "footer", VARIANTS["footer"], hist, 5)
     variants["form"]=pick_variant(rng, "form", VARIANTS["form"], hist, 2)
+    # hero: the concept decides the fragment, so the label in layout.hero and what
+    # assemble renders can never drift apart (they did: 7 concepts, 3 fragments)
+    variants["hero"]=HERO_LETTER[hero]
     livebar=build_livebar(rng, variants["livebar"], args.lang,
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
     # people-e is a rating-summary screen: same stat family as the numbers screen — never both

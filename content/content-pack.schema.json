@@ -24,7 +24,18 @@
     "device_safe": "рядок-статус на мокапі (коротко)",
     "trust_label": "підпис до ★ під hero (напр. 'перевірених відгуків')",
     "device_note":  "підпис під мокапом у мові сайту: ілюстрація/прев'ю інтерфейсу; заборонено «sample data»/«demo data» (LLM пише сама, гейт лише перевіряє)",
-    "device_rows": [{"n":"Назва активу (нейтральна категорія, без обіцянок дохідності)","s":"тикер","v":"€2.118,40","d":"+2,87%"}]
+    "device_rows": [{"n":"Назва активу (нейтральна категорія, без обіцянок дохідності)","s":"тикер","v":"€2.118,40","d":"+2,87%"}],
+    "proof": {
+      "_doc": "Доказ у hero замість тріо rating/users/latency. claims — 3 короткі обіцянки (2-5 слів, БЕЗ цифр і без суми депозиту). quote — один відгук від першої особи (≤220 симв), НЕ копія reviews.items. quote_by — 'Ім'я І. · Місто'. steps — рівно 3 кроки онбордингу {t≤4 слова, d≤90 симв}.",
+      "claims": ["Prelievi entro 24 ore", "Nessun costo nascosto", "Demo gratuita"],
+      "quote": "Ordino dal telefono mentre sono in giro per clienti: gli avvisi di prezzo mi hanno tolto il bisogno di guardare i grafici ogni ora.",
+      "quote_by": "Roberto F. · Bergamo",
+      "steps": [
+        {"t": "Apri il conto", "d": "Nome, email e telefono: bastano trenta secondi."},
+        {"t": "Verifica l'identità", "d": "Un documento e una prova di residenza, poi il controllo parte da solo."},
+        {"t": "Prova la demo", "d": "Ordini e grafici con denaro virtuale, senza alcun vincolo."}
+      ]
+    }
   },
 
   "bands": {
