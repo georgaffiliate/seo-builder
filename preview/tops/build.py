@@ -92,7 +92,6 @@ PART = """<!doctype html><html lang="it"><head><meta charset="utf-8">
 <link rel="stylesheet" href="blocks.css">
 <link rel="stylesheet" href="skin.css">
 <link rel="stylesheet" href="openers.css">
-<link rel="stylesheet" href="heroes.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>:root{__PALETTE__}body{margin:0}
 /* harness only: the fold line where a 800px laptop screen ends */

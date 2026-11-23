@@ -5,10 +5,11 @@
 
 ```bash
 python3 preview/tops/build.py           # 32 стрічки → index.html + mobile.html
-python3 preview/tops/openers_build.py    # 3 корпуси × 7 відкриттів → openers.html
+python3 preview/tops/openers_build.py    # 3 корпуси × 7 відк��иттів → openers.html
+python3 preview/tops/heroes_build.py     # 5 hero-фрагментів + легасі → heroes.html
 ```
 
-Кожен варіант рендериться окремою сторінкою `v-*.html` / `o-*.html` у справжньому оточенні
+Хедери й hero рендеряться з продакшн-фрагментів; стрічки й відкриття — окремими сторінками `v-*.html` / `o-*.html` у справжньому оточенні
 (стрічка → хедер → hero) і сам міряє свою висоту через `postMessage`. `blocks.css` і `skin.css`
 копіюються з репозиторію при кожному запуску, тому харнес завжди показує поточний стан системи.
 
