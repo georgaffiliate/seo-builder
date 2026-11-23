@@ -27,6 +27,7 @@ import sys
 import threading
 import time
 import uuid
+import signal
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -55,14 +56,41 @@ def _tail(text: str, limit: int = LOG_TAIL) -> str:
     return text[-limit:] if len(text) > limit else text
 
 
-def _run(cmd: list[str], timeout: int) -> tuple[int, str, str]:
-    p = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
-    return p.returncode, p.stdout or "", p.stderr or ""
+def _run(cmd: list[str], timeout: int, job: dict | None = None) -> tuple[int, str, str]:
+    """Run a child with a hard timeout; the handle is kept so the job can be cancelled."""
+    p = subprocess.Popen(cmd, cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         text=True, start_new_session=True)
+    if job is not None:
+        job["_proc"] = p
+    try:
+        out, err = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill_tree(p)
+        out, err = p.communicate()
+        raise
+    finally:
+        if job is not None:
+            job.pop("_proc", None)
+    return p.returncode, out or "", err or ""
+
+
+def _kill_tree(p: subprocess.Popen) -> None:
+    try:
+        os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+    except Exception:
+        try:
+            p.kill()
+        except Exception:
+            pass
 
 
 def _worker() -> None:
     while True:
-        jid = _queue.get()
+        try:
+            jid = _queue.get()
+        except Exception:  # noqa: BLE001 - the queue thread must never die silently
+            time.sleep(1.0)
+            continue
         job = _jobs.get(jid)
         if job is None:
             continue
@@ -105,7 +133,7 @@ def _execute(job: dict) -> None:
         cmd += ["--build"]
 
     try:
-        code, out, err = _run(cmd, BUILD_TIMEOUT)
+        code, out, err = _run(cmd, BUILD_TIMEOUT, job)
     except subprocess.TimeoutExpired:
         job["status"] = "failed"
         job["error"] = f"build timed out after {BUILD_TIMEOUT}s"
@@ -132,7 +160,7 @@ def _execute(job: dict) -> None:
         dcmd = [sys.executable, str(ROOT / "tools" / "deploy.py"),
                 "--domain", domain, "--site", str(site)]
         try:
-            dcode, dout, derr = _run(dcmd, DEPLOY_TIMEOUT)
+            dcode, dout, derr = _run(dcmd, DEPLOY_TIMEOUT, job)
         except subprocess.TimeoutExpired:
             job["status"] = "failed"
             job["error"] = "site built, but deploy timed out"
@@ -192,8 +220,23 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):  # noqa: N802
         path = self.path.split("?", 1)[0]
         if path == "/healthz":
+            with _lock:
+                running = [{"job_id": j["job_id"], "domain": j.get("domain"),
+                            "status": j["status"],
+                            "age_sec": int(time.time() - j.get("created_at", time.time()))}
+                           for j in _jobs.values() if j["status"] in ("running", "deploying")]
             return self._send(200, {"ok": True, "service": "seo-builder",
-                                    "queued": _queue.qsize(), "jobs": len(_jobs)})
+                                    "queued": _queue.qsize(), "jobs": len(_jobs),
+                                    "running": running})
+        if path == "/jobs":
+            if not self._auth():
+                return self._send(401, {"ok": False, "error": "unauthorized"})
+            with _lock:
+                jobs = [{"job_id": j["job_id"], "status": j["status"], "domain": j.get("domain"),
+                         "age_sec": int(time.time() - j.get("created_at", time.time())),
+                         "queue_pos": None} for j in _jobs.values()]
+            jobs.sort(key=lambda j: j["age_sec"], reverse=True)
+            return self._send(200, {"ok": True, "queued": _queue.qsize(), "jobs": jobs})
         m = re.fullmatch(r"/jobs/([a-f0-9-]{16,})", path)
         if m:
             if not self._auth():
@@ -206,6 +249,20 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):  # noqa: N802
+        cancel = re.fullmatch(r"/jobs/([a-f0-9-]{16,})/cancel", self.path.split("?", 1)[0])
+        if cancel:
+            if not self._auth():
+                return self._send(401, {"ok": False, "error": "unauthorized"})
+            job = _jobs.get(cancel.group(1))
+            if job is None:
+                return self._send(404, {"ok": False, "error": "job not found"})
+            proc = job.get("_proc")
+            if proc is not None and proc.poll() is None:
+                _kill_tree(proc)
+            job["status"] = "failed"
+            job["error"] = "cancelled by operator"
+            _log(job, "!! cancelled by operator")
+            return self._send(200, {"ok": True, "job_id": job["job_id"], "status": job["status"]})
         if self.path.split("?", 1)[0] != "/build":
             return self._send(404, {"ok": False, "error": "not found"})
         if not self._auth():
