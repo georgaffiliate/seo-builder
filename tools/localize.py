@@ -263,6 +263,24 @@ def translate(cfg, key, use_http, lang, payload: dict, passes: int = 2,
                 break
             print(f"  · repair pass {attempt + 1} ({len(errs)} issues)")
         out.update({k: v for k, v in got.items() if k in part and isinstance(v, str)})
+
+    # self-heal before giving up: a whole chunk sometimes fails on one stubborn string,
+    # while the same string alone goes through — retry the leftovers one by one
+    bad = sorted({e.split(":")[0] for e in validate(payload, out, lang, brand, domain)})
+    for path in bad[:40]:
+        if path not in payload:
+            continue
+        single = {path: payload[path]}
+        for _ in range(2):
+            try:
+                got = ask(cfg, key, use_http, lang, single, None, brand)
+            except Exception:
+                break
+            if path in got and isinstance(got[path], str) and not validate(
+                    single, {path: got[path]}, lang, brand, domain):
+                out[path] = got[path]
+                print(f"  · rescued {path} with a single-string retry")
+                break
     return out, validate(payload, out, lang, brand, domain)
 
 

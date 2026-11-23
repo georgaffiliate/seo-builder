@@ -1019,7 +1019,7 @@ def content_route(plan_data: dict, offline: bool = False, translate: bool = Fals
     return "localize" if translate else "invent"
 
 
-def run_build(domain, force, with_llm=False, offline=False, translate=False):
+def run_build(domain, force, with_llm=False, offline=False, translate=False, ship_anyway=False):
     """content → assemble(+gates) → icons → js syntax → mobile lint → profile. Deploy stays manual."""
     plan = PLANS / f"{domain}.json"
     content = ROOT / "content" / f"{domain}-content.json"
@@ -1056,10 +1056,10 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False):
                              "--plan", str(plan), "--content", str(content),
                              "--lang", lang], cwd=str(ROOT)).returncode
         if rc != 0:
-            # never leave the user without a site: the master copy is complete, it is
-            # just in English — ship it and say so loudly
-            print(f"! localization failed — the site will be built from the English master")
-            print(f"! run tools/localize.py again to get the {lang} version")
+            if not ship_anyway:
+                print(f"✗ translation to {lang} failed — fix the pack or rerun with --ship-anyway")
+                sys.exit(rc)
+            print("! localization failed — building from the English master (--ship-anyway)")
     elif route == "bank":
         cmd = [sys.executable, str(ROOT / "tools" / "content_gen.py"),
                "--plan", str(plan), "--out", str(content)]
@@ -1069,20 +1069,14 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False):
 
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
     rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
-    if rc != 0:
-        # second pass: ship what we have, listing the remaining issues as warnings
+    if rc != 0 and ship_anyway:
         print("! gates failed — retrying in ship-anyway mode (issues become warnings)")
         rc = subprocess.run(asm_cmd + ["--ship-anyway"], cwd=str(ROOT)).returncode
     if rc != 0:
-        # last resort: the content pack itself is broken — rebuild it from the English
-        # bank and ship anyway, so the user always ends up with a working folder
-        print("! content pack rejected — rebuilding it from the English bank, then shipping")
-        subprocess.run([sys.executable, str(ROOT / "tools" / "content_gen.py"),
-                        "--plan", str(plan), "--out", str(content), "--force"],
-                       cwd=str(ROOT))
-        step_run("ASSEMBLE (fallback content)",
-                 [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan),
-                  "--content", str(content), "--ship-anyway"])
+        # errors stay errors while the factory is being tested: a shipped page with a
+        # known defect is worse than a red build
+        print("✗ build failed — see the issues above (use --ship-anyway to publish anyway)")
+        sys.exit(rc)
     step_run("BRAND ICONS", [sys.executable, str(ROOT / "tools" / "brand_icons.py"),
                              "--plan", str(plan), "--site", str(site)])
 
@@ -1119,6 +1113,9 @@ def main():
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--offline",action="store_true",
                     help="build copy from the language bank only (tests / no API key)")
+    ap.add_argument("--ship-anyway",action="store_true",
+                    help="publish even when the gates still list issues (they become WARN); "
+                         "off by default — a red build is better than a broken page")
     ap.add_argument("--translate",action="store_true",
                     help="English master copy + translation instead of the model writing "
                          "the copy itself (cheaper, structure guaranteed)")
@@ -1180,8 +1177,10 @@ def main():
     if a.llm_provider:
         os.environ["LLM_PROVIDER"] = a.llm_provider
     if a.with_llm:
-        run_build(a.domain, a.force, offline=a.offline, translate=a.translate)
+        run_build(a.domain, a.force, offline=a.offline, translate=a.translate,
+                  ship_anyway=a.ship_anyway)
     elif a.build:
-        run_build(a.domain, a.force, offline=a.offline, translate=a.translate)
+        run_build(a.domain, a.force, offline=a.offline, translate=a.translate,
+                  ship_anyway=a.ship_anyway)
 
 if __name__=="__main__": main()
