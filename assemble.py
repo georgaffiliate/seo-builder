@@ -1158,7 +1158,7 @@ def footer_html(plan, C):
             f'<span>{esc(risk)}</span></div></footer>')
 
 
-def build_header_footer(plan, C):
+def build_header_footer(plan, C, current=""):
     brand = plan["params"]["brand"]; slugs = plan["layout"].get("slugs", {})
     lang = plan["params"].get("lang", "en")
     menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
@@ -1168,7 +1168,10 @@ def build_header_footer(plan, C):
              (page_nav_label(plan, C, "about"), f"{slugs.get('about','about')}.php"),
              (page_nav_label(plan, C, "who"), f"{slugs.get('who','who')}.php"),
              (page_nav_label(plan, C, "contact"), f"{slugs.get('contact','contact')}.php")]
-    nav = "".join(f'<a href="{h}">{esc(t)}</a>' for t, h in pairs)
+    def nav_link(t, h):
+        cur = ' aria-current="page"' if h == current else ""
+        return f'<a href="{h}"{cur}>{esc(t)}</a>'
+    nav = "".join(nav_link(t, h) for t, h in pairs)
     livebar = R("livebar", plan, C)
     ui = C.get("ui") or {}
     hv = (plan["layout"].get("variants") or {}).get("header", "")
@@ -1177,7 +1180,10 @@ def build_header_footer(plan, C):
         "nav": f'<nav class="blk-nav" aria-label="{esc(ui.get("aria_nav") or "Main")}">{nav}</nav>',
         "cta": f'<a class="blk-btn" href="index.php#claim">{esc(C["bands"].get("submit_nav", "Open account"))}</a>',
         "toggle": f'<button class="menu-toggle" aria-label="{esc(ui.get("aria_menu") or "Menu")}" '
-                  f'aria-expanded="false">☰</button>',
+                  f'aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+                  f'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">'
+                  f'<path class="i-burger" d="M4 7h16M4 12h16M4 17h16"/>'
+                  f'<path class="i-close" d="M6 6l12 12M18 6L6 18"/></svg></button>',
     }
     order = {
         "": ("logo", "nav", "cta", "toggle"),
@@ -1190,6 +1196,9 @@ def build_header_footer(plan, C):
         "h": ("logo", "cta", "nav", "toggle"),
         "i": ("logo", "cta", "nav", "toggle"),
         "j": ("nav", "cta", "logo", "toggle"),
+        "k": ("logo", "nav", "cta", "toggle"),
+        "l": ("logo", "nav", "cta", "toggle"),
+        "m": ("logo", "nav", "cta", "toggle"),
     }.get(hv, ("logo", "nav", "cta", "toggle"))
     header = f'<header class="blk-header" data-var="{hv or "a"}">' + "\n".join(parts[k] for k in order) + "</header>"
     return livebar, header, footer_html(plan, C)
@@ -1223,7 +1232,7 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
             die(f"variant fragment missing: {canon}-{var}.html")
     locale = plan["params"].get("locale") or \
         plan["params"]["lang"] + "-" + plan["params"]["lang"].upper()
-    livebar, header, footer = build_header_footer(plan, C)
+    livebar, header, footer = build_header_footer(plan, C, "index.php")
     body_parts = [livebar, header, "<main>"]
     SLOT_REMAP = {  # sections sharing schema intro key -> distinct content paths
         "stats-intro": "sections.stats.", "intro-center": "sections.ladder.",
@@ -1344,7 +1353,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     slugs = plan["layout"].get("slugs", {})
     skeleton = plan.get("inner_pages", {}).get(which, ["page-intro", "editorial", "cta"])
     cp = C.get(f"inner_{which}", {})
-    livebar, header, footer = build_header_footer(plan, C)
+    livebar, header, footer = build_header_footer(plan, C, f"{slugs.get(which, which)}.php")
     body_parts = [livebar, header, "<main>"]
     eyebrow_raw = re.sub(rf"\s*[—–-]\s*{re.escape(brand)}\s*$", "",
                          str(cp.get("title") or "").strip(), flags=re.I).strip()

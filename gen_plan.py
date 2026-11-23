@@ -97,7 +97,9 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     # for historical plans but are never picked for a new site.
     "livebar": ["a", "f", "j", "k", "m", "n", "t", "z", "ac", "ad", "ae", "af"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
-    "header": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    # b (logo + CTA in the middle of the row) is retired: the CTA landed between
+    # the mark and the menu. It still renders for historical plans, never picked.
+    "header": ["c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"],
     "form": ["b", "c", "d"],
     "footer": ["b", "c", "d", "e", "f"],
 }
