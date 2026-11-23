@@ -196,6 +196,10 @@ def _faq_errs(pl, ans):
     return [e for e in _asm3.validate_content(pack, pl, strict=True) if "faq answer" in e]
 chk(not _faq_errs(_ja_plan, _ja_ans) and _faq_errs(_en_plan, "Too short."),
     "FAQ length threshold follows the script")
+# page-level figures (numbers band) follow the language too
+chk(_asm3.fmt_int(1234, "ja") == "1,234" and _asm3.fmt_int(1234, "de") == "1.234"
+    and _asm3.api_uptime("ja") == "99.9%" and _asm3.api_uptime("de") == "99,9%",
+    "numbers band figures follow the language separators")
 # money follows the language and the currency (yen never gets cents)
 import content_gen as _cgen
 chk(_cgen.fmt_amount(1234.5, "EUR", True, "de") == "1.234,50"

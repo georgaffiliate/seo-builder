@@ -32,7 +32,30 @@ PEOPLE_DIR = ROOT / "people"
 POSTBACK_SRC = ROOT / "_postback.php"
 
 BUILD_V = "0"
-API_UPTIME = "99,9%"
+COMMA_DECIMAL = {
+    "it", "de", "es", "fr", "pl", "cs", "sk", "sl", "hr", "hu", "ro", "bg", "tr",
+    "pt", "nl", "da", "nb", "no", "sv", "fi", "et", "lv", "lt", "el", "uk", "ru",
+    "sr", "mk", "bs", "sq", "az", "ka", "ca",
+}
+
+
+def num_sep(lang: str) -> tuple[str, str]:
+    """(thousands, decimal) for the site language — ja/en use 1,234.56, de/tr 1.234,56."""
+    lang = (lang or "en").lower()
+    if lang in COMMA_DECIMAL:
+        return (".", ",")
+    return (",", ".")
+
+
+def fmt_int(v, lang: str = "en") -> str:
+    """1234 → 1,234 (en/ja) / 1.234 (de/tr) — never a mixed page."""
+    thousands, _ = num_sep(lang)
+    return f"{int(v):,}".replace(",", thousands)
+
+
+def api_uptime(lang: str = "en") -> str:
+    _, dec = num_sep(lang)
+    return f"99{dec}9%"
 REQUIRED_PLAN_KEYS = ["params", "design", "layout", "widgets", "numbers"]
 SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer"}
 
@@ -335,9 +358,6 @@ def ui_defaults(C: dict, plan) -> None:
         if not str(ui.get(key) or "").strip():
             ui[key] = val
 
-def fmt_int(v) -> str:
-    return f"{int(v):,}".replace(",", ".")
-
 def _num(v):
     """'31.500' / '2.930,80' / '41 ms' → float (locale-agnostic)."""
     m = re.search(r"\d[\d\s.,]*", str(v or ""))
@@ -435,9 +455,9 @@ def reconcile_numbers(plan, C: dict) -> None:
         if lat_lbl and key == lat_lbl and n.get("latency_ms"):
             subs[f"LB_S{i}V"] = f"{int(n['latency_ms'])} ms"
         elif ord_lbl and key == ord_lbl and n.get("orders"):
-            subs[f"LB_S{i}V"] = fmt_int(n["orders"])
+            subs[f"LB_S{i}V"] = fmt_int(n["orders"], plan["params"].get("lang", "en"))
         elif key == "api":
-            subs[f"LB_S{i}V"] = API_UPTIME
+            subs[f"LB_S{i}V"] = api_uptime(plan["params"].get("lang", "en"))
     # instrument quotes: the content rows (ticker/markets) win, so the strip agrees
     rows = ((C.get("sections") or {}).get("markets") or {}).get("rows") or []
     pairs = [(r, _sym_pair(r.get("sym"))) for r in rows if isinstance(r, dict) and r.get("sym")]
@@ -682,7 +702,7 @@ def seed_content(plan: dict) -> dict:
                   "lead": "Placeholder lead — replace via content pack.",
                   "secondary": "", "cta_primary": "Start", "cta_secondary": "More",
                   "stats": [{"v": n.get("rating","4,7"), "l": "rating"},
-                             {"v": f'{n.get("users",12500):,}'.replace(",", "."), "l": "users"},
+                             {"v": fmt_int(n.get("users", 12500), plan["params"].get("lang", "en")), "l": "users"},
                              {"v": f"{n.get('latency_ms',52)} ms", "l": "latency"}],
                   "device_bal": "€0,00", "device_delta": "↗ placeholder", "device_rows": []},
         "bands": {"mid_eyebrow": "ACCESS", "mid_h2": "Get access", "mid_lead": "Leave details.",
@@ -912,13 +932,14 @@ def R(name: str, plan, C, **kw) -> str:
         "{{BRAND}}": plan["params"]["brand"], "{{DOMAIN}}": plan["params"]["domain"],
         "{{GEO_SHORT}}": plan["params"].get("geo_short", ""),
         "{{LATENCY}}": str(plan["numbers"].get("latency_ms", 52)),
-        "{{API_UPTIME}}": API_UPTIME,
+        "{{API_UPTIME}}": api_uptime(plan["params"].get("lang", "en")),
         "{{ORDERS}}": fmt_int(plan["numbers"].get("orders")
-                              or (plan["numbers"].get("users", 12500) // 4)),
+                              or (plan["numbers"].get("users", 12500) // 4),
+                              plan["params"].get("lang", "en")),
         "{{GEO}}": plan["params"].get("geo", ""), "{{RATING}}": str(plan["numbers"].get("rating", "4,7")),
         "{{SEED}}": str(plan.get("seed", "")),
-        "{{REVIEWS}}": f"{plan['numbers'].get('reviews', 641):,}".replace(",", "."),
-        "{{USERS}}": f"{plan['numbers'].get('users', 12500):,}".replace(",", "."),
+        "{{REVIEWS}}": fmt_int(plan["numbers"].get("reviews", 641), plan["params"].get("lang", "en")),
+        "{{USERS}}": fmt_int(plan["numbers"].get("users", 12500), plan["params"].get("lang", "en")),
     }
     if name == "pulse-sim":
         for k, v in ((plan.get("pulse_sim") or {}).get("subs") or {}).items():

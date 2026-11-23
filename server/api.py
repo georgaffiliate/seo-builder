@@ -120,8 +120,10 @@ def _execute(job: dict) -> None:
     cmd = [sys.executable, str(ROOT / "gen_plan.py"),
            "--brand", req["brand"], "--lang", req["lang"], "--domain", domain]
     for flag, key in (("--geo", "geo"), ("--cc", "cc"), ("--currency", "currency")):
-        if req.get(key):
-            cmd += [flag, str(req[key])]
+        val = req.get(key)
+        # "auto" (or nothing) means "let the country decide": JP→JPY, GB→GBP, …
+        if val and str(val).lower() != "auto":
+            cmd += [flag, str(val)]
     if req.get("seed"):
         cmd += ["--seed", str(req["seed"])]
     if req.get("calculator") in ("on", "off"):
