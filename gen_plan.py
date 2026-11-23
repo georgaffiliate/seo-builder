@@ -97,6 +97,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "livebar": ["a", "f", "j", "k", "m", "n", "t", "z", "ac"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
     "header": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    "form": ["b", "c", "d"],
     "footer": ["b", "c", "d", "e", "f"],
 }
 
@@ -380,14 +381,15 @@ def build_plan(rng, args, hist)->dict|None:
         g=WIDGET_GROUPS[rng.choice(sorted(WIDGET_GROUPS))]
         widgets[g]=rng.choice(WIDGET_GROUPS[g]); tries+=1
 
-    if getattr(args, "calculator", "auto") == "on":
-        widgets["G3"] = "calculator"
+    # the projection calculator is a permanent screen (like the reviews): every offer
+    # carries it unless the plan explicitly switches it off or a simulator is forced
+    if getattr(args, "calculator", "auto") == "off":
+        if widgets["G3"] == "calculator":
+            widgets["G3"] = "demo-line"
     elif getattr(args, "pulse", "auto") == "on":
         widgets["G3"] = "pulse-sim"
-    elif getattr(args, "calculator", "auto") == "off" and widgets["G3"] == "calculator":
-        widgets["G3"] = "demo-line"
-    elif getattr(args, "pulse", "auto") == "off" and widgets["G3"] == "pulse-sim":
-        widgets["G3"] = "demo-line"
+    else:
+        widgets["G3"] = "calculator"
 
     # section order: prefer slot TYPES unused by neighbours and same-brand siblings,
     # hard structural caps. hero + form band are the only fixed screens; everything
@@ -477,6 +479,7 @@ def build_plan(rng, args, hist)->dict|None:
     # offers instead of only avoiding the single most recent plan
     variants["header"]=pick_variant(rng, "header", VARIANTS["header"], hist, 5)
     variants["footer"]=pick_variant(rng, "footer", VARIANTS["footer"], hist, 5)
+    variants["form"]=pick_variant(rng, "form", VARIANTS["form"], hist, 2)
     livebar=build_livebar(rng, variants["livebar"], args.lang,
                           (args.cc or LANG2CC.get(args.lang,"")).upper())
     # people-e is a rating-summary screen: same stat family as the numbers screen — never both
@@ -979,6 +982,8 @@ def validate(plan,hist)->list[str]:
         errs.append("more than one Q/A screen")
     if "numbers" in lay["section_order"] and "stats-intro" in lay["section_order"]:
         errs.append("numbers and stats-intro together")
+    if plan.get("widgets", {}).get("G3") == "calculator" and "calculator" not in lay["section_order"]:
+        errs.append("calculator missing (G3 is the calculator)")
     for h in hist[-3:]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.65:
             errs.append(f"section inventory too close to {h['domain']}"); break

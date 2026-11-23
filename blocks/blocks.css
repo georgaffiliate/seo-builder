@@ -343,6 +343,37 @@ button,input,textarea,select{font:inherit;color:inherit}
 .pay-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .pay-chips span{font-size:10px;padding:5px 11px;background:var(--bg-soft);border-radius:var(--r-pill);color:var(--muted-text)}
 
+/* form layout axis (data-form on the band): same fields, same contract, different
+   arrangement — the form used to look identical on every offer */
+.sec-band[data-form="b"] .lead-form{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px}
+.sec-band[data-form="b"] .lead-form>h3,
+.sec-band[data-form="b"] .lead-form>p:not(.form-status),
+.sec-band[data-form="b"] .form-submit,
+.sec-band[data-form="b"] .form-consent,
+.sec-band[data-form="b"] .pay-chips,
+.sec-band[data-form="b"] .form-status{grid-column:1/-1}
+
+.sec-band[data-form="c"] .lead-form{gap:18px}
+.sec-band[data-form="c"] .lead-form .form-group input{border:0;border-bottom:1px solid var(--line);
+  border-radius:0;background:transparent;padding-inline:2px}
+.sec-band[data-form="c"] .lead-form .form-submit{width:auto;justify-self:start;padding-inline:30px}
+
+.sec-band[data-form="d"] .lead-form{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;
+  border-left:3px solid var(--acc);padding-left:18px}
+.sec-band[data-form="d"] .lead-form .form-group:nth-of-type(n+3),
+.sec-band[data-form="d"] .lead-form>h3,
+.sec-band[data-form="d"] .lead-form>p:not(.form-status),
+.sec-band[data-form="d"] .form-submit,
+.sec-band[data-form="d"] .form-consent,
+.sec-band[data-form="d"] .pay-chips,
+.sec-band[data-form="d"] .form-status{grid-column:1/-1}
+@media(max-width:700px){
+  .sec-band[data-form="b"] .lead-form,
+  .sec-band[data-form="d"] .lead-form{grid-template-columns:minmax(0,1fr)}
+  .sec-band[data-form="d"] .lead-form{padding-left:14px}
+  .sec-band[data-form="c"] .lead-form .form-submit{width:100%;justify-self:stretch}
+}
+
 /* ------------------------------ content sections ------------------------ */
 .blk-center{text-align:center;max-width:760px;margin-inline:auto}
 .blk-center .eyebrow{justify-content:center}

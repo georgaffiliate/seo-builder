@@ -57,7 +57,8 @@ def api_uptime(lang: str = "en") -> str:
     _, dec = num_sep(lang)
     return f"99{dec}9%"
 REQUIRED_PLAN_KEYS = ["params", "design", "layout", "widgets", "numbers"]
-SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer"}
+SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer", "form"}
+FORM_BANDS = {"access-band", "claim-band", "enroll-band"}
 
 # footer legal labels + rights line per geo language (fallback English)
 FOOTER_L10N = {
@@ -976,6 +977,10 @@ def R(name: str, plan, C, **kw) -> str:
             return ""
         return str(node)
     out = re.sub(r"\{\{c:([\w.]+)\}\}", fill, out)
+    fv = (plan["layout"].get("variants") or {}).get("form") or ""
+    if name in FORM_BANDS and fv:
+        # form layout axis: same contract, different field arrangement (CSS)
+        out = re.sub(r"<section\b([^>]*)>", rf'<section\1 data-form="{fv}">', out, count=1)
     # a content pack with empty strings left blank <p>/<h2> blocks that rendered as
     # pure whitespace sections on live sites — strip elements that stayed empty.
     # Elements carrying role/data/id/aria (e.g. form-status container) are intentional
