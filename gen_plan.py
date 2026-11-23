@@ -381,15 +381,16 @@ def build_plan(rng, args, hist)->dict|None:
         g=WIDGET_GROUPS[rng.choice(sorted(WIDGET_GROUPS))]
         widgets[g]=rng.choice(WIDGET_GROUPS[g]); tries+=1
 
-    # the projection calculator is a permanent screen (like the reviews): every offer
-    # carries it unless the plan explicitly switches it off or a simulator is forced
-    if getattr(args, "calculator", "auto") == "off":
-        if widgets["G3"] == "calculator":
-            widgets["G3"] = "demo-line"
+    # calculator / pulse-sim are G3 draws, not permanent screens — the plan forces one
+    # only when asked (--calculator on|off, --pulse on|off)
+    if getattr(args, "calculator", "auto") == "on":
+        widgets["G3"] = "calculator"
     elif getattr(args, "pulse", "auto") == "on":
         widgets["G3"] = "pulse-sim"
-    else:
-        widgets["G3"] = "calculator"
+    elif getattr(args, "calculator", "auto") == "off" and widgets["G3"] == "calculator":
+        widgets["G3"] = "demo-line"
+    elif getattr(args, "pulse", "auto") == "off" and widgets["G3"] == "pulse-sim":
+        widgets["G3"] = "demo-line"
 
     # section order: prefer slot TYPES unused by neighbours and same-brand siblings,
     # hard structural caps. hero + form band are the only fixed screens; everything
@@ -982,8 +983,6 @@ def validate(plan,hist)->list[str]:
         errs.append("more than one Q/A screen")
     if "numbers" in lay["section_order"] and "stats-intro" in lay["section_order"]:
         errs.append("numbers and stats-intro together")
-    if plan.get("widgets", {}).get("G3") == "calculator" and "calculator" not in lay["section_order"]:
-        errs.append("calculator missing (G3 is the calculator)")
     for h in hist[-3:]:
         if h["order"] and jac(types,types_of(h["order"]))>=0.65:
             errs.append(f"section inventory too close to {h['domain']}"); break

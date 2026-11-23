@@ -68,24 +68,16 @@ chk(_sa2.audit_review_avatars(_clone_html) == ["img/p-men-63.jpg"],
 _dup = ('<p>The same long paragraph that must appear only once in the final page.</p>'
         '<article aria-hidden="true"><p>The same long paragraph that must appear only once in the final page.</p></article>'
         '<p>The same long paragraph that must appear only once in the final page.</p>')
-# the calculator (with its projection) is permanent, and the form has layout variants
+# form layout is its own axis
 _cf_plan = ROOT / "plans" / "selftest-calc.site.json"
-for _dom, _args in (("selftest-calc.site", []), ("selftest-nocalc2.site", ["--calculator", "off"])):
-    __import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "CalcPerm",
-                                  "--lang", "it", "--domain", _dom, "--seed", "909", "--force"]
-                                 + _args, capture_output=True, cwd=ROOT)
-_cfp = ROOT / "plans" / "selftest-calc.site.json"
-_nop = ROOT / "plans" / "selftest-nocalc2.site.json"
-_cd = json.loads(_cfp.read_text()) if _cfp.exists() else {}
-_nd = json.loads(_nop.read_text()) if _nop.exists() else {}
-chk("calculator" in _cd.get("layout", {}).get("section_order", [])
-    and _cd.get("widgets", {}).get("G3") == "calculator"
-    and "calculator" not in _nd.get("layout", {}).get("section_order", []),
-    "calculator is permanent (opt-out only)")
+__import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "FormAxis",
+                              "--lang", "it", "--domain", "selftest-calc.site",
+                              "--seed", "909", "--force"], capture_output=True, cwd=ROOT)
+_cd = json.loads(_cf_plan.read_text()) if _cf_plan.exists() else {}
 chk(_cd.get("layout", {}).get("variants", {}).get("form") in ("", "b", "c", "d"),
     "form layout variant chosen")
-for _f in (_cfp, _nop):
-    _f.unlink(missing_ok=True)
+_cf_plan.unlink(missing_ok=True)
+
 # every offer carries the reviews screen (social proof is not a rotation option)
 _pp2 = ROOT / "plans" / "selftest-people.site.json"
 __import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "PeopleSel",
