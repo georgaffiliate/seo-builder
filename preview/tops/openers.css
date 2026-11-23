@@ -1,0 +1,65 @@
+/* ---- opener widgets -------------------------------------------------------
+   Preview-only for now: the strip can open with data, with the label on the
+   right, or with one small widget. Every widget stays on the strip's single
+   line (<=34px), uses tabular numbers and inherits the palette. */
+
+.blk-livebar .lb-w{display:inline-flex;align-items:baseline;gap:7px;flex:none;white-space:nowrap;
+  padding-right:14px;border-right:1px solid rgba(255,255,255,.18);color:inherit}
+.blk-livebar.lb-ledger .lb-w{border-right-color:color-mix(in srgb,var(--line) 90%,transparent)}
+.blk-livebar .lb-w b{font-size:11px;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.blk-livebar.lb-ledger .lb-w b{color:var(--ink)}
+.blk-livebar .lb-w small{font-size:8.5px;letter-spacing:.1em;opacity:.62}
+.blk-livebar.lb-ledger .lb-w small{color:var(--muted-text);opacity:1}
+
+/* clock — local time of the desk, no data needed */
+.blk-livebar .lb-w-clock b{font-size:12.5px;letter-spacing:.06em}
+
+/* session state + countdown — one honest line from the trading calendar */
+.blk-livebar .lb-w-live b{letter-spacing:.08em}
+.blk-livebar .lb-w-live small{text-transform:none;letter-spacing:.02em}
+
+/* headline — a sentence instead of metrics; truncates, never wraps */
+.blk-livebar .lb-w-head{gap:9px;min-width:0}
+.blk-livebar .lb-w-head .tag{font-size:8px;font-weight:800;letter-spacing:.12em;
+  color:var(--acc-ondark,var(--acc));border:1px solid currentColor;padding:1px 5px;border-radius:2px}
+.blk-livebar.lb-ledger .lb-w-head .tag{color:var(--acc-text,var(--acc))}
+.blk-livebar .lb-w-head b{font-weight:600;font-size:10.5px;text-transform:none;letter-spacing:.01em;
+  overflow:hidden;text-overflow:ellipsis;max-width:40ch}
+
+/* spark — the only opener that starts with a shape, not a word */
+.blk-livebar .lb-w-spark svg{width:46px;height:14px;flex:none;align-self:center}
+.blk-livebar .lb-w-spark polyline{fill:none;stroke:var(--up-ondark,var(--up));stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.blk-livebar.lb-ledger .lb-w-spark polyline{stroke:var(--up-text,var(--up))}
+.blk-livebar .lb-w-spark small{color:var(--up-ondark,var(--up))}
+.blk-livebar.lb-ledger .lb-w-spark small{color:var(--up-text,var(--up))}
+
+@media (max-width:760px){
+  .blk-livebar .lb-w{padding-right:10px;gap:5px}
+  .blk-livebar .lb-w-head b{max-width:12ch}
+  .blk-livebar .lb-w-spark svg{display:none}
+  .blk-livebar .lb-w-clock small{display:none}
+  .blk-livebar .lb-w-live small{display:none}
+  /* the opener costs room on a 390px strip: show fewer figures, never clip */
+  .blk-livebar[data-open="label-end"] .lb-li:nth-child(n+3),
+  .blk-livebar[data-open="none"] .lb-li:nth-child(n+3),
+  .blk-livebar[data-open="clock"] .lb-li:nth-child(n+3),
+  .blk-livebar[data-open="spark"] .lb-li:nth-child(n+3),
+  .blk-livebar[data-open="session"] .lb-li:nth-child(n+2),
+  .blk-livebar[data-open="headline"] .lb-li:nth-child(n+2){display:none}
+}
+
+/* a widget costs ~200px, so the fixed-row bodies drop their tail instead of
+   clipping it; tapes and marquees simply run shorter */
+.blk-livebar[data-open="clock"] .lb-li:nth-child(n+5),
+.blk-livebar[data-open="clock"] .lb-meter:nth-child(n+6),
+.blk-livebar[data-open="clock"] .lb-cell:nth-child(n+6),
+.blk-livebar[data-open="session"] .lb-li:nth-child(n+5),
+.blk-livebar[data-open="session"] .lb-meter:nth-child(n+6),
+.blk-livebar[data-open="session"] .lb-cell:nth-child(n+6),
+.blk-livebar[data-open="headline"] .lb-li:nth-child(n+5),
+.blk-livebar[data-open="headline"] .lb-meter:nth-child(n+6),
+.blk-livebar[data-open="headline"] .lb-cell:nth-child(n+6),
+.blk-livebar[data-open="spark"] .lb-li:nth-child(n+5),
+.blk-livebar[data-open="spark"] .lb-meter:nth-child(n+6),
+.blk-livebar[data-open="spark"] .lb-cell:nth-child(n+6){display:none}
