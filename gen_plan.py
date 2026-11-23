@@ -464,7 +464,21 @@ def build_plan(rng, args, hist)->dict|None:
 
     # vertical variants: most slots deviate from neighbours, canonical stays possible
     variants={}
-    used_var={s:{h["variants"].get(s,"") for h in hist[-3:]} for s in VARIANTS}
+    BAND_SLOTS = ("access-band", "claim-band", "enroll-band")
+
+    def _hist_variant(h, slot):
+        """Variant a plan used for this slot. The three form-band names render the SAME
+        fragment family, so a sibling's 'claim-band: c' must block 'access-band: c'."""
+        hv = h.get("variants") or {}
+        if slot in hv:
+            return hv.get(slot, "")
+        if slot in BAND_SLOTS:
+            for b in BAND_SLOTS:
+                if b in hv:
+                    return hv.get(b, "")
+        return ""
+
+    used_var={s:{_hist_variant(h, s) for h in hist[-3:]} for s in VARIANTS}
     for slot in order:
         opts=VARIANTS.get(slot)
         if not opts: continue
