@@ -149,9 +149,19 @@ NUM_BINS = {
     "latency": [(36,45),(45,52),(52,60),(60,70)],
     "ratings": ["4,5","4,6","4,7","4,8"],
 }
+CC_CURRENCY = {"JP": "JPY", "KR": "KRW", "IN": "INR", "BR": "BRL", "MX": "MXN",
+               "PE": "PEN", "ZA": "ZAR", "NG": "NGN", "KE": "KES", "MY": "MYR",
+               "SG": "SGD", "HK": "HKD", "PH": "PHP", "CA": "CAD", "AU": "AUD",
+               "NZ": "NZD", "GB": "GBP", "IE": "EUR", "CH": "CHF", "TR": "TRY",
+               "GE": "GEL", "AZ": "AZN", "IL": "ILS", "TH": "THB", "AE": "AED",
+               "US": "USD", "CN": "CNY", "PL": "PLN", "CZ": "CZK", "HU": "HUF",
+               "SE": "SEK", "NO": "NOK", "DK": "DKK", "RO": "RON", "BG": "BGN"}
+
 LANG2CC = {"it":"IT","pl":"PL","cs":"CZ","sk":"SK","hu":"HU","nl":"NL","sl":"SI","de":"DE",
             "fr":"FR","es":"ES","pt":"PT","ro":"RO","bg":"BG","el":"GR","sv":"SE","da":"DK",
-            "fi":"FI","nb":"NO","nn":"NO","et":"EE","lv":"LV","lt":"LT","en":"GB"}
+            "fi":"FI","nb":"NO","nn":"NO","et":"EE","lv":"LV","lt":"LT","en":"GB",
+            "ja":"JP","ko":"KR","hi":"IN","ms":"MY","tl":"PH","zh":"CN","th":"TH",
+            "he":"IL","ka":"GE","az":"AZ","uk":"UA","sr":"RS","hr":"HR","tr":"TR"}
 
 # ---------------------------------------------------------------- helpers ----
 def rng_from(seed:int)->random.Random: return random.Random(seed)
@@ -1137,7 +1147,9 @@ def main():
     ap.add_argument("--brand",required=True); ap.add_argument("--lang",required=True)
     ap.add_argument("--domain",required=True); ap.add_argument("--geo",default="")
     ap.add_argument("--cc",default="",help="ISO country override (NO/IT/…); default: from --lang")
-    ap.add_argument("--currency",default="EUR"); ap.add_argument("--seed",type=int,default=0)
+    ap.add_argument("--currency",default="",
+                    help="ISO currency; default follows the country (JPY for JP, GBP for GB, …)")
+    ap.add_argument("--seed",type=int,default=0)
     ap.add_argument("--force",action="store_true")
     ap.add_argument("--calculator",choices=("auto","on","off"),default="auto",
                     help="calculator (G3 widget): on/off forces it, auto follows the G3 draw")
@@ -1160,6 +1172,9 @@ def main():
                     help="transport for --with-llm (default auto: HTTP when key exists)")
     a=ap.parse_args()
     a.lang = LANG_ALIASES.get(a.lang.lower(), a.lang.lower())
+    a.cc = (a.cc or LANG2CC.get(a.lang, "")).upper()
+    if not a.currency:
+        a.currency = CC_CURRENCY.get(a.cc, "EUR")
     if not a.seed:
         a.seed=int(hashlib.sha256((a.domain+a.brand).encode()).hexdigest()[:8],16)%10_000_000
     hist0=[h for h in load_history() if h["domain"]!=a.domain]

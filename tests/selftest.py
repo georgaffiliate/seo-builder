@@ -174,6 +174,15 @@ chk(_gp.decimal_comma("tr") and _gp.decimal_comma("de") and _gp.decimal_comma("f
     and not _gp.decimal_comma("en") and not _gp.decimal_comma("ja")
     and _gp._fmt_num(1234.5, "tr") == "1.234,50" and _gp._fmt_num(1234.5, "en") == "1,234.50",
     "decimal separators follow the plan language")
+# money follows the language and the currency (yen never gets cents)
+import content_gen as _cgen
+chk(_cgen.fmt_amount(1234.5, "EUR", True, "de") == "1.234,50"
+    and _cgen.fmt_amount(1234.5, "EUR", True, "en") == "1,234.50"
+    and _cgen.fmt_amount(41250, "JPY", False, "ja") == "41,250"
+    and _cgen.fmt_amount(41250, "JPY", True, "ja") == "41,250",
+    "money formatting follows language and currency")
+chk(_gp.CC_CURRENCY.get("JP") == "JPY" and _gp.CC_CURRENCY.get("GB") == "GBP",
+    "currency defaults to the country")
 chk(_gp.LANG_ALIASES.get("gb") == "en" and _gp.LANG_ALIASES.get("mx") == "es"
     and _gp.LANG_ALIASES.get("si") == "sl",
     "country codes resolve to a language")

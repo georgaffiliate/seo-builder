@@ -21,7 +21,12 @@ PHONE_CC = {"IT": "+39 ", "CZ": "+420 ", "SK": "+421 ", "PL": "+48 ", "DE": "+49
             "AT": "+43 ", "FR": "+33 ", "BE": "+32 ", "NL": "+31 ", "ES": "+34 ",
             "PT": "+351 ", "HU": "+36 ", "RO": "+40 ", "BG": "+359 ", "GR": "+30 ",
             "HR": "+385 ", "SI": "+386 ", "LT": "+370 ", "LV": "+371 ", "EE": "+372 ",
-            "FI": "+358 ", "SE": "+46 ", "DK": "+45 ", "NO": "+47 ", "IE": "+353 "}
+            "FI": "+358 ", "SE": "+46 ", "DK": "+45 ", "NO": "+47 ", "IE": "+353 ",
+            "GB": "+44 ", "CH": "+41 ", "TR": "+90 ", "JP": "+81 ", "KR": "+82 ",
+            "IN": "+91 ", "BR": "+55 ", "MX": "+52 ", "PE": "+51 ", "ZA": "+27 ",
+            "NG": "+234 ", "KE": "+254 ", "MY": "+60 ", "SG": "+65 ", "HK": "+852 ",
+            "PH": "+63 ", "CA": "+1 ", "AU": "+61 ", "GE": "+995 ", "AZ": "+994 ",
+            "IL": "+972 ", "NZ": "+64 ", "US": "+1 ", "TH": "+66 ", "AE": "+971 "}
 ZIP_RE = re.compile(r"^[A-Za-z0-9 -]{2,8}$")
 # captions that advertise a mock panel as placeholder data (mirrored in tools/seo_audit.py)
 PLACEHOLDER_NOTE = re.compile(
@@ -59,13 +64,32 @@ def deep(rng, node, ctx, key=""):
     return pick(rng, node, ctx)
 
 
-def fmt_amount(value: float, cur: str, decimals: bool = False) -> str:
-    thousands = " " if cur in ("HUF", "CZK", "PLN", "SEK", "NOK", "DKK", "RON") else "."
+# languages that write decimals with a comma (mirrors gen_plan.COMMA_DECIMAL)
+COMMA_DECIMAL = {
+    "it", "de", "es", "fr", "pl", "cs", "sk", "sl", "hr", "hu", "ro", "bg", "tr",
+    "pt", "nl", "da", "nb", "no", "sv", "fi", "et", "lv", "lt", "el", "uk", "ru",
+    "sr", "mk", "bs", "sq", "az", "ka", "ca",
+}
+# currencies without minor units
+ZERO_DECIMALS = {"JPY", "KRW", "HUF", "CLP", "VND", "ISK", "PYG", "UGX", "RWF"}
+SPACE_THOUSANDS = {"cs", "pl", "fr", "ru", "uk", "sv", "fi", "no", "nb", "da",
+                   "sl", "hr", "hu", "lv", "lt", "et", "sk"}
+
+
+def fmt_amount(value: float, cur: str, decimals: bool = False, lang: str = "en") -> str:
+    """Money the way the site language writes it: ¥1,234 / €1.234,56 / 1 234,56 €."""
+    lang = (lang or "en").lower()
+    comma = lang in COMMA_DECIMAL
+    if cur in ZERO_DECIMALS:
+        decimals = False
     if cur == "HUF":
-        return f"{int(round(value, -2)):,}".replace(",", " ")
+        body = f"{int(round(value, -2)):,}"
+        return body.replace(",", " ") if comma else body
     body = f"{value:,.2f}" if decimals else f"{value:,.0f}"
+    thousands = " " if (comma and lang in SPACE_THOUSANDS) else ("." if comma else ",")
+    dec = "," if comma else "."
     return (body.replace(",", "T").replace(".", "D")
-                .replace("T", thousands).replace("D", ","))
+                .replace("T", thousands).replace("D", dec))
 
 
 def bank_coverage(bank_all: dict, lang: str) -> tuple[int, list[str]]:
@@ -103,9 +127,10 @@ def merged_bank(bank_all: dict, lang: str) -> dict:
     return _merge(_en, _src) if _src else _en
 
 
-def build(plan: dict, bank_all: dict) -> dict:
+def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     p = plan["params"]
     lang = p["lang"]
+    fmt_lang = fmt_lang or lang          # money/number formatting language
     # never mix two languages on one page: a bank that covers the copy only partly
     # would leave English hero/form/FAQ next to local livebar — refuse and say what to do.
     # A language with no bank at all still falls back to en on purpose (documented policy).
@@ -122,12 +147,17 @@ def build(plan: dict, bank_all: dict) -> dict:
     cc = (p.get("cc") or "").upper()
     cur = (p.get("currency") or "EUR").upper()
     sym = {"EUR": "€", "CZK": "Kč", "PLN": "zł", "HUF": "Ft", "NOK": "kr",
-           "SEK": "kr", "DKK": "kr", "RON": "lei", "BGN": "лв"}.get(cur, cur)
+           "SEK": "kr", "DKK": "kr", "RON": "lei", "BGN": "лв", "GBP": "£",
+           "USD": "$", "CAD": "C$", "AUD": "A$", "NZD": "NZ$", "CHF": "CHF",
+           "JPY": "¥", "CNY": "¥", "KRW": "₩", "INR": "₹", "BRL": "R$",
+           "MXN": "MX$", "PEN": "S/", "ZAR": "R", "NGN": "₦", "KES": "KSh",
+           "MYR": "RM", "SGD": "S$", "HKD": "HK$", "PHP": "₱", "TRY": "₺",
+           "GEL": "₾", "AZN": "₼", "ILS": "₪", "THB": "฿", "AED": "AED"}.get(cur, cur)
     rate = float(bank_all.get("fx", {}).get(cur, 1))
     dep_num = round(250 * rate)
 
     def money(value: float, currency: str, decimals: bool = False) -> str:
-        body = fmt_amount(value, currency, decimals)
+        body = fmt_amount(value, currency, decimals, fmt_lang)
         if currency == "EUR":
             return f"{sym}{body}"
         return f"{body} {sym}" if sym.isalpha() else f"{sym}{body}"
@@ -152,6 +182,16 @@ def build(plan: dict, bank_all: dict) -> dict:
     num = rng.randint(12, 189)
     zipc = (f"{rng.randint(10, 99)}-{rng.randint(100, 999)}" if cc == "PL" else
             f"{rng.randint(1000, 9999)}-{rng.randint(100, 999)}" if cc == "PT" else
+            f"{rng.randint(100, 999)}-{rng.randint(1000, 9999)}" if cc == "JP" else
+            f"{rng.randint(10000, 99999)}-{rng.randint(100, 999)}" if cc == "BR" else
+            (f"{rng.choice('ABCDEFGHJKLMNPRSTUVWXYZ')}{rng.randint(0, 9)}"
+             f"{rng.choice('ABCEGHJKLMNPRSTVXY')} {rng.randint(0, 9)}"
+             f"{rng.choice('ABCEGHJKLMNPRSTVWXYZ')}{rng.randint(0, 9)}")
+            if cc in ("GB", "CA") else
+            f"{rng.randint(100000, 999999)}" if cc == "IN" else
+            f"{rng.randint(1000, 9999)}" if cc in ("ZA", "KE", "HU", "DK", "NO", "SE", "AT", "BE", "CH", "FI") else
+            f"{rng.randint(100000, 999999)}" if cc == "SG" else
+            f"{rng.randint(10000, 99999)}" if cc == "HK" else
             f"{rng.randint(10000, 99999)}" if cc in ("IT", "FR", "DE", "ES", "CZ", "SK", "HU",
                                                      "RO", "BG", "GR", "HR", "SI", "LT", "LV",
                                                      "EE", "FI", "SE", "DK", "NO") else
@@ -502,6 +542,7 @@ def main():
                          "(master English copy for tools/localize.py)")
     a = ap.parse_args()
     plan = json.loads(pathlib.Path(a.plan).read_text(encoding="utf-8"))
+    fmt_lang = plan["params"].get("lang", "en")
     if a.source_lang:
         plan = json.loads(json.dumps(plan))
         plan["params"]["lang"] = a.source_lang
@@ -521,7 +562,7 @@ def main():
     bank_all = json.loads(L10N.read_text(encoding="utf-8"))
     if plan["params"]["lang"] not in bank_all:
         print(f"! no {plan['params']['lang']} bank — falling back to en copy")
-    content = build(plan, bank_all)
+    content = build(plan, bank_all, fmt_lang=fmt_lang)
 
     sys.path.insert(0, str(ROOT))
     import assemble
