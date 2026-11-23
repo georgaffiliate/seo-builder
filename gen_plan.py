@@ -84,7 +84,9 @@ def types_of(order): return {TYPE_OF.get(t, t) for t in order}
 VARIANTS = {  # structural fragment variants per slot ("" = canonical file, always allowed)
     "hero": ["b", "c"], "claim-band": ["b", "c", "d", "e"], "access-band": ["b", "c", "d", "e"],
     "enroll-band": ["b", "c", "d", "e"],
-    "features": ["b", "c"], "people": ["b", "c", "d", "e", "f", "g", "h"], "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
+    "features": ["b", "c"],
+    "people": ["b", "c", "e", "f", "g", "h"],   # d renders quotes without portraits
+    "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
