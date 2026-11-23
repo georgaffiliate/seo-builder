@@ -456,6 +456,37 @@ def build_plan(rng, args, hist)->dict|None:
         for s in ("notes","ticker","streams","glance","timeline"):
             if s not in order: order.append(s)
             if len(order)>=10: break
+    # module screens (portal, facts) sit in the filler pool, so the same "what the
+    # platform gives you" block showed up on offer after offer — rotate them against
+    # the two previous plans and the same-brand sibling
+    _recent = set()
+    for _h in hist[-2:]:
+        _recent |= set(_h.get("order") or [])
+    _sib = next((_h for _h in reversed(hist)
+                 if _h.get("brand") == args.brand.lower() and _h.get("order")), None)
+    if _sib:
+        _recent |= set(_sib["order"])
+    for _slot in ("portal", "facts"):
+        if _slot not in order or _slot not in _recent:
+            continue
+        # first choice: a filler nobody used recently; fallback: any filler not on the
+        # page yet (a repeat further back is better than the same block everywhere)
+        for _pool in ([a for a in ("streams", "notes", "glance", "timeline", "ticker", "ladder")
+                       if a not in _recent],
+                      ("streams", "notes", "glance", "timeline", "ticker", "ladder")):
+            _done = False
+            for _alt in _pool:
+                if _alt in order:
+                    continue
+                if _slot == "facts" and not ({"faq", "people", "security", "compare"} & set(order)):
+                    _done = True
+                    break            # facts may be the only trust screen on the page
+                order[order.index(_slot)] = _alt
+                _done = True
+                break
+            if _done:
+                break
+
     # dedupe pass above can swallow anchors (compare dropped next to faq, numbers
     # dropped next to people-e). Assemble refuses a page with fewer than two, so make
     # sure the order always carries them instead of failing at the very end.
@@ -762,7 +793,7 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     elif variant == "t":
         live = L["throughput"]
         items = [("Tick/s", f"{rng.randint(28, 46)}k", "", ""), ("Punti dati/s", f"{rng.randint(2, 4)}k", "", ""),
-                 ("Uptime", "99,9%d%%" % rng.randint(1, 9), "99", "up"), ("Motori dati", str(rng.randint(6, 9)), "", ""),
+                 ("Uptime", "99,9%d%%" % rng.randint(1, 9), "", ""), ("Motori dati", str(rng.randint(6, 9)), "", ""),
                  ("Latenza", f"{rng.randint(28, 62)} ms", "", ""), ("Code attive", str(rng.randint(2, 6)), "", "")]
         stats = [("Uptime", "99,9%d%%" % rng.randint(1, 9)), (L["latency"], f"{rng.randint(28, 62)} ms"), ("", "")]
     elif variant == "u":

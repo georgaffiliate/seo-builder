@@ -312,19 +312,27 @@ def build(plan: dict, bank_all: dict) -> dict:
     return content
 
 
-def topup_new_keys(content: dict, bank: dict) -> list[str]:
-    """Fill content keys that older packs / partial LLM answers may miss."""
+def topup_new_keys(content: dict, bank: dict, copy: bool = True) -> list[str]:
+    """Fill content keys that older packs / partial LLM answers may miss.
+
+    `copy=False` is for model-written packs in a non-English language: the bank holds
+    English master copy, and filling a missing section from it shipped an English block
+    inside an otherwise translated page (live bug: portal + bands.side_* on a .si site).
+    Structure and numeric twins are still topped up; the copy has to come from the model
+    (validation lists exactly what is missing and the repair pass asks for it).
+    """
     fixed = []
-    stats = content.setdefault("sections", {}).setdefault("stats", {})
-    for k in ("rating", "reviews", "orders", "api"):
-        if not str(stats.get(k, "")).strip():
-            stats[k] = (bank.get("sections", {}).get("stats", {}) or {}).get(k, k)
-            fixed.append(f"sections.stats.{k}")
-    gl = content.setdefault("sections", {}).setdefault("glance", {})
-    for k in ("eyebrow", "h2"):
-        if not str(gl.get(k, "")).strip():
-            gl[k] = (bank.get("sections", {}).get("glance", {}) or {}).get(k, "")
-            fixed.append(f"sections.glance.{k}")
+    if copy:
+        stats = content.setdefault("sections", {}).setdefault("stats", {})
+        for k in ("rating", "reviews", "orders", "api"):
+            if not str(stats.get(k, "")).strip():
+                stats[k] = (bank.get("sections", {}).get("stats", {}) or {}).get(k, k)
+                fixed.append(f"sections.stats.{k}")
+        gl = content.setdefault("sections", {}).setdefault("glance", {})
+        for k in ("eyebrow", "h2"):
+            if not str(gl.get(k, "")).strip():
+                gl[k] = (bank.get("sections", {}).get("glance", {}) or {}).get(k, "")
+                fixed.append(f"sections.glance.{k}")
     # facts / portal have their own slots now — never fall back to bands.mid_points.
     # LLM packs may return the arrays filled with empty strings / empty dicts:
     # those pass a naive presence check but render as blank chips and cards.
@@ -338,7 +346,7 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
         return x is None or (isinstance(x, str) and not x.strip())
     sec_bank = bank.get("sections", {})
     SCALAR_KEYS = ("eyebrow", "h2", "lead")
-    for slot in ("facts", "portal"):
+    for slot in (("facts", "portal") if copy else ()):
         node = content.setdefault("sections", {}).setdefault(slot, {})
         src = sec_bank.get(slot, {}) or {}
         for k, default in src.items():
@@ -386,19 +394,19 @@ def topup_new_keys(content: dict, bank: dict) -> list[str]:
     nt = content.setdefault("sections", {}).setdefault("notes", {})
     src = sec_bank.get("notes", {}) or {}
     for k in ("lead", "note"):
-        if not str(nt.get(k, "")).strip():
+        if copy and not str(nt.get(k, "")).strip():
             nt[k] = src.get(k, "")
             fixed.append(f"sections.notes.{k}")
     # band-side stats: packs generated before these keys existed would render the
     # filler empty (or worse, leave raw {{c:...}} in the HTML)
     bd = content.setdefault("bands", {})
     bsrc = bank.get("bands", {}) or {}
-    for k in ("side_stats", "side_labels"):
+    for k in ("side_stats", "side_labels") if copy else ():
         val = bd.get(k) or []
         if not isinstance(val, list) or len([x for x in val if str(x).strip()]) < 3:
             bd[k] = [str(x) for x in (bsrc.get(k) or [])][:3]
             fixed.append(f"bands.{k}")
-    if not str(bd.get("side_note", "")).strip():
+    if copy and not str(bd.get("side_note", "")).strip():
         bd["side_note"] = str(bsrc.get("side_note", ""))
         fixed.append("bands.side_note")
     # hero device-sim numeric twins: LLM packs carry only the formatted strings;

@@ -367,6 +367,44 @@ def ledger_errors(hv: dict) -> list[str]:
     return errs
 
 
+def _pack_get(pack: dict, path: str):
+    node = pack
+    for part in path.split("."):
+        if isinstance(node, list):
+            if not part.isdigit() or int(part) >= len(node):
+                return None
+            node = node[int(part)]
+        elif isinstance(node, dict):
+            if part not in node:
+                return None
+            node = node[part]
+        else:
+            return None
+    return node
+
+
+def missing_fragment_keys(pack: dict, plan: dict) -> list:
+    """Every {{c:…}} key a rendered fragment needs must exist and be non-empty.
+
+    Copy is never topped up from the English bank for a non-English site (that shipped
+    an English portal block on a Slovenian page), so the model has to write those keys
+    itself — this is the list it gets back for the repair pass.
+    """
+    out = []
+    for slot in plan["layout"]["section_order"]:
+        var = (plan["layout"].get("variants") or {}).get(slot) or ""
+        canon = assemble.CANON.get(slot) or f"blk-{slot}"
+        cand = ROOT / "blocks" / (f"blk-{slot}-{var}.html" if var else f"{canon}.html")
+        if not cand.exists():
+            cand = ROOT / "blocks" / f"{canon}.html"
+        if not cand.exists():
+            continue
+        for path in sorted(set(re.findall(r"\{\{c:([\w.]+)\}\}", cand.read_text(encoding="utf-8")))):
+            if not str(_pack_get(pack, path) or "").strip():
+                out.append(f"{slot}.{path}")
+    return out
+
+
 def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     try:
         errs = list(assemble.validate_content(pack, plan, strict=True))
@@ -391,6 +429,10 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     # checks it did not forget — a placeholder caption or rows that do not add up go
     # straight back as a repair instruction
     errs += ledger_errors(pack.get("hero") or {})
+    _miss = missing_fragment_keys(pack, plan)
+    if _miss:
+        errs.append("fragments need these content keys (missing or empty): "
+                    + ", ".join(_miss[:12]))
     # deposit rule: keep in sync with tools/seo_audit.py dep_pat — meta/og/JSON-LD text
     # (meta.description feeds the JSON-LD org.description) must never mention a deposit
     dep_pat = re.compile(r"(€\s?250\b|250\s?€|min(?:imum)?\s?deposit|min(?:imální|minimāl)|100\s?000\s?Ft|100000\s?Ft)")
@@ -645,7 +687,12 @@ def main():
         _l10n = ROOT / "resources" / "content-l10n.json"
         _bank = content_gen.merged_bank(json.loads(_l10n.read_text(encoding="utf-8")),
                                         plan["params"]["lang"])
-        _fixed = content_gen.topup_new_keys(pack, _bank)
+        _lang = plan["params"]["lang"]
+        # the bank may only fill copy when it actually holds that language: it/cs/es are
+        # complete, everything else is English master copy and would leak into the page
+        _copy_ok = _lang == "en" or content_gen.bank_coverage(
+            json.loads(_l10n.read_text(encoding="utf-8")), _lang)[0] == 100
+        _fixed = content_gen.topup_new_keys(pack, _bank, copy=_copy_ok)
         if _fixed:
             print("· topped up missing keys: " + ", ".join(_fixed))
     except Exception:
