@@ -761,8 +761,6 @@ button,input,textarea,select{font:inherit;color:inherit}
   .calc-controls{border-right:0;border-bottom:1px solid var(--line)}
   .office-grid{grid-template-columns:1fr;gap:22px}
   .countdown{flex-wrap:wrap}
-  .sec-pulse-sim .ps-split{grid-template-columns:1fr;gap:28px}
-  .ps-quote b{font-size:24px}
   .pull-mini,.verify-grid{grid-template-columns:1fr}
   .rating-split{grid-template-columns:1fr;gap:30px}
   .score-row{grid-template-columns:1fr;gap:8px}
@@ -784,7 +782,8 @@ button,input,textarea,select{font:inherit;color:inherit}
   box-shadow:var(--shadow-card);padding:18px}
 .ps-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   padding-bottom:16px;border-bottom:1px solid var(--line)}
-.ps-mark{display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 10px;
+.ps-mark{display:inline-grid;place-items:center;min-width:44px;max-width:42%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;height:44px;padding:0 10px;
   border-radius:10px;background:var(--acc);color:var(--bg);font-weight:800;font-size:13px;
   letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis}
 .ps-title{flex:1;min-width:150px}
@@ -795,7 +794,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .ps-range{border:0;background:none;cursor:pointer;font:inherit;font-size:12px;font-weight:700;
   color:var(--muted-text,var(--muted));padding:6px 14px;border-radius:7px}
 .ps-range.is-active{background:var(--acc);color:var(--bg)}
-.ps-assets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 0}
+.ps-assets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:16px 0}
 .ps-asset{text-align:left;cursor:pointer;font:inherit;background:none;
   border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--muted-text,var(--muted))}
 .ps-asset b{display:block;font-size:14px;color:var(--card-ink,var(--ink))}
@@ -821,9 +820,20 @@ button,input,textarea,select{font:inherit;color:inherit}
   color:var(--muted-text,var(--muted));padding:6px 2px 0}
 .sec-pulse-sim .fine{color:var(--muted-text,var(--muted));font-size:11px;margin-top:12px}
 @media(max-width:700px){
-  .ps-assets{grid-template-columns:1fr 1fr}
-  .ps-quote b{font-size:24px}
-  .ps-ranges{margin-left:auto}
+  /* .ps-split must collapse here: its base rule is below the early mobile block,
+     which is why the panel used to keep the desktop 2-column width and overflow */
+  .sec-pulse-sim .ps-split{grid-template-columns:minmax(0,1fr);gap:22px}
+  .ps-panel{padding:14px}
+  .ps-head{gap:10px}
+  .ps-mark{max-width:38%}
+  .ps-title{min-width:0;flex:1 1 auto}
+  .ps-ranges{flex:1 1 100%;justify-content:space-between;margin-left:0}
+  .ps-assets{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 0}
+  .ps-asset{padding:10px}
+  .ps-asset b{font-size:13px}
+  .ps-quote{gap:10px}
+  .ps-quote b{font-size:20px}
+  .ps-delta{font-size:11px;padding:4px 8px}
 }
 
 /* ------------------------------ motion: reveal / numbers / float CTA ----- */

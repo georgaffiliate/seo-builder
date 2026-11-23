@@ -15,6 +15,48 @@ VPH = re.compile(r'<meta[^>]+name=["\']viewport["\'][^>]+width=device-width', re
 INLINE_GRID = re.compile(r'style=["\'][^"\']*grid-template-columns', re.I)
 
 
+def _strip_comments(css: str) -> str:
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+
+
+def _mobile_before_base(css: str) -> list:
+    """Selectors whose @media(max-width) block appears before their own base rule."""
+    css = _strip_comments(css)
+    media_spans = []
+    for m in re.finditer(r"@media[^{]*\(max-width[^{]*\)\s*\{", css):
+        depth, i = 1, m.end()
+        while i < len(css) and depth:
+            if css[i] == "{":
+                depth += 1
+            elif css[i] == "}":
+                depth -= 1
+            i += 1
+        media_spans.append((m.start(), i))
+
+    def in_media(pos: int) -> bool:
+        return any(a <= pos < b for a, b in media_spans)
+
+    def selectors(text: str):
+        for m in re.finditer(r"([^{}@;]+)\{", text):
+            raw = m.group(1).strip()
+            if not raw or raw.startswith("@"):
+                continue
+            for sel in raw.split(","):
+                sel = " ".join(sel.split())
+                if sel:
+                    yield sel, m.start()
+
+    last_base = {}
+    for sel, pos in selectors(css):
+        if not in_media(pos):
+            last_base[sel] = max(pos, last_base.get(sel, -1))
+    bad = []
+    for sel, pos in selectors(css):
+        if in_media(pos) and sel in last_base and pos < last_base[sel] and sel not in bad:
+            bad.append(sel)
+    return bad[:6]
+
+
 def main():
     if len(sys.argv) < 2:
         print("usage: mobile_lint.py sites/<domain>")
@@ -62,6 +104,11 @@ def main():
                 for x in re.findall(r"min-width:\s*(\d{3,})px", ln) if int(x) > 360]
         if wide:
             warns.append(f"{css.name}: hard min-width {','.join(sorted(set(wide)))}px")
+        # a mobile override written BEFORE the component's base rule loses the cascade:
+        # the base grid/flex rule later in the file wins and the phone layout breaks
+        for sel in _mobile_before_base(body):
+            warns.append(f"{css.name}: mobile rule for '{sel}' sits before its base rule "
+                         f"— the base overrides it on phones")
 
     print(f"=== MOBILE LINT ({site}) ===")
     print(f"files checked: {checks}")
