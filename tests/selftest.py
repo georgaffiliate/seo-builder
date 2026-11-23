@@ -169,6 +169,14 @@ _stray = [k for k in (_lay.get("variants") or {}) if k not in ("logo", "header",
 chk(_rc.returncode == 0 and _pd and not _stray,
     f"no variant left behind for a dropped screen ({_stray or 'clean'})")
 _calc_plan.unlink(missing_ok=True)
+# number formatting follows the language: comma decimals for tr/de/it…, dot for en/ja
+chk(_gp.decimal_comma("tr") and _gp.decimal_comma("de") and _gp.decimal_comma("fr")
+    and not _gp.decimal_comma("en") and not _gp.decimal_comma("ja")
+    and _gp._fmt_num(1234.5, "tr") == "1.234,50" and _gp._fmt_num(1234.5, "en") == "1,234.50",
+    "decimal separators follow the plan language")
+chk(_gp.LANG_ALIASES.get("gb") == "en" and _gp.LANG_ALIASES.get("mx") == "es"
+    and _gp.LANG_ALIASES.get("si") == "sl",
+    "country codes resolve to a language")
 chk(_gp.content_route(_pp) == "invent" and
     _gp.content_route(_pp, translate=True) == "localize" and
     _gp.content_route(_pp, offline=True) == "bank",

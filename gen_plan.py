@@ -21,10 +21,33 @@ from __future__ import annotations
 import argparse, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent          # static-create-sites/
-# country codes people type instead of the language code: with "si" every per-language
-# table (404 page, footer, aria labels) fell back to English
-LANG_ALIASES = {"si": "sl", "cz": "cs", "gr": "el", "dk": "da", "se": "sv",
-                "no": "nb", "ua": "uk", "il": "he", "jp": "ja", "cn": "zh", "br": "pt"}
+# Country codes people type instead of the language code. Without this every
+# language-keyed table (404 page, footer, aria, menus) falls back to English.
+LANG_ALIASES = {
+    # Europe
+    "si": "sl", "cz": "cs", "gr": "el", "dk": "da", "se": "sv", "no": "nb",
+    "ua": "uk", "at": "de", "ch": "de", "be": "nl", "gb": "en", "ie": "en",
+    # Americas / Oceania / Africa (English markets)
+    "au": "en", "nz": "en", "za": "en", "ng": "en", "ke": "en", "ca": "en",
+    # Asia
+    "jp": "ja", "cn": "zh", "hk": "zh", "sg": "en", "my": "ms", "ph": "tl",
+    "in": "hi", "ge": "ka", "az": "az",
+    # Latin America
+    "br": "pt", "mx": "es", "pe": "es", "il": "he",
+}
+
+# Languages that write decimals with a comma ("1.084,20"). The strip, ticker and
+# calculator all format through these two helpers, so a page never mixes 1,084.2 and
+# 1.084,2 side by side.
+COMMA_DECIMAL = {
+    "it", "de", "es", "fr", "pl", "cs", "sk", "sl", "hr", "hu", "ro", "bg", "tr",
+    "pt", "nl", "da", "nb", "no", "sv", "fi", "et", "lv", "lt", "el", "uk", "ru",
+    "sr", "mk", "bs", "sq", "az", "ka", "ca",
+}
+
+
+def decimal_comma(lang: str) -> bool:
+    return (lang or "").lower() in COMMA_DECIMAL
 PLANS = ROOT / "plans"
 PALETTES_F = ROOT / "content" / "palettes-blk.json"
 REG_F = ROOT / "resources" / "regulators.json"
@@ -589,10 +612,13 @@ def build_plan(rng, args, hist)->dict|None:
 
 # --------------------------------------------------------------- livebar ------
 def _fmt_num(v: float, lang: str, dec: int = 2) -> str:
-    whole = " " if lang == "cs" else "."
+    comma = decimal_comma(lang)
+    space = lang in ("cs", "pl", "fr", "ru", "uk", "sv", "fi", "no", "nb",
+                     "da", "sl", "hr", "hu", "lv", "lt", "et", "sk")
+    whole = " " if space else ("." if comma else ",")
     body = f"{v:,.{dec}f}"
     return (body.replace(",", "T").replace(".", "D")
-                .replace("T", whole).replace("D", "," if lang in ("it", "cs") else "."))
+                .replace("T", whole).replace("D", "," if comma else "."))
 
 
 # Instrument ranges per tape variant: (symbol, lo, hi, decimals).
@@ -656,7 +682,7 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
       {{GEO_SHORT}}                  global token (plan param)
     """
     L = LIVEBAR_L10N.get(lang) or LIVEBAR_L10N["en"]
-    comma = lang in ("it", "cs", "es")
+    comma = decimal_comma(lang)
 
     def num(lo, hi, dec=2):
         return _fmt_num(rng.uniform(lo, hi), lang, dec)
