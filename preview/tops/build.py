@@ -92,6 +92,7 @@ PART = """<!doctype html><html lang="it"><head><meta charset="utf-8">
 <link rel="stylesheet" href="blocks.css">
 <link rel="stylesheet" href="skin.css">
 <link rel="stylesheet" href="openers.css">
+<link rel="stylesheet" href="heroes.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>:root{__PALETTE__}body{margin:0}
 /* harness only: the fold line where a 800px laptop screen ends */
@@ -108,10 +109,12 @@ __HEADER__
 (function(){
   function send(){
     var s=document.querySelector('.blk-livebar'), h=document.querySelector('.blk-header');
+    var hr=document.querySelector('.hv-hero, .blk-hero');
     var sb=s?s.getBoundingClientRect():null, hb=h?h.getBoundingClientRect():null;
     parent.postMessage({src:'tops', id:__IDJSON__,
       strip:sb?Math.round(sb.height):null,
       header:hb?Math.round(hb.height):null,
+      hero:hr?Math.round(hr.getBoundingClientRect().height):null,
       top:sb&&hb?Math.round(hb.bottom):null,
       overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth}, '*');
   }

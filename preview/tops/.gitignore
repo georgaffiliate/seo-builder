@@ -12,3 +12,6 @@ headers.html
 headers-before.html
 headers-mobile.html
 blocks-old.css
+hero-*.html
+heroes.html
+heroes-mobile.html
