@@ -85,7 +85,8 @@ button,input,textarea,select{font:inherit;color:inherit}
        masked SEAMLESS tape (content x2, translateX(-50%), edges dissolve).
      Family L (k–y): "ledger" editorial panel — light panel surface, hairline
        rules, square marker, slower tape. Palette tokens keep it on-brand.   */
-.blk-livebar{display:flex;align-items:center;gap:20px;padding:9px 22px;font-size:10px;
+.blk-livebar{display:flex;align-items:center;gap:20px;padding:5px 22px;font-size:10px;
+  line-height:1.25;
   letter-spacing:.07em;text-transform:uppercase;color:#d8c8b6;
   background:color-mix(in srgb,var(--acc-deep,#142a66) 26%,#14100c)}
 .blk-livebar b{color:#fff;font-variant-numeric:tabular-nums}
@@ -121,7 +122,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* family Q structural modifiers (b–j): band is not a fixed template */
 .blk-livebar[data-var="b"]{border-bottom:1px solid rgba(255,255,255,.14);gap:18px;letter-spacing:.04em}
 .blk-livebar[data-var="c"]{border-top:2px solid var(--acc-ondark,#3ddc84);letter-spacing:.09em}
-.blk-livebar[data-var="d"]{padding-block:12px;border-bottom:2px solid var(--acc-ondark,#3ddc84);gap:26px}
+.blk-livebar[data-var="d"]{padding-block:8px;border-bottom:2px solid var(--acc-ondark,#3ddc84);gap:26px}
 .blk-livebar[data-var="e"]{border-bottom:1px dashed rgba(255,255,255,.25)}
 .blk-livebar[data-var="g"] .lb-flag{box-shadow:0 0 0 3px rgba(255,255,255,.06)}
 .blk-livebar[data-var="h"]{border-bottom:3px double rgba(255,255,255,.18);letter-spacing:.05em}
@@ -154,62 +155,110 @@ button,input,textarea,select{font:inherit;color:inherit}
 .blk-livebar[data-var="ac"] .lb-chip-q:nth-child(3n) i{background:var(--up-ondark,#7ddca0)}
 .blk-livebar[data-var="ac"] .lb-chip-q:nth-child(3n+1) i{background:var(--down-ondark,#f08a8a)}
 /* family L (k–y): ledger — light editorial panel, same type language */
-.blk-livebar.ledger{background:var(--panel);color:var(--muted);
+.blk-livebar.lb-ledger{background:var(--panel);color:var(--muted);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   font-size:9.5px;letter-spacing:.08em;gap:16px}
-.blk-livebar.ledger b{color:var(--ink)}
-.blk-livebar.ledger .live{color:var(--acc-text,var(--acc))}
-.blk-livebar.ledger .dot{border-radius:1px;background:var(--acc);box-shadow:none;animation:none}
-.blk-livebar.ledger .lbt-track{gap:26px;animation-duration:var(--lb-dur,38s)}
-.blk-livebar.ledger .lbt-track em{color:var(--muted)}
-.blk-livebar.ledger .up{color:var(--up-text,var(--up))}
-.blk-livebar.ledger .dn{color:var(--down-text,var(--down))}
-.blk-livebar.ledger .lb-bar{background:color-mix(in srgb,var(--line) 70%,transparent)}
-.blk-livebar.ledger .lb-bar i{background:var(--acc)}
-.blk-livebar.ledger[data-var="l"]{border-top:2px solid var(--acc)}
-.blk-livebar.ledger[data-var="m"]{border-bottom:2px solid var(--acc)}
-.blk-livebar.ledger[data-var="o"],.blk-livebar.ledger[data-var="v"]{border-top-style:dashed}
-.blk-livebar.ledger[data-var="p"] .lbt-track em{font-weight:800}
-.blk-livebar.ledger[data-var="x"] .lbt-track em{opacity:.7}
-.blk-livebar.ledger[data-var="y"] .lbt-track em{color:var(--stars,#d9a33c)}
+.blk-livebar.lb-ledger b{color:var(--ink)}
+.blk-livebar.lb-ledger .live{color:var(--acc-text,var(--acc))}
+.blk-livebar.lb-ledger .dot{border-radius:1px;background:var(--acc);box-shadow:none;animation:none}
+.blk-livebar.lb-ledger .lbt-track{gap:26px;animation-duration:var(--lb-dur,38s)}
+.blk-livebar.lb-ledger .lbt-track em{color:var(--muted)}
+.blk-livebar.lb-ledger .up{color:var(--up-text,var(--up))}
+.blk-livebar.lb-ledger .dn{color:var(--down-text,var(--down))}
+.blk-livebar.lb-ledger .lb-bar{background:color-mix(in srgb,var(--line) 70%,transparent)}
+.blk-livebar.lb-ledger .lb-bar i{background:var(--acc)}
+.blk-livebar.lb-ledger[data-var="l"]{border-top:2px solid var(--acc)}
+.blk-livebar.lb-ledger[data-var="m"]{border-bottom:2px solid var(--acc)}
+.blk-livebar.lb-ledger[data-var="o"],.blk-livebar.lb-ledger[data-var="v"]{border-top-style:dashed}
+.blk-livebar.lb-ledger[data-var="p"] .lbt-track em{font-weight:800}
+.blk-livebar.lb-ledger[data-var="x"] .lbt-track em{opacity:.7}
+.blk-livebar.lb-ledger[data-var="y"] .lbt-track em{color:var(--stars,#d9a33c)}
 /* ledger family with real layouts (not just a border): board / rows / meters */
 .blk-livebar.lb-board,.blk-livebar.lb-rows,.blk-livebar.lb-meters{align-items:center}
-.blk-livebar .lb-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 22px;
-  flex:1;min-width:0;padding-block:4px}
-.blk-livebar .lb-board .lb-cell{display:grid;grid-template-columns:minmax(0,1fr) auto;
-  grid-template-areas:"label em" "value em";column-gap:12px;align-items:center;
-  padding:6px 0;border-bottom:1px dotted color-mix(in srgb,var(--line) 80%,transparent)}
-.blk-livebar .lb-board small{grid-area:label;font-size:8.5px;letter-spacing:.08em;
+/* COMPACT FAMILIES — the strip sits above a sticky header, so it is one thin
+   line, never a board. Label, value and delta share a baseline; the meters bar
+   rides underneath at 2px. A stacked strip (3x2 cells) ate 157px of the first
+   screen on jandervoq-it.xyz and pushed the header out of the fold. */
+.blk-livebar .lb-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;
+  flex:1;min-width:0}
+.blk-livebar .lb-board .lb-cell{display:flex;align-items:baseline;gap:6px;min-width:0;
+  padding:0 10px;border-bottom:0;
+  border-left:1px solid color-mix(in srgb,var(--line) 85%,transparent)}
+.blk-livebar .lb-board .lb-cell:first-child{padding-left:0;border-left:0}
+.blk-livebar .lb-board small{font-size:8.5px;letter-spacing:.08em;
   color:var(--muted-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.blk-livebar .lb-board b{grid-area:value;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums}
-.blk-livebar .lb-board em{grid-area:em;align-self:center;justify-self:end;font-size:10px}
+.blk-livebar .lb-board b{font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.blk-livebar .lb-board em{margin-left:auto;font-size:9.5px;white-space:nowrap}
 .blk-livebar .lb-board em:empty{display:none}
-.blk-livebar .lb-rows{display:flex;flex-wrap:wrap;gap:4px 26px;flex:1;min-width:0;padding-block:4px}
-.blk-livebar .lb-rows .lb-row{display:inline-flex;align-items:baseline;gap:7px;white-space:nowrap}
+.blk-livebar .lb-rows{display:flex;flex-wrap:nowrap;gap:18px;flex:1;min-width:0;overflow:hidden}
+.blk-livebar .lb-rows .lb-row{display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap;flex:none}
 .blk-livebar .lb-rows small{font-size:8.5px;letter-spacing:.09em;color:var(--muted-text)}
-.blk-livebar .lb-rows b{font-size:10.5px;color:var(--ink)}
+.blk-livebar .lb-rows b{font-size:11px;color:var(--ink)}
 .blk-livebar .lb-rows em{font-style:normal;font-size:9.5px}
-.blk-livebar .lb-meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 20px;
-  flex:1;min-width:0;padding-block:5px}
-.blk-livebar .lb-meters .lb-meter{display:grid;grid-template-columns:1fr auto;align-items:center;
-  gap:2px 8px}
-.blk-livebar .lb-meters small{grid-column:1/-1;font-size:8.5px;letter-spacing:.1em;color:var(--muted-text)}
-.blk-livebar .lb-meters b{font-size:10.5px;color:var(--ink)}
-.blk-livebar .lb-meters i{grid-column:1/-1;display:block;height:3px;border-radius:2px;
+.blk-livebar .lb-meters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;
+  flex:1;min-width:0}
+.blk-livebar .lb-meters .lb-meter{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+  grid-template-areas:"label value em" "bar bar bar";align-items:baseline;column-gap:5px;
+  row-gap:3px;min-width:0;padding:0 10px;
+  border-left:1px solid color-mix(in srgb,var(--line) 85%,transparent)}
+.blk-livebar .lb-meters .lb-meter:first-child{padding-left:0;border-left:0}
+.blk-livebar .lb-meters small{grid-area:label;font-size:8px;letter-spacing:.09em;
+  color:var(--muted-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk-livebar .lb-meters b{grid-area:value;font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.blk-livebar .lb-meters i{grid-area:bar;display:block;height:2px;border-radius:1px;
   background:linear-gradient(90deg,var(--acc-text,var(--acc)) var(--fill,64%),color-mix(in srgb,var(--line) 85%,transparent) 0)}
 .blk-livebar .lb-meters .lb-meter:nth-child(2n) i{--fill:52%}
 .blk-livebar .lb-meters .lb-meter:nth-child(3n) i{--fill:78%}
-.blk-livebar .lb-meters em{font-style:normal;font-size:9.5px;justify-self:end}
+.blk-livebar .lb-meters em{grid-area:em;font-style:normal;font-size:9px}
+
+/* ad — one-line ledger: six label/value pairs split by hairlines, no bars */
+.blk-livebar[data-var="ad"]{gap:16px}
+.blk-livebar[data-var="ad"] .lb-line-items{display:flex;flex:1;min-width:0;overflow:hidden}
+.blk-livebar[data-var="ad"] .lb-li{display:inline-flex;align-items:baseline;gap:5px;flex:none;
+  white-space:nowrap;padding:0 12px;
+  border-left:1px solid color-mix(in srgb,var(--line) 85%,transparent)}
+.blk-livebar[data-var="ad"] .lb-li:first-child{padding-left:0;border-left:0}
+.blk-livebar[data-var="ad"] .lb-li small{font-size:8px;letter-spacing:.1em;color:var(--muted-text)}
+.blk-livebar[data-var="ad"] .lb-li b{font-size:11.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.blk-livebar[data-var="ad"] .lb-li em{font-style:normal;font-size:9.5px}
+
+/* ae — ruler: accent hairline on top, four figures only, air between them */
+.blk-livebar[data-var="ae"]{gap:18px;border-top:2px solid var(--acc)}
+.blk-livebar[data-var="ae"] .lb-ruler-items{display:flex;flex:1;min-width:0;justify-content:flex-start;overflow:hidden}
+.blk-livebar[data-var="ae"] .lb-ru{display:inline-flex;align-items:baseline;gap:7px;flex:none;
+  white-space:nowrap;padding:0 16px;
+  border-left:1px solid color-mix(in srgb,var(--line) 85%,transparent)}
+.blk-livebar[data-var="ae"] .lb-ru small{font-size:8.5px;letter-spacing:.1em;color:var(--muted-text)}
+.blk-livebar[data-var="ae"] .lb-ru b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* af — accord edge: ink band, accent spine, values carry the weight */
+.blk-livebar[data-var="af"]{background:var(--ink);color:color-mix(in srgb,var(--bg) 68%,transparent);
+  border-left:4px solid var(--acc-2,var(--acc));gap:16px}
+.blk-livebar[data-var="af"] .live{color:var(--acc-ondark,var(--acc-2))}
+.blk-livebar[data-var="af"] .lb-edge-items{display:flex;flex:1;min-width:0;gap:16px;overflow:hidden;
+  mask-image:linear-gradient(90deg,#000 94%,transparent);-webkit-mask-image:linear-gradient(90deg,#000 94%,transparent)}
+.blk-livebar[data-var="af"] .lb-ed{flex:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.blk-livebar[data-var="af"] .lb-ed b{font-weight:600;opacity:.62;letter-spacing:.08em}
+.blk-livebar[data-var="af"] .lb-ed em{font-style:normal;color:var(--up-ondark,var(--up))}
+.blk-livebar[data-var="af"] .geo{opacity:.6}
+@media (max-width:1100px){
+  /* the ink strip runs out of room before its sixth quote does */
+  .blk-livebar[data-var="af"] .lb-ed:nth-child(n+6){display:none}
+}
 @media (max-width:760px){
-  /* one readable row per figure: label left, value right — a 2-column board turned
-     long localised labels into a wrapping mess on phones */
-  .blk-livebar .lb-board{grid-template-columns:1fr;gap:0;padding-block:2px;flex:1 1 100%}
-  .blk-livebar .lb-board .lb-cell{grid-template-columns:minmax(0,1fr) auto auto;
-    grid-template-areas:"label value em";column-gap:10px;padding:5px 0}
-  .blk-livebar .lb-board small{white-space:normal;overflow:visible;line-height:1.2}
-  .blk-livebar .lb-board .lb-cell:nth-child(n+4){display:none}
-  .blk-livebar .lb-meters{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .blk-livebar .lb-meters .lb-meter:nth-child(n+5){display:none}
+  /* one thin row on phones too. Labels are localised and long, so the row
+     swipes instead of truncating: nothing is cut, nothing stacks. */
+  .blk-livebar .lb-board,.blk-livebar .lb-meters{grid-template-columns:none;
+    grid-auto-flow:column;grid-auto-columns:max-content;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .blk-livebar .lb-board::-webkit-scrollbar,.blk-livebar .lb-meters::-webkit-scrollbar{display:none}
+  .blk-livebar .lb-board .lb-cell,.blk-livebar .lb-meters .lb-meter{padding:0 14px}
+  .blk-livebar .lb-rows{overflow-x:auto;scrollbar-width:none;gap:14px}
+  .blk-livebar .lb-rows::-webkit-scrollbar{display:none}
+  .blk-livebar[data-var="ad"] .lb-line-items,.blk-livebar[data-var="ae"] .lb-ruler-items{overflow-x:auto;scrollbar-width:none}
+  .blk-livebar[data-var="ad"] .lb-line-items::-webkit-scrollbar,
+  .blk-livebar[data-var="ae"] .lb-ruler-items::-webkit-scrollbar{display:none}
+  .blk-livebar[data-var="af"] .lb-ed:nth-child(n+4){display:none}
 }
 
 @keyframes blkpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--acc,#3ddc84) 7%,transparent)}}
@@ -987,3 +1036,4 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .blog-facts b{font-size:19px}
   .blog-cta{padding:22px 18px}
 }
+

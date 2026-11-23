@@ -95,7 +95,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     # ledger tape, rows, meters, board, sparkline tape, static chips. The rest of the
     # old b..y ids were the same marquee with another border — they stay renderable
     # for historical plans but are never picked for a new site.
-    "livebar": ["a", "f", "j", "k", "m", "n", "t", "z", "ac"],
+    "livebar": ["a", "f", "j", "k", "m", "n", "t", "z", "ac", "ad", "ae", "af"],
     "logo": ["b", "c", "d", "e", "f", "g", "h"],
     "header": ["b", "c", "d", "e", "f", "g", "h", "i", "j"],
     "form": ["b", "c", "d"],
@@ -976,6 +976,19 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
         elif variant == "ab":
             for i in range(6):
                 extra[f"LB{i+1}VOL"] = f"Vol {rng.choice([12, 24, 38, 46, 61, 87])}M"
+
+    elif variant in ("ad", "ae"):
+        # compact one-line macro strip: n's figures without the stacked meters
+        live = L["macro"]
+        items = [("Tasso BCE", f"{num(3.5, 4.5, 2)}%", "", ""), ("Infl. eurozona", f"{num(1.8, 3.2, 1)}%", "", ""),
+                 ("PMI", num(48, 53, 1), "", ""), ("Disoccupazione", f"{num(6.2, 7.8, 1)}%", "", ""),
+                 ("GDP", f"+{num(0.1, 1.2, 1)}%", "up", "up"), ("Spread", f"{rng.randint(90, 160)} bp", "", "")]
+        stats = [(L["updated"], clock), ("API", api_uptime()), ("", "")]
+    elif variant == "af":
+        live = L["live"]
+        items = q_six(_livebar_data("a"))
+        stats = [(L["latency"], f"{rng.randint(28, 62)} ms"), ("API", api_uptime()),
+                 (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
 
     subs = {"LB_LIVE": live, "GEO_SHORT": geo_short}
     for i in range(3):

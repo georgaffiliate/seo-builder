@@ -477,7 +477,7 @@ chk(all(f".blk-livebar.{c}" in _lb_css for c in ("lb-board", "lb-rows", "lb-mete
 chk(_lb in {"b", "d", "f", "g", "h", "i", "j",
             "k", "l", "m", "n", "o", "p", "r",
             "t", "u", "v", "w", "x", "y",
-            "z", "aa", "ab", "ac"}, f"livebar variant chosen ({_lb})")
+            "z", "aa", "ab", "ac", "ad", "ae", "af"}, f"livebar variant chosen ({_lb})")
 chk(bool((_p.get("livebar") or {}).get("subs")), "livebar subs present in plan")
 if _p:
     sys.path.insert(0, str(ROOT)); import assemble as _asm
