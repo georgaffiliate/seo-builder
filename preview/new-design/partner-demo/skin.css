@@ -1,0 +1,7 @@
+/* SKIN: sharp-flat — strict, dense, 0 radii (editorial/minimal) */
+:root{--r-card:0px;--r-btn:0px;--r-input:0px;--r-img:0px;
+  --pad-card:22px;--pad-sec:62px;--gap-grid:20px;
+  --bw:1px;--shadow-card:none;--shadow-btn:none;--fw-btn:600;
+  --h-tracking:-.01em;--eyebrow-transform:uppercase}
+.blk-card{border:var(--bw) solid var(--line);background:var(--bg)}
+.stats-band strong{letter-spacing:0}

@@ -52,7 +52,8 @@
     "submit":       "надіслати заявку",
     "side_stats":   ["3 короткі цифри-факти поруч із формою"],
     "side_labels":  ["підпис до кожної цифри side_stats"],
-    "side_note":    "1 речення-заспокоєння під формою"
+    "side_note":    "1 речення-заспокоєння під формою",
+    "trust_label":  "…"
   },
 
   "ui": {"_doc":"усі ключі ОБОВʼЯЗКОВІ, бо их читає calculator.js з data-атрибутів",
@@ -110,6 +111,13 @@
                 "cards":[{"ic":"⟡","t":"…","d":"…"}]},
     "cta":    {"eyebrow":"…","h2":"…","lead":"…","btn":"…"},
     "notes":  {"lead":"…","note":"…"},
+    "guide":  {"_doc":"long-form knowledge block: 6 topics, each d = 2-4 practical sentences (180-420 chars); not a second FAQ",
+                "eyebrow":"…","h2":"…","lead":"…",
+                "items":[{"t":"…","d":"…"}]},
+    "appshot": {"_doc":"phone/market photo block: alt describes the actual image; points = 3 short captions",
+                "eyebrow":"…","h2":"…","lead":"…","alt":"…","points":["…","…","…"]},
+    "partners": {"_doc":"large logo grid under the lead form: one short eyebrow/h2/lead; logos are supplied by the plan",
+                "eyebrow":"…","h2":"…","lead":"…"},
     "facts":  {"eyebrow":"…","h2":"…","lead":"…","points":["4 пункти: що видно після першого входу"]},
     "portal": {"eyebrow":"…","h2":"…","lead":"…",
                 "cards":[{"k":"категорія","v":"назва модуля","d":"1-2 речення"}]},
@@ -135,8 +143,9 @@
     "payouts": "виплати", "news": ["3-4 короткі заголовки стрічки"]
   },
 
-  "faq": {"eyebrow":"…","h2":"…",
-           "items":[{"q":"…","a":"коротка фактична відповідь"}]},
+  "faq": {"_doc":"12 real newcomer questions; each answer 2-4 sentences, 180-480 chars, no promises",
+           "eyebrow":"…","h2":"…",
+           "items":[{"q":"…","a":"…"}]},
 
   "office": {"eyebrow":"…","h2":"…","lead":"…",
               "addr_label":"…","addr":"…","hours_label":"…","hours":"…",

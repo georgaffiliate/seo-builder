@@ -512,6 +512,52 @@ button,input,textarea,select{font:inherit;color:inherit}
   .blk-hero[data-var="d"] .hero-claims{justify-content:flex-start}
 }
 
+/* ---- first screen: hero copy paired with the lead form, always above the fold ---- */
+.first-screen{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
+  gap:clamp(24px,4vw,60px);align-items:start;max-width:var(--maxw);margin-inline:auto;
+  padding:clamp(20px,3vw,40px) 22px clamp(28px,4vw,50px)}
+.first-screen>.blk-hero{display:block!important;max-width:none!important;margin:0!important;
+  padding:0!important;text-align:left!important;border:0!important;background:transparent!important}
+.first-screen>.blk-hero .blk-visual,
+.first-screen>.blk-hero .hero-panel,
+.first-screen>.blk-hero[data-var="h"] .hero-card,
+.first-screen>.blk-hero .hero-quote,
+.first-screen>.blk-hero .hero-steps{display:none!important}
+.first-screen>.blk-hero .hero-copy{display:block!important}
+.first-screen>.blk-hero .hero-top{display:block!important}
+.first-screen>.blk-hero h1{font-size:clamp(28px,3.3vw,46px)!important;line-height:1.08!important;
+  margin:14px 0 0!important;max-width:none!important}
+.first-screen>.blk-hero .blk-hero-lead{font-size:15.5px;max-width:50ch;margin-top:12px}
+.first-screen>.blk-hero .hero-claims{margin-top:18px;justify-content:flex-start!important}
+.first-screen>.blk-hero .hero-stats{margin-top:22px}
+.first-screen>.blk-hero .trust-line{margin-top:16px}
+.first-screen>.blk-hero .hero-band-note{margin-top:14px;display:flex;gap:8px;align-items:center;
+  font-size:12.5px;color:var(--muted-text)}
+.first-screen>.blk-hero .hero-band-note::before{content:'✓';color:var(--acc-text);font-weight:700}
+/* the lead form is the action on this screen; the hero CTA (and the header CTA
+   above it) would only duplicate the same target */
+.first-screen>.blk-hero a.blk-btn{display:none!important}
+.first-screen>.blk-band{display:block!important;max-width:none!important;margin:0!important;
+  padding:0!important;background:transparent!important}
+.first-screen>.blk-band>div{display:none!important}
+.first-screen>.blk-band>form{width:100%;max-width:520px;margin-inline:auto}
+.first-screen>.blk-band .blk-formcard{padding:24px 26px}
+/* inner registration/contact pages pair their page intro with the same form card */
+.first-screen>.page-intro{max-width:none;margin:0;padding:0;background:transparent;border:0}
+.first-screen>.page-intro h1{font-size:clamp(28px,3.3vw,44px);line-height:1.1;margin:14px 0 0}
+.first-screen>.page-intro p{font-size:15.5px;max-width:50ch;margin-top:12px;color:var(--muted-text)}
+.first-screen>.blk-band .blk-formcard>p:not(.form-status){display:none}
+.first-screen>.blk-band .form.compact{gap:10px}
+.first-screen>.blk-band .form-group label{font-size:12px;gap:4px}
+.first-screen>.blk-band .form-group input{padding:10px 12px}
+.first-screen>.blk-band .form-error:empty{display:none}
+.first-screen>.blk-band .pay-chips{display:none}
+.first-screen>.blk-band .form-submit{padding-block:12px;margin-top:2px}
+.first-screen>.blk-band .form-consent{font-size:10px;line-height:1.5;margin-top:2px}
+@media(min-width:901px){
+  .first-screen>.blk-band .cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 /* hero visual frame (phone/terminal/dash-agnostic) */
 .blk-visual{position:relative;min-height:480px;display:grid;place-items:center}
 .blk-orb{position:absolute;width:min(430px,90%);aspect-ratio:1;border-radius:50%;
@@ -555,6 +601,10 @@ button,input,textarea,select{font:inherit;color:inherit}
 .form-consent{font-size:10.5px;color:var(--muted-text);line-height:1.65;margin-top:4px}
 .pay-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .pay-chips span{font-size:10px;padding:5px 11px;background:var(--bg-soft);border-radius:var(--r-pill);color:var(--muted-text)}
+.form-trust{display:grid;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.form-trust-label{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-text)}
+.trust-logos{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;min-height:20px}
+.trust-logos img{display:block;height:17px;width:auto;max-width:76px;object-fit:contain;opacity:.82}
 
 /* form layout axis (data-form on the band): same fields, same contract, different
    arrangement — the form used to look identical on every offer */
@@ -588,6 +638,18 @@ button,input,textarea,select{font:inherit;color:inherit}
 }
 
 /* ------------------------------ content sections ------------------------ */
+/* app-shot: a real phone/market photo, not a fabricated dashboard */
+.sec-appshot .appshot-grid{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+  gap:clamp(30px,4.5vw,64px);align-items:center}
+.appshot-media{margin:0;min-width:0}
+.appshot-media img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;
+  border-radius:var(--r-card);border:1px solid var(--line);box-shadow:var(--shadow-card)}
+.appshot-lead{max-width:56ch;font-size:15px;color:var(--muted-text);margin-top:12px}
+.appshot-points{list-style:none;display:grid;gap:11px;padding:0;margin:22px 0 0;
+  font-size:14px;color:var(--muted-text)}
+.appshot-points li{display:flex;gap:10px;align-items:flex-start}
+.appshot-points li::before{content:'✓';color:var(--acc-text);font-weight:700;flex:none}
+.sec-appshot[data-var="b"] .appshot-media{order:2}
 .blk-center{text-align:center;max-width:760px;margin-inline:auto}
 .blk-center .eyebrow{justify-content:center}
 .stats-band{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
@@ -942,6 +1004,18 @@ button,input,textarea,select{font:inherit;color:inherit}
 .portal-cards .blk-card p{font-size:13px;margin-top:8px;color:var(--muted-text)}
 .facts-lead{max-width:640px;font-size:15px;color:var(--muted-text);margin-top:12px}
 .portal-list li::before{content:'↗';color:var(--acc-text);margin-right:9px}
+.guide-lead{max-width:660px;font-size:15px;color:var(--muted-text);margin-top:12px}
+.guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap-grid);margin-top:34px}
+.guide-item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:22px 24px}
+.guide-index{display:inline-block;font-size:11px;letter-spacing:.12em;font-weight:700;
+  color:var(--acc-text);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.guide-item h3{font-size:15px}
+.guide-item p{font-size:13px;margin-top:8px;color:var(--muted-text)}
+.guide-terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 34px;margin-top:30px}
+.guide-term{padding:18px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+.guide-term dt{font-size:14.5px;font-weight:650}
+.guide-term dd{font-size:13px;margin:8px 0 0;color:var(--muted-text)}
 .lead-note{font-size:17px;color:var(--ink);margin-bottom:14px}
 .avatar{border-radius:50%;object-fit:cover}
 .demo-bars{display:grid;gap:12px;background:var(--card);color:var(--card-ink);border:var(--bw) solid var(--line);
@@ -967,6 +1041,26 @@ button,input,textarea,select{font:inherit;color:inherit}
   .cta-big{justify-content:flex-start}
   .row-item{grid-template-columns:40px 1fr}
   .row-item .val{grid-column:2}
+}
+@media(max-width:900px){
+  .sec-appshot .appshot-grid{grid-template-columns:minmax(0,1fr)}
+  .sec-appshot[data-var="b"] .appshot-media{order:0}
+  /* the first screen stacks, but the hero copy is tightened so the form still
+     enters the viewport instead of falling below the fold */
+  .first-screen{grid-template-columns:minmax(0,1fr);gap:16px;padding:12px 18px 26px}
+  .first-screen>.blk-hero .hero-stats,
+  .first-screen>.blk-hero .hero-claims,
+  .first-screen>.blk-hero .hero-cta,
+  .first-screen>.blk-hero .hero-band-actions,
+  .first-screen>.blk-hero .hero-band-note{display:none!important}
+  .first-screen>.blk-hero h1{font-size:clamp(24px,7vw,34px)!important}
+  .first-screen>.blk-hero .blk-hero-lead{font-size:14px;margin-top:8px}
+  .first-screen>.blk-band .blk-formcard{padding:18px 18px 16px}
+  .first-screen>.blk-band .form.compact{gap:9px}
+  .first-screen>.blk-band .form-group label{font-size:11.5px;gap:3px}
+  .first-screen>.blk-band .form-group input{padding:10px 12px}
+  .first-screen>.blk-band .form-error{min-height:0;font-size:10.5px}
+  .first-screen>.blk-band h3{font-size:18px}
 }
 @media(max-width:700px){
   :root{--pad-sec:64px;--pad-card:22px;--gap-grid:18px}
@@ -1010,7 +1104,7 @@ button,input,textarea,select{font:inherit;color:inherit}
   .blk-hero{padding:30px 20px 44px}
   .blk-visual{min-height:0}
   .blk-visual .blk-device{width:min(320px,100%)}
-  .blk-grid2,.blk-grid3,.review-grid,.faq-grid{grid-template-columns:minmax(0,1fr)}
+  .blk-grid2,.blk-grid3,.review-grid,.faq-grid,.guide-grid,.guide-terms{grid-template-columns:minmax(0,1fr)}
   .stats-band{grid-template-columns:1fr 1fr}
   .stats-band>div+div{border-left:0}
   .stats-band>div:nth-child(n+3){border-top:1px solid var(--line)}
@@ -1216,3 +1310,151 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .blog-cta{padding:22px 18px}
 }
 
+
+/* ======================================================================
+   MOBILE PARTNER LAYER
+   The traffic is mobile: large uppercase headings, a coloured lead card,
+   card-like stats, swipeable reviews, numbered step tiles and full-width
+   CTAs. Desktop keeps the editorial layout above; these rules only apply
+   to phones and are intentionally last in the cascade.
+   ====================================================================== */
+@media(max-width:700px){
+  :root{--pad-sec:56px;--pad-card:20px;--gap-grid:14px}
+  body{font-size:16px;line-height:1.6}
+  .wrap{padding-inline:18px}
+  .section{padding-top:var(--pad-sec);padding-bottom:28px}
+  h1{font-size:clamp(38px,10.8vw,52px);line-height:1.02;letter-spacing:-.025em;
+    text-transform:uppercase;font-weight:800}
+  h2{font-size:clamp(29px,8.8vw,40px);line-height:1.06;letter-spacing:-.02em;
+    text-transform:uppercase;font-weight:800}
+  h3{font-size:20px;line-height:1.25}
+  .eyebrow{font-size:10.5px;letter-spacing:.16em}
+  .blk-btn{width:100%;min-height:54px;border-radius:14px;font-size:16px;
+    box-shadow:none;padding:14px 18px}
+  .blk-btn.ghost{width:auto}
+
+  /* header: brand + compact access button + burger */
+  .blk-header{padding:10px 16px;gap:12px}
+  .blk-logo{font-size:19px}
+  .blk-header .blk-btn{width:auto;min-height:42px;padding:10px 14px;font-size:12px;
+    border-radius:11px}
+  .blk-header .menu-toggle{width:40px;height:40px}
+
+  /* first screen: headline + coloured lead card */
+  .first-screen{padding:8px 16px 30px;gap:18px}
+  .first-screen>.blk-hero h1{font-size:clamp(30px,8.7vw,40px)!important;
+    line-height:0.98!important;text-transform:uppercase}
+  .first-screen>.blk-hero .blk-hero-lead{font-size:15px;line-height:1.55;margin-top:14px}
+  .first-screen>.blk-band>form{max-width:none}
+  .first-screen>.blk-band .blk-formcard{background:var(--acc-deep);color:var(--btn-ink);
+    border:0;border-radius:22px;padding:18px;
+    box-shadow:0 22px 46px -26px color-mix(in srgb,var(--acc-deep) 70%,transparent)}
+  .first-screen .blk-formcard .eyebrow{display:none}
+  .first-screen .blk-formcard h3{color:var(--btn-ink);font-size:21px;
+    text-transform:uppercase;letter-spacing:-.01em;margin-bottom:8px}
+  .first-screen .form.compact{gap:7px}
+  .first-screen .form-group label{color:color-mix(in srgb,var(--btn-ink) 86%,transparent);
+    font-size:11.5px;gap:3px}
+  .first-screen .form-group input{background:#fff!important;color:#0d1b2a!important;
+    border:1px solid transparent!important;border-radius:12px!important;
+    min-height:46px;padding:10px 12px;font-size:15px}
+  .first-screen .form-group input::placeholder{color:#87919e;opacity:1}
+  .first-screen .iti__selected-flag{background:#fff!important;border-radius:11px 0 0 11px}
+  .first-screen .form-error{color:#ffd8d3;font-size:11px}
+  .first-screen .form-submit{background:#fff;color:var(--acc-deep);min-height:56px;
+    border-radius:14px;font-size:16px;font-weight:800;box-shadow:none}
+  .first-screen .form-consent{color:color-mix(in srgb,var(--btn-ink) 76%,transparent);
+    font-size:10.5px;line-height:1.55}
+  .first-screen .form-trust{border-top-color:color-mix(in srgb,var(--btn-ink) 22%,transparent)}
+  .first-screen .form-trust-label{color:color-mix(in srgb,var(--btn-ink) 70%,transparent)}
+  .first-screen .trust-logos{gap:7px}
+  .first-screen .trust-logos img{background:#fff;border-radius:6px;padding:4px 6px;
+    height:22px;max-width:64px;opacity:1}
+
+  /* stats become bordered cards, one per row like the partner layouts */
+  .stats-band{grid-template-columns:minmax(0,1fr);gap:10px;padding:0;
+    background:transparent;border:0}
+  .stats-band>div{border:1px solid var(--line)!important;border-radius:16px;
+    background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;
+    justify-content:center}
+  .stats-band b,.stats-band strong{font-size:34px;line-height:1}
+  .stats-band span{font-size:14px;font-weight:600;margin-top:5px}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hero-stats>div{border:1px solid var(--line);border-radius:14px;padding:12px;
+    background:var(--panel)}
+
+  /* feature / guide / review cards: more air, softer surfaces */
+  .blk-grid2,.blk-grid3{grid-template-columns:minmax(0,1fr)}
+  .blk-card,.guide-item,.guide-term,.appshot-media img{border-radius:18px}
+  .review-grid{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;
+    margin-inline:-18px;padding:0 18px 10px;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch}
+  .review-grid::-webkit-scrollbar{display:none}
+  .review-grid article{min-width:86%;scroll-snap-align:start;border-radius:18px;
+    padding:20px}
+  .review-grid article>p{font-size:14.5px;line-height:1.6}
+
+  /* numbered steps: square accent tiles, card rows */
+  .timeline{display:grid;gap:10px;border:0;margin-top:28px}
+  .timeline article{background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:18px;gap:14px;align-items:flex-start}
+  .timeline .num{display:grid;place-items:center;width:46px;height:46px;min-width:46px;
+    border-radius:13px;background:var(--acc-deep);color:var(--btn-ink);font-size:18px}
+  .timeline h3{font-size:18px}
+  .timeline p{font-size:14px;line-height:1.55}
+
+  /* FAQ: card rows with a clear + / − */
+  .faq-list{border:0}
+  .faq-list details,.faq-grid details{background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:16px 18px;margin-bottom:10px}
+  .faq-list summary,.faq-grid summary{font-size:16px;line-height:1.35;font-weight:700}
+  .faq-list p,.faq-grid p{font-size:14px;line-height:1.6}
+
+  /* app-shot and media blocks */
+  .appshot-media img{aspect-ratio:4/3;object-fit:cover}
+  .appshot-copy h2{font-size:clamp(28px,8.4vw,38px)}
+  .appshot-points li{font-size:14px;line-height:1.5}
+
+  /* CTA bands */
+  .cta-strip{border-radius:20px;padding:30px 22px;align-items:stretch}
+  .cta-strip h2{font-size:clamp(28px,8.6vw,38px)}
+  .cta-strip .blk-btn{width:100%}
+  .big-link{display:flex;width:100%}
+
+  /* forms outside the first screen (registration/contact) */
+  .page-intro h1{font-size:clamp(34px,10vw,46px);line-height:1.03;text-transform:uppercase}
+  .page-intro p{font-size:15px}
+}
+
+/* partner logo grid: the second, larger trust surface after the form strip */
+.partners-lead{max-width:640px;font-size:15px;color:var(--muted-text);margin-top:12px}
+.partner-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:30px}
+.partner-card{display:flex;align-items:center;justify-content:center;min-height:70px;
+  padding:16px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.partner-card img{height:22px;width:auto;max-width:96px;object-fit:contain}
+@media(max-width:900px){.partner-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){
+  .partner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:22px}
+  .partner-card{min-height:62px;padding:12px;border-radius:12px}
+  .partner-card img{height:20px;max-width:84px}
+}
+
+/* the rating "/5" must sit on the baseline of the big score, not under it */
+.rating-side .rating-big small{display:inline;font-size:22px;color:var(--muted-text)}
+.sec-partners{border-top:1px solid var(--line)}
+@media(max-width:700px){
+  .guide-terms{display:grid;gap:9px;margin-top:22px}
+  .guide-term{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px;margin:0}
+  .guide-term dt{font-size:17px}
+  .guide-term dd{font-size:14px;line-height:1.55}
+  .rating-side{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:22px}
+  .rating-big{font-size:56px}
+  .rating-side p{font-size:14px}
+}
+
+@media(max-width:700px){
+  .portal-cards,.verify-grid,.blog-teaser-grid{grid-template-columns:minmax(0,1fr)}
+  .portal-cards article,.verify-grid article{min-width:0}
+}

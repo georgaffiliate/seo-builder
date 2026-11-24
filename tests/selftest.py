@@ -19,7 +19,7 @@ chk(len(blks) >= 20, f"canonical blk-fragments present ({len(blks)})")
 chk((ROOT / "blocks" / "blocks.css").exists(), "blocks.css present")
 need_frag = {"blk-hero", "blk-band-access", "blk-faq", "blk-reviews", "blk-scarcity",
               "blk-cta", "blk-office", "blk-brandnote", "blk-calculator", "blk-livebar",
-              "blk-pulse-sim"}
+              "blk-pulse-sim", "blk-guide", "blk-appshot", "blk-partners"}
 names = {b.stem for b in blks}
 chk(need_frag <= names, f"critical fragments: {sorted(need_frag - names) or 'all present'}")
 # form contract inside fragments (hidden identity fields live server-side in api.php)
@@ -87,6 +87,10 @@ if _pp2.exists():
     _ppd = json.loads(_pp2.read_text()); _pp2.unlink()
     chk("people" in _ppd["layout"]["section_order"],
         "every plan carries the reviews screen")
+    chk("appshot" in _ppd["layout"]["section_order"]
+        and (_ppd.get("appshot") or {}).get("file")
+        and len(_ppd.get("trust_badges") or []) >= 4,
+        "every plan carries an app-shot photo and form trust badges")
 else:
     chk(False, "every plan carries the reviews screen")
 # validator findings are turned into a targeted repair request (keys, not the whole pack)
@@ -570,7 +574,8 @@ blob = json.dumps(pack, ensure_ascii=False)
 chk(bool(pack) and not any(t in blob for t in ("{brand}", "{domain}", "{city}", "{deposit}", "{{c:")),
     "content pack placeholders resolved")
 chk("<small>" in pack.get("bands", {}).get("form_consent", ""), "deposit wrapped in <small>")
-for path, n in {"faq.items": 5, "sections.features.cards": 6, "reviews.items": 3,
+for path, n in {"faq.items": 12, "sections.features.cards": 6, "reviews.items": 3,
+                "sections.guide.items": 6, "sections.appshot.points": 3,
                 "sections.ladder.rows": 4, "hero.device_rows": 2}.items():
     node = pack
     for part in path.split("."):
@@ -804,7 +809,9 @@ if p1 and p2:
 
 print("== 10. anchors and form position rotate")
 FORM_SLOTS = ("access-band", "claim-band", "enroll-band")
-ANCHORS = {"people", "faq", "numbers", "cta", "office", "compare"}
+# people and faq are structural (every offer carries both); rotation is about the
+# remaining recognisable screens
+ANCHORS = {"numbers", "cta", "office", "compare"}
 forms_at, anchor_sets = [], []
 for _s in range(6):
     _f = ROOT / "plans" / f"rot-test-{_s}.site.json"
@@ -823,8 +830,8 @@ for _s in range(6):
 for _s in range(6):   # cleanup after the whole chain: siblings must see each other
     _f = ROOT / "plans" / f"rot-test-{_s}.site.json"
     if _f.exists(): _f.unlink()
-chk(len(forms_at) >= 4 and len(set(forms_at)) > 1,
-    f"form band position rotates across plans (positions: {forms_at})")
+chk(len(forms_at) >= 4 and set(forms_at) == {1},
+    f"form band is always the first screen after the hero (positions: {forms_at})")
 _ov = [len(a & b) for a, b in zip(anchor_sets, anchor_sets[1:])]
 chk(len(anchor_sets) >= 4 and max(_ov, default=0) <= 1,
     f"anchor screens rotate between consecutive plans (max overlap {max(_ov, default=0)})")

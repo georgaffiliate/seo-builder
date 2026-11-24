@@ -1,0 +1,102 @@
+{
+ "note": "Brand marks from Simple Icons (CC0 1.0). Trademarks belong to their respective owners; shown as illustrative trust/integration badges on demo offers.",
+ "license": "CC0 1.0",
+ "source": "https://simpleicons.org/",
+ "badges": [
+  {
+   "key": "binance",
+   "name": "Binance",
+   "file": "binance.svg"
+  },
+  {
+   "key": "coinbase",
+   "name": "Coinbase",
+   "file": "coinbase.svg"
+  },
+  {
+   "key": "bitcoin",
+   "name": "Bitcoin",
+   "file": "bitcoin.svg"
+  },
+  {
+   "key": "ethereum",
+   "name": "Ethereum",
+   "file": "ethereum.svg"
+  },
+  {
+   "key": "visa",
+   "name": "Visa",
+   "file": "visa.svg"
+  },
+  {
+   "key": "mastercard",
+   "name": "Mastercard",
+   "file": "mastercard.svg"
+  },
+  {
+   "key": "paypal",
+   "name": "PayPal",
+   "file": "paypal.svg"
+  },
+  {
+   "key": "stripe",
+   "name": "Stripe",
+   "file": "stripe.svg"
+  },
+  {
+   "key": "revolut",
+   "name": "Revolut",
+   "file": "revolut.svg"
+  },
+  {
+   "key": "wise",
+   "name": "Wise",
+   "file": "wise.svg"
+  },
+  {
+   "key": "solana",
+   "name": "Solana",
+   "file": "solana.svg"
+  },
+  {
+   "key": "ripple",
+   "name": "XRP",
+   "file": "ripple.svg"
+  },
+  {
+   "key": "tether",
+   "name": "Tether",
+   "file": "tether.svg"
+  },
+  {
+   "key": "litecoin",
+   "name": "Litecoin",
+   "file": "litecoin.svg"
+  },
+  {
+   "key": "cardano",
+   "name": "Cardano",
+   "file": "cardano.svg"
+  },
+  {
+   "key": "polkadot",
+   "name": "Polkadot",
+   "file": "polkadot.svg"
+  },
+  {
+   "key": "bankofamerica",
+   "name": "Bank of America",
+   "file": "bankofamerica.svg"
+  },
+  {
+   "key": "hsbc",
+   "name": "HSBC",
+   "file": "hsbc.svg"
+  },
+  {
+   "key": "barclays",
+   "name": "Barclays",
+   "file": "barclays.svg"
+  }
+ ]
+}

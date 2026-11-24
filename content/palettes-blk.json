@@ -64,6 +64,35 @@
  },
  "palettes": [
   {
+   "id": "p-partner-blue",
+   "theme": "light",
+   "vars": {
+    "bg": "#f7f9fc",
+    "bg_soft": "#edf2f8",
+    "panel": "#ffffff",
+    "panel_soft": "#f2f6fa",
+    "ink": "#0d1b2a",
+    "muted": "#5b6b7c",
+    "line": "#dbe3ec",
+    "acc": "#0d3b66",
+    "acc_deep": "#082b4d",
+    "acc_2": "#2ec5d3",
+    "up": "#0f9d6b",
+    "down": "#d64545",
+    "grad": "linear-gradient(120deg,#0d3b66,#2ec5d3)",
+    "acc_text": "#0d3b66",
+    "btn_ink": "#ffffff",
+    "up_text": "#0f7356",
+    "down_text": "#a93b3e"
+   },
+   "good_skins": [
+    "sharp-flat",
+    "classic-border",
+    "rounded-air"
+   ],
+   "default_fonts": "archivo"
+  },
+  {
    "id": "p-navy-gold",
    "theme": "light",
    "vars": {

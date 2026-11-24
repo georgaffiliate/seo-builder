@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<rect width="1200" height="630" fill="#faf7fc"/>
+<path d="M0 630 L1200 0 V630 Z" fill="#7c3aed" opacity=".10"/>
+<rect x="72" y="72" width="56" height="56" rx="12" fill="#7c3aed"/>
+<text x="84" y="116" font-family="Rubik, Georgia, serif" font-size="34" font-weight="700" fill="#faf7fc">P</text>
+<text x="72" y="196" font-family="Rubik, Georgia, serif" font-size="76" font-weight="700" fill="#251436">Preview One</text>
+<text x="72" y="258" font-family="Rubik, Georgia, serif" font-size="34" fill="#7c3aed">preview-one.site</text>
+<g font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#251436" opacity=".82">
+<rect x="72" y="330" width="250" height="54" rx="27" fill="#7c3aed" opacity=".16"/>
+<text x="98" y="365">IT</text>
+<rect x="338" y="330" width="330" height="54" rx="27" fill="#7c3aed" opacity=".16"/>
+<text x="364" y="365">sharp-flat</text>
+</g>
+<rect x="72" y="470" width="120" height="4" rx="2" fill="#7c3aed"/>
+</svg>

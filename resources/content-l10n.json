@@ -122,7 +122,12 @@
     "verifica dell’identità tipica",
     "assistenza nei giorni lavorativi"
    ],
-   "side_note": "L’account viene attivato solo dopo la verifica dei dati: nessun abbonamento né rinnovo automatico."
+   "side_note": "L’account viene attivato solo dopo la verifica dei dati: nessun abbonamento né rinnovo automatico.",
+   "trust_label": [
+    "Integrazioni e partner",
+    "Strumenti collegati",
+    "Marchi di riferimento"
+   ]
   },
   "ui": {
    "calc_eyebrow": "SIMULAZIONE",
@@ -441,6 +446,86 @@
    },
    "ticker": {
     "label": "TENDENZA"
+   },
+   "guide": {
+    "eyebrow": [
+     "GUIDA PRATICA",
+     "PRIMA DI INIZIARE",
+     "COME FUNZIONA"
+    ],
+    "h2": [
+     "Quello che serve sapere prima del primo accesso",
+     "Una guida breve, senza sorprese",
+     "Come leggere l'area e cosa aspettarsi"
+    ],
+    "lead": [
+     "Sei punti concreti su interfaccia, verifica, demo e gestione del rischio. Nessuna promessa: solo il funzionamento del servizio.",
+     "Le informazioni che contano prima di aprire l'area, spiegate in modo semplice e verificabile."
+    ],
+    "items": [
+     {
+      "t": "Un'unica area, tre livelli",
+      "d": "La schermata iniziale raccoglie la panoramica dei mercati, la lista degli strumenti seguiti e lo storico delle operazioni. Ogni modulo si apre con una spiegazione breve e resta collegato agli altri, così non serve cambiare pagina per controllare una posizione."
+     },
+     {
+      "t": "La demo prima del denaro",
+      "d": "La modalità dimostrativa usa lo stesso pannello dell'area reale, ma con importi simulati. Serve a capire come si impostano gli avvisi, come si legge un grafico e quanto tempo richiede il controllo delle posizioni. Provarla non attiva alcun addebito."
+     },
+     {
+      "t": "Verifica dell'identità",
+      "d": "Dopo la richiesta viene chiesto un documento e un recapito verificabile. I controlli servono a rispettare gli obblighi antiriciclaggio e a proteggere l'accesso. Se un documento non è leggibile, il sistema lo segnala e si può ricaricare senza ricominciare."
+     },
+     {
+      "t": "Come leggere i listini",
+      "d": "Accanto a ogni prezzo compare la variazione della giornata e, se presente, il ritardo del dato. Gli importi mostrati nell'anteprima sono illustrativi finché l'area non è attiva. Per un confronto corretto usate lo stesso orario e lo stesso intervallo."
+     },
+     {
+      "t": "Rischio e limiti",
+      "d": "Nessuno strumento elimina le perdite: si possono impostare avvisi e limiti, ma il mercato resta imprevedibile. Prima di operare conviene definire una cifra massima e un orario fisso per rivedere le posizioni. Se il risultato non è chiaro, meglio fermarsi."
+     },
+     {
+      "t": "Assistenza e documenti",
+      "d": "Il supporto risponde in italiano nei giorni lavorativi e raccoglie le richieste dal modulo o dall'area personale. Condizioni, privacy e contatti sono nelle pagine dedicate del sito. Conservate i riferimenti delle richieste per ritrovarle in seguito."
+     }
+    ]
+   },
+   "appshot": {
+    "eyebrow": [
+     "AREA DI LAVORO",
+     "SUL TELEFONO",
+     "ANTEPRIMA MOBILE"
+    ],
+    "h2": [
+     "Grafici, avvisi e posizioni nello stesso pannello",
+     "L'area di lavoro, dove serve",
+     "Controlla i mercati dal telefono"
+    ],
+    "lead": [
+     "L'anteprima mostra come si leggono grafici, watchlist e cronologia da mobile, senza cambiare interfaccia rispetto al desktop.",
+     "Una vista compatta per controllare prezzi e posizioni durante la giornata."
+    ],
+    "alt": "Anteprima dell'area di lavoro su uno smartphone con grafici di mercato",
+    "points": [
+     "Grafici e watchlist nella stessa vista",
+     "Avvisi di prezzo senza aprire il desktop",
+     "Cronologia ordini sempre a portata"
+    ]
+   },
+   "partners": {
+    "eyebrow": [
+     "ECOSISTEMA",
+     "INTEGRAZIONI",
+     "MARCHI DI RIFERIMENTO"
+    ],
+    "h2": [
+     "Strumenti e marchi che riconosci",
+     "Un ecosistema collegato, non un'isola",
+     "Le integrazioni che contano"
+    ],
+    "lead": [
+     "Pagamenti, dati di mercato e strumenti di analisi passano da partner affermati: ogni logo indica un tassello del percorso, non una promessa di rendimento.",
+     "Una selezione di marchi e infrastrutture che rendono l'area più leggibile e i pagamenti più familiari."
+    ]
    }
   },
   "reviews": {
@@ -483,7 +568,7 @@
   },
   "faq": {
    "eyebrow": "DOMANDE",
-   "h2": "Risposte brevi, prima di iniziare",
+   "h2": "Domande frequenti, risposte complete",
    "items": [
     {
      "q": "Serve un versamento per registrarsi?",
@@ -504,6 +589,34 @@
     {
      "q": "I dati dei listini sono in tempo reale?",
      "a": "Dipende dal livello dell'account: il ritardo eventuale è indicato accanto al prezzo, così sapete sempre cosa state vedendo. I grafici restano sincronizzati tra desktop e mobile. I valori mostrati restano dimostrativi finché l'area non è attiva."
+    },
+    {
+     "q": "Devo avere esperienza per iniziare?",
+     "a": "No, il percorso parte dalle basi: la panoramica, i listini e la modalità dimostrativa si esplorano senza operare. Chi ha già pratica può regolare watchlist, avvisi e criteri di rischio fin dal primo accesso. In ogni caso conviene provare la demo prima di qualsiasi versamento."
+    },
+    {
+     "q": "Quali mercati posso seguire?",
+     "a": "L'area raccoglie criptovalute, coppie valutarie, indici e materie prime in un'unica vista. Ogni strumento mostra prezzo, variazione della giornata e un breve contesto, così il confronto resta immediato. L'elenco disponibile dipende dal profilo e viene indicato prima dell'attivazione."
+    },
+    {
+     "q": "Come vengono gestiti i miei dati e i fondi?",
+     "a": "I dati personali sono trattati secondo il GDPR e le regole locali; le credenziali viaggiano su connessioni cifrate. I fondi restano separati dalla gestione ordinaria e ogni movimento è registrato nell'area personale. Nessun sistema elimina il rischio di mercato: le decisioni restano sempre vostre."
+    },
+    {
+     "q": "Posso perdere il capitale?",
+     "a": "Sì, ogni strumento finanziario può perdere valore e i risultati passati non anticipano quelli futuri. La piattaforma offre strumenti di analisi e limiti impostabili, non garanzie di rendimento. Prima di operare conviene definire quanto siete disposti a mettere a rischio."
+    },
+    {
+     "q": "Come funziona il prelievo?",
+     "a": "La richiesta si invia dall'area personale e viene registrata con data e importo. I tempi dipendono dal metodo scelto e dalla banca, in genere entro pochi giorni lavorativi. Lo stato resta visibile nella cronologia, con una email a ogni passaggio."
+    },
+    {
+     "q": "Cosa succede dopo l'invio del modulo?",
+     "a": "Un consulente ricontatta il numero indicato per confermare i dati e rispondere alle domande. Segue la verifica dell'identità e, solo se decidete di proseguire, l'attivazione dell'area operativa. Non c'è obbligo di versare nulla durante il colloquio."
+    },
+    {
+     "q": "Ci sono costi nascosti o commissioni?",
+     "a": "Le condizioni applicabili sono indicate prima della conferma, senza addebiti sorpresa per la registrazione o l'assistenza. Eventuali spread, commissioni di terzi e costi di rete restano separati e vanno letti nel dettaglio. In caso di dubbio, chiedete un riepilogo scritto al supporto."
     }
    ]
   },
@@ -899,7 +1012,12 @@
     "typické ověření identity",
     "podpora ve všední dny"
    ],
-   "side_note": "Účet se aktivuje až po ověření údajů — žádná předplatná ani automatická obnovení."
+   "side_note": "Účet se aktivuje až po ověření údajů — žádná předplatná ani automatická obnovení.",
+   "trust_label": [
+    "Integrace a partneři",
+    "Propojené nástroje",
+    "Ověřené značky"
+   ]
   },
   "ui": {
    "calc_eyebrow": "RYCHLÝ PROPOČET",
@@ -1218,6 +1336,86 @@
    },
    "ticker": {
     "label": "TREND"
+   },
+   "guide": {
+    "eyebrow": [
+     "PRAKTICKÝ PRŮVODCE",
+     "NEŽ ZAČNETE",
+     "JAK TO FUNGUJE"
+    ],
+    "h2": [
+     "Co je dobré vědět před prvním přihlášením",
+     "Krátký průvodce bez překvapení",
+     "Jak číst zónu a co očekávat"
+    ],
+    "lead": [
+     "Šest konkrétních bodů k rozhraní, ověření, demu a řízení rizika. Žádné sliby, jen jak služba funguje.",
+     "Nejdůležitější informace před otevřením zóny, vysvětlené jednoduše a ověřitelně."
+    ],
+    "items": [
+     {
+      "t": "Jedna zóna, tři úrovně",
+      "d": "Úvodní obrazovka spojuje přehled trhů, seznam sledovaných nástrojů a historii operací. Každý modul začíná krátkým vysvětlením a zůstává propojený s ostatními, takže se kvůli kontrole pozice nemusíte přepínat mezi stránkami."
+     },
+     {
+      "t": "Demo dřív než peníze",
+      "d": "Demo používá stejný panel jako ostrý účet, jen s ukázkovými částkami. Ukáže, jak se nastavují upozornění, jak se čte graf a kolik času zabere kontrola pozic. Vyzkoušení dema nic nestrhne."
+     },
+     {
+      "t": "Ověření totožnosti",
+      "d": "Po žádosti přijdou na řadu doklad a ověřitelný kontakt. Kontroly slouží k plnění povinností proti praní peněz a k ochraně přístupu. Když je doklad nečitelný, systém to oznámí a můžete jej nahrát znovu, aniž byste začínali od začátku."
+     },
+     {
+      "t": "Jak číst listiny",
+      "d": "U každé ceny je denní změna a případné zpoždění dat. Částky v náhledu jsou ukázkové, dokud zóna není aktivní. Pro správné srovnání používejte stejný čas a stejný interval."
+     },
+     {
+      "t": "Riziko a limity",
+      "d": "Žádný nástroj neodstraní ztráty: upozornění i limity nastavit lze, trh ale zůstává nepředvídatelný. Před obchodováním si určete maximální částku a pevný čas na kontrolu pozic. Když výsledku nerozumíte, je lepší zastavit se."
+     },
+     {
+      "t": "Podpora a dokumenty",
+      "d": "Podpora odpovídá v češtině ve pracovních dnech a žádosti přijímá přes formulář nebo zónu. Podmínky, zásady soukromí a kontakty najdete na samostatných stránkách. Čísla požadavků si uložte, ať je později dohledáte."
+     }
+    ]
+   },
+   "appshot": {
+    "eyebrow": [
+     "PRACOVNÍ ZÓNA",
+     "NA TELEFONU",
+     "MOBILNÍ NÁHLED"
+    ],
+    "h2": [
+     "Grafy, upozornění a pozice v jednom panelu",
+     "Zóna tam, kde ji potřebujete",
+     "Sledujte trhy z telefonu"
+    ],
+    "lead": [
+     "Náhled ukazuje, jak se na mobilu čtou grafy, watchlist a historie, se stejnou strukturou jako na počítači.",
+     "Kompaktní pohled pro kontrolu cen a pozic během dne."
+    ],
+    "alt": "Náhled pracovní zóny na smartphonu s grafy trhů",
+    "points": [
+     "Grafy a watchlist v jedné vrstvě",
+     "Cenová upozornění bez počítače",
+     "Historie pokynů stále po ruce"
+    ]
+   },
+   "partners": {
+    "eyebrow": [
+     "EKOSYSTÉM",
+     "INTEGRACE",
+     "ZNÁMÉ ZNAČKY"
+    ],
+    "h2": [
+     "Nástroje a značky, které znáte",
+     "Propojený ekosystém, ne izolovaná zóna",
+     "Integrace, na kterých záleží"
+    ],
+    "lead": [
+     "Platby, tržní data a analytické nástroje procházejí přes zavedené partnery: každé logo označuje část cesty, ne slib výnosu.",
+     "Výběr značek a infrastruktur, které dělají zónu přehlednější a platby známější."
+    ]
    }
   },
   "reviews": {
@@ -1260,15 +1458,15 @@
   },
   "faq": {
    "eyebrow": "DOTAZY",
-   "h2": "Krátké odpovědi před startem",
+   "h2": "Časté dotazy, srozumitelné odpovědi",
    "items": [
     {
      "q": "Je registrace zpoplatněná?",
-     "a": "Ne, žádost je zdarma a nic vás nezavazuje. Vklad slouží až později k aktivaci pracovní zóny. Do té doby si můžete v klidu prohlédnout přehledy a rozhodnout se vlastním tempem."
+     "a": "Ne, žádost je zdarma a nic vás nezavazuje. Vklad slouží až později k aktivaci pracovní zóny. Do té doby si můžete v klidu prohlédnout přehledy a rozhodnout se vlastním tempem. Registrace zabere jen pár minut."
     },
     {
      "q": "Jak dlouho ověření trvá?",
-     "a": "Obvykle týž pracovní den, pokud jsou odeslané údaje úplné a čitelné. Pokud jsou potřeba další dokumenty, tým to hned oznámí v zóně. O každé změně stavu přijde e-mail."
+     "a": "Obvykle týž pracovní den, pokud jsou odeslané údaje úplné a čitelné. Pokud jsou potřeba další dokumenty, tým to hned oznámí v zóně. O každé změně stavu přijde e-mail. Stav ověření vidíte i po přihlášení."
     },
     {
      "q": "Je podpora v češtině?",
@@ -1281,6 +1479,34 @@
     {
      "q": "Jsou data v reálném čase?",
      "a": "Závisí na úrovni účtu: případné zpoždění je vyznačené přímo u ceny, takže vždy víte, co vidíte. Grafy zůstávají synchronizované mezi počítačem a mobilem. Hodnoty zůstávají ukázkové, dokud zóna není aktivní."
+    },
+    {
+     "q": "Potřebuji předchozí zkušenosti?",
+     "a": "Ne, začátek je vedený krok za krokem: nejdřív si prohlédnete přehledy, seznámíte se s rozhraním a vyzkoušíte demo. Zkušenější uživatelé si mohou hned upravit watchlist, upozornění a limity rizika. V každém případě doporučujeme demo vyzkoušet dřív než jakýkoli vklad."
+    },
+    {
+     "q": "Které trhy mohu sledovat?",
+     "a": "V jedné zóně najdete kryptoměny, měnové páry, indexy i komodity. U každého nástroje je cena, denní změna a krátký kontext, takže se dají snadno porovnat. Konkrétní nabídka závisí na profilu a zobrazí se ještě před aktivací."
+    },
+    {
+     "q": "Jak jsou chráněna data a prostředky?",
+     "a": "Osobní údaje zpracováváme podle GDPR a místních pravidel, přihlášení jde přes šifrované spojení. Prostředky klientů jsou oddělené od běžného provozu a každý pohyb je vidět v zóně. Žádný systém ale neodstraní tržní riziko, rozhodnutí zůstávají na vás."
+    },
+    {
+     "q": "Můžu přijít o celý vklad?",
+     "a": "Ano, hodnota finančních nástrojů může klesnout a minulé výsledky neříkají nic o budoucích. Platforma nabízí analýzy a nastavitelné limity, ne záruku výnosu. Před obchodováním si proto určete částku, kterou jste ochotni riskovat."
+    },
+    {
+     "q": "Jak probíhá výběr prostředků?",
+     "a": "Žádost odešlete ze své zóny a systém ji zaeviduje s datem i částkou. Doba zpracování závisí na zvolené metodě a bance, obvykle jde o několik pracovních dnů. Stav se průběžně zobrazuje v historii a každou změnu potvrdí e-mail."
+    },
+    {
+     "q": "Co se stane po odeslání formuláře?",
+     "a": "Konzultant zavolá na uvedené číslo, potvrdí údaje a odpoví na otázky. Následuje ověření totožnosti a teprve potom, pokud se rozhodnete pokračovat, aktivace pracovní zóny. Během rozhovoru nemáte povinnost nic vkládat."
+    },
+    {
+     "q": "Jsou nějaké skryté poplatky?",
+     "a": "Podmínky platné pro váš účet jsou uvedené před potvrzením, registrace ani podpora nejsou zpoplatněné zvlášť. Spread, poplatky třetích stran a síťové náklady zůstávají oddělené a je potřeba je číst v detailu. Když je něco nejasné, vyžádejte si písemné shrnutí od podpory."
     }
    ]
   },
@@ -1681,7 +1907,12 @@
     "typical identity check",
     "support on business days"
    ],
-   "side_note": "The account is activated only after your details are verified — no subscriptions or auto-renewals."
+   "side_note": "The account is activated only after your details are verified — no subscriptions or auto-renewals.",
+   "trust_label": [
+    "Integrations and partners",
+    "Connected tools",
+    "Recognised brands"
+   ]
   },
   "ui": {
    "calc_eyebrow": "QUICK ESTIMATE",
@@ -2020,6 +2251,86 @@
    },
    "ticker": {
     "label": "TREND"
+   },
+   "guide": {
+    "eyebrow": [
+     "PRACTICAL GUIDE",
+     "BEFORE YOU START",
+     "HOW IT WORKS"
+    ],
+    "h2": [
+     "What to know before the first login",
+     "A short guide, no surprises",
+     "How to read the workspace and what to expect"
+    ],
+    "lead": [
+     "Six concrete points on the interface, verification, demo and risk. No promises, just how the service works.",
+     "The information that matters before opening the area, explained simply and checkably."
+    ],
+    "items": [
+     {
+      "t": "One workspace, three layers",
+      "d": "The first screen combines the market overview, your watchlist and the order history. Each module opens with a short explanation and stays linked to the others, so checking a position never means switching pages."
+     },
+     {
+      "t": "Demo before money",
+      "d": "The demo uses the same panel as the live area, with simulated amounts only. It shows how alerts are set, how a chart is read and how long a position review takes. Trying it triggers no charge."
+     },
+     {
+      "t": "Identity verification",
+      "d": "After the request you provide a document and a verifiable contact. The checks meet anti-money-laundering duties and protect access to the account. If a document is unreadable, the system says so and you can upload it again without starting over."
+     },
+     {
+      "t": "Reading the market list",
+      "d": "Every price carries the day's change and, where relevant, the data delay. Figures in the preview are illustrative until the area is active. For a fair comparison, use the same time and the same interval."
+     },
+     {
+      "t": "Risk and limits",
+      "d": "No tool removes losses: alerts and limits can be set, but the market stays unpredictable. Before trading, choose a maximum amount and a fixed time to review positions. If the outcome is unclear, stopping is the better move."
+     },
+     {
+      "t": "Support and documents",
+      "d": "Support answers in your language on working days and collects requests from the form or the account area. Terms, privacy and contact details live on their own pages. Keep the request references so you can find them later."
+     }
+    ]
+   },
+   "appshot": {
+    "eyebrow": [
+     "WORKSPACE",
+     "ON YOUR PHONE",
+     "MOBILE PREVIEW"
+    ],
+    "h2": [
+     "Charts, alerts and positions in one panel",
+     "The workspace where you need it",
+     "Follow markets from your phone"
+    ],
+    "lead": [
+     "The preview shows how charts, watchlists and history read on mobile, with the same structure as the desktop area.",
+     "A compact view for checking prices and positions during the day."
+    ],
+    "alt": "Preview of the workspace on a smartphone with market charts",
+    "points": [
+     "Charts and watchlist in one view",
+     "Price alerts without the desktop",
+     "Order history always within reach"
+    ]
+   },
+   "partners": {
+    "eyebrow": [
+     "ECOSYSTEM",
+     "INTEGRATIONS",
+     "RECOGNISED BRANDS"
+    ],
+    "h2": [
+     "Tools and brands you already know",
+     "A connected ecosystem, not an island",
+     "The integrations that matter"
+    ],
+    "lead": [
+     "Payments, market data and analysis tools run through established partners: each logo marks one part of the path, not a promise of returns.",
+     "A selection of brands and infrastructure that make the area easier to read and payments more familiar."
+    ]
    }
   },
   "reviews": {
@@ -2062,7 +2373,7 @@
   },
   "faq": {
    "eyebrow": "QUESTIONS",
-   "h2": "Short answers before you start",
+   "h2": "Frequent questions, complete answers",
    "items": [
     {
      "q": "Does sign-up cost anything?",
@@ -2083,6 +2394,34 @@
     {
      "q": "Is listing data real time?",
      "a": "It depends on the account level: any delay is shown right next to the price, so you always know what you are looking at. Charts stay in sync between desktop and mobile. Values remain illustrative until the area is active."
+    },
+    {
+     "q": "Do I need previous experience?",
+     "a": "No. The start is guided: you look through the overviews, get familiar with the interface and try the demo first. Experienced users can adjust watchlists, alerts and risk limits from the first login. Either way, the demo is worth testing before any deposit."
+    },
+    {
+     "q": "Which markets can I follow?",
+     "a": "The workspace brings cryptoassets, currency pairs, indices and commodities into one view. Each instrument shows its price, the day's change and a short context line, so comparisons stay quick. The available list depends on the profile and is shown before activation."
+    },
+    {
+     "q": "How are my data and funds handled?",
+     "a": "Personal data is processed under GDPR and local rules, and access runs over encrypted connections. Client funds are kept separate from ordinary operations, and every movement is recorded in the account area. No system removes market risk: the decisions remain yours."
+    },
+    {
+     "q": "Can I lose the money I put in?",
+     "a": "Yes. Any financial instrument can fall in value, and past results do not predict future ones. The platform provides analysis tools and configurable limits, not a guarantee of returns. Before trading, decide how much you are prepared to put at risk."
+    },
+    {
+     "q": "How do withdrawals work?",
+     "a": "You send the request from your account area, and it is recorded with a date and amount. Timing depends on the chosen method and the bank, usually a few working days. The status stays visible in the history, with an email at every stage."
+    },
+    {
+     "q": "What happens after I send the form?",
+     "a": "An adviser calls the number you provided to confirm the details and answer questions. Identity verification comes next and, only if you choose to continue, the working area is activated. There is no obligation to deposit anything during the call."
+    },
+    {
+     "q": "Are there any hidden fees?",
+     "a": "The conditions that apply to your account are shown before you confirm, and registration or support carry no separate charge. Spreads, third-party fees and network costs stay separate and should be read in detail. If anything is unclear, ask support for a written summary."
     }
    ]
   },
@@ -2892,6 +3231,86 @@
    },
    "ticker": {
     "label": "TENDENCIA"
+   },
+   "guide": {
+    "eyebrow": [
+     "GUÍA PRÁCTICA",
+     "ANTES DE EMPEZAR",
+     "CÓMO FUNCIONA"
+    ],
+    "h2": [
+     "Lo que conviene saber antes del primer acceso",
+     "Una guía breve, sin sorpresas",
+     "Cómo leer el área y qué esperar"
+    ],
+    "lead": [
+     "Seis puntos concretos sobre interfaz, verificación, demo y riesgo. Sin promesas: solo el funcionamiento del servicio.",
+     "La información que importa antes de abrir el área, explicada de forma sencilla y comprobable."
+    ],
+    "items": [
+     {
+      "t": "Un área, tres niveles",
+      "d": "La pantalla inicial reúne la vista de mercados, la lista de instrumentos seguidos y el historial de operaciones. Cada módulo se abre con una explicación breve y queda conectado con los demás, así que revisar una posición no obliga a cambiar de página."
+     },
+     {
+      "t": "La demo antes del dinero",
+      "d": "El modo de prueba usa el mismo panel que el área real, pero con importes simulados. Sirve para ver cómo se configuran los avisos, cómo se lee un gráfico y cuánto tiempo exige revisar posiciones. Probarlo no genera ningún cargo."
+     },
+     {
+      "t": "Verificación de identidad",
+      "d": "Tras la solicitud se pide un documento y un contacto verificable. Los controles cumplen las obligaciones contra el blanqueo y protegen el acceso. Si un documento no se lee bien, el sistema lo indica y puede subirse de nuevo sin empezar de cero."
+     },
+     {
+      "t": "Cómo leer los listados",
+      "d": "Junto a cada precio aparece la variación del día y, cuando corresponde, el retraso del dato. Las cifras de la vista previa son ilustrativas hasta que el área está activa. Para comparar bien, use la misma hora y el mismo intervalo."
+     },
+     {
+      "t": "Riesgo y límites",
+      "d": "Ninguna herramienta elimina las pérdidas: se pueden fijar avisos y límites, pero el mercado sigue siendo imprevisible. Antes de operar, defina un importe máximo y una hora fija para revisar posiciones. Si el resultado no está claro, conviene parar."
+     },
+     {
+      "t": "Soporte y documentos",
+      "d": "El soporte responde en español en días laborables y recoge las solicitudes desde el formulario o el área personal. Las condiciones, la privacidad y los contactos están en sus propias páginas. Guarde las referencias de cada solicitud para encontrarlas después."
+     }
+    ]
+   },
+   "appshot": {
+    "eyebrow": [
+     "ÁREA DE TRABAJO",
+     "EN EL MÓVIL",
+     "VISTA PREVIA"
+    ],
+    "h2": [
+     "Gráficos, avisos y posiciones en un solo panel",
+     "El área donde la necesitas",
+     "Sigue los mercados desde el móvil"
+    ],
+    "lead": [
+     "La vista previa muestra cómo se leen gráficos, listas y historial en el móvil, con la misma estructura que en escritorio.",
+     "Una vista compacta para revisar precios y posiciones durante el día."
+    ],
+    "alt": "Vista previa del área de trabajo en un smartphone con gráficos de mercado",
+    "points": [
+     "Gráficos y lista de seguimiento en una vista",
+     "Avisos de precio sin abrir el escritorio",
+     "Historial de órdenes siempre a mano"
+    ]
+   },
+   "partners": {
+    "eyebrow": [
+     "ECOSISTEMA",
+     "INTEGRACIONES",
+     "MARCAS DE REFERENCIA"
+    ],
+    "h2": [
+     "Herramientas y marcas que ya conoces",
+     "Un ecosistema conectado, no una isla",
+     "Las integraciones que importan"
+    ],
+    "lead": [
+     "Los pagos, los datos de mercado y las herramientas de análisis pasan por socios establecidos: cada logo señala una parte del recorrido, no una promesa de rentabilidad.",
+     "Una selección de marcas e infraestructuras que hacen el área más legible y los pagos más familiares."
+    ]
    }
   },
   "_pulse": {
@@ -2979,7 +3398,12 @@
     "revisión de identidad habitual",
     "soporte en días laborables"
    ],
-   "side_note": "La cuenta se activa solo después de verificar tus datos: sin suscripciones ni renovaciones automáticas."
+   "side_note": "La cuenta se activa solo después de verificar tus datos: sin suscripciones ni renovaciones automáticas.",
+   "trust_label": [
+    "Integraciones y socios",
+    "Herramientas conectadas",
+    "Marcas de referencia"
+   ]
   },
   "ui": {
    "calc_eyebrow": "CÁLCULO RÁPIDO",
@@ -3054,11 +3478,11 @@
   },
   "faq": {
    "eyebrow": "PREGUNTAS",
-   "h2": "Respuestas breves antes de empezar",
+   "h2": "Preguntas frecuentes, respuestas completas",
    "items": [
     {
      "q": "¿El registro tiene algún coste?",
-     "a": "No, la solicitud es gratuita y no compromete a nada. El depósito llega después, cuando activas el área de trabajo. Hasta entonces puedes revisar los resúmenes y decidir con calma."
+     "a": "No, la solicitud es gratuita y no compromete a nada. El depósito llega después, cuando activas el área de trabajo. Hasta entonces puedes revisar los resúmenes y decidir con calma. No hace falta ingresar nada en ese paso."
     },
     {
      "q": "¿Cuánto tarda la comprobación?",
@@ -3075,6 +3499,34 @@
     {
      "q": "¿Los datos de los listados son en tiempo real?",
      "a": "Depende del nivel de cuenta: el retardo se muestra junto al precio, así siempre sabes qué estás viendo. Los gráficos se mantienen sincronizados entre ordenador y móvil. Los valores siguen siendo ilustrativos hasta que el área esté activa."
+    },
+    {
+     "q": "¿Necesito experiencia previa?",
+     "a": "No: el recorrido empieza por lo básico, con la vista general, los listados y el modo de prueba. Quien ya ha operado puede ajustar listas de seguimiento, avisos y límites de riesgo desde el primer acceso. En cualquier caso, conviene probar la demo antes de hacer un ingreso."
+    },
+    {
+     "q": "¿Qué mercados puedo seguir?",
+     "a": "El área reúne criptomonedas, pares de divisas, índices y materias primas en una sola vista. Cada instrumento muestra precio, variación del día y un contexto breve para comparar sin abrir varias pestañas. La lista disponible depende del perfil y se indica antes de la activación."
+    },
+    {
+     "q": "¿Cómo se protegen mis datos y mi dinero?",
+     "a": "Los datos personales se tratan conforme al RGPD y la normativa local, y el acceso viaja cifrado. Los fondos de los clientes se mantienen separados de la operativa ordinaria y cada movimiento queda registrado en el área. Ningún sistema elimina el riesgo de mercado: las decisiones siguen siendo suyas."
+    },
+    {
+     "q": "¿Puedo perder el capital?",
+     "a": "Sí, cualquier instrumento financiero puede bajar de valor y los resultados pasados no anticipan los futuros. La plataforma ofrece análisis y límites configurables, no garantías de rentabilidad. Antes de operar, defina qué cantidad está dispuesto a poner en riesgo."
+    },
+    {
+     "q": "¿Cómo funciona la retirada?",
+     "a": "La solicitud se envía desde el área personal y queda registrada con fecha e importe. El plazo depende del método elegido y del banco, normalmente unos días laborables. El estado se consulta en el historial y cada cambio genera un aviso por correo."
+    },
+    {
+     "q": "¿Qué pasa tras enviar el formulario?",
+     "a": "Un asesor llama al número indicado para confirmar los datos y resolver dudas. Después llega la verificación de identidad y, solo si decide continuar, la activación del área operativa. No hay obligación de ingresar nada durante la conversación."
+    },
+    {
+     "q": "¿Hay comisiones ocultas?",
+     "a": "Las condiciones aplicables se muestran antes de confirmar, sin cargos sorpresa por registrarse o recibir asistencia. Los spreads, las comisiones de terceros y los costes de red se detallan por separado. Si algo no queda claro, pida un resumen escrito al soporte."
     }
    ]
   },

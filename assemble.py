@@ -29,7 +29,21 @@ CONTENT_SCHEMA = ROOT / "content" / "content-pack.schema.json"
 PALETTES = ROOT / "content" / "palettes-blk.json"
 INTEGRATION_SRC = ROOT / "integration-example" / "integration"
 PEOPLE_DIR = ROOT / "people"
+APPSHOT_DIR = ROOT / "appshots"
+TRUST_DIR = ROOT / "trust"
 POSTBACK_SRC = ROOT / "_postback.php"
+
+
+def _asset_bank(folder: pathlib.Path, key: str) -> list:
+    try:
+        d = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+        return [x for x in (d.get(key) or []) if isinstance(x, dict) and x.get("file")]
+    except Exception:
+        return []
+
+
+APPSHOT_BANK = _asset_bank(APPSHOT_DIR, "photos")
+TRUST_BANK = _asset_bank(TRUST_DIR, "badges")
 
 # Blog/hub pages live one directory deep (/blog/<slug>.php) so the offer pages and the
 # content silo keep separate URL neighbourhoods. Every other page stays at the root.
@@ -235,6 +249,53 @@ def load(p: pathlib.Path, default=None):
 def esc(s):
     if isinstance(s, (list, dict)): s = ""  # never print python repr into HTML
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
+
+
+def appshot_file(plan) -> str:
+    """Chosen phone/market photo; legacy plans without the field get a stable fallback."""
+    chosen = (plan.get("appshot") or {}) if isinstance(plan.get("appshot"), dict) else {}
+    name = chosen.get("file") or ""
+    if name and (APPSHOT_DIR / name).exists():
+        return name
+    if not APPSHOT_BANK:
+        return ""
+    seed = str((plan.get("params") or {}).get("domain") or plan.get("seed") or "0")
+    pick = APPSHOT_BANK[sum(map(ord, seed)) % len(APPSHOT_BANK)]
+    return pick["file"]
+
+
+def trust_badges(plan) -> list[dict]:
+    """Six brand/payment marks for the form strip; falls back to the first six."""
+    by_key = {b.get("key"): b for b in TRUST_BANK}
+    keys = [k for k in (plan.get("trust_badges") or []) if k in by_key]
+    if not keys:
+        keys = [b.get("key") for b in TRUST_BANK[:6]]
+    return [by_key[k] for k in keys if k]
+
+
+def trust_logos_html(plan) -> str:
+    out = []
+    for b in trust_badges(plan):
+        out.append(
+            f'<img src="img/trust/{esc(b["file"])}" alt="{esc(b.get("name", ""))}" '
+            f'width="76" height="20" loading="lazy" decoding="async">')
+    return "".join(out)
+
+
+def partner_badges(plan) -> list[dict]:
+    badges = trust_badges(plan)
+    keys = {b.get("key") for b in badges}
+    return badges + [b for b in TRUST_BANK if b.get("key") not in keys][:2]
+
+
+def partner_grid_html(plan) -> str:
+    """Larger 8-logo trust grid: the six form badges plus two fresh marks."""
+    out = []
+    for b in partner_badges(plan):
+        out.append(
+            f'<div class="partner-card"><img src="img/trust/{esc(b["file"])}" '
+            f'alt="{esc(b.get("name", ""))}" loading="lazy" decoding="async"></div>')
+    return "".join(out)
 
 def _on_dark(hex_color: str, min_l: float = 0.62) -> str:
     """Lift a palette color to a readable-on-dark lightness (keeps the hue).
@@ -605,7 +666,8 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
                 errs.append(f"hero.{k} is a list/dict"); continue
             if isinstance(v, str) and not v.strip(): errs.append(f"hero.{k} empty")
         for grp, keys in (("bands", ("mid_eyebrow", "mid_h2", "mid_lead", "form_title",
-                                     "form_sub", "form_consent", "submit", "submit_nav")),
+                                     "form_sub", "form_consent", "submit", "submit_nav",
+                                     "trust_label")),
                           ("footer", ("tagline", "disclaimer", "risk_line"))):
             node = content.get(grp) or {}
             for k in keys:
@@ -662,6 +724,8 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     if not isinstance(faq_items, list):
         errs.append("faq.items is not an array")
         faq_items = []
+    if faq_items and len(faq_items) < 12:
+        errs.append(f"faq.items has {len(faq_items)} entries, need 12 substantial Q&A")
     for it in faq_items:
         a = it.get("a") if isinstance(it, dict) else ""
         if not isinstance(a, str) or not a.strip():
@@ -669,9 +733,44 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         else:
             # CJK says the same in half the characters: 97 Japanese characters are two
             # full sentences, while 97 Latin characters are usually a stub
-            _min = 45 if plan["params"].get("lang") in ("ja", "zh", "ko") else 110
+            _min = 50 if plan["params"].get("lang") in ("ja", "zh", "ko") else 180
             if len(a.strip()) < _min:
                 errs.append(f"faq answer too short ({len(a.strip())} chars): {a[:40]}…")
+    # long-form guide: every item must explain something, not repeat a chip label
+    guide = ((content.get("sections") or {}).get("guide") or {})
+    if "guide" in order:
+        gitems = guide.get("items") if isinstance(guide, dict) else None
+        if not isinstance(gitems, list) or len([x for x in gitems if _nonempty(x)]) < 6:
+            errs.append(f"sections.guide.items needs >= 6 explained topics "
+                        f"({len(gitems) if isinstance(gitems, list) else 0} valid)")
+        else:
+            for k in ("eyebrow", "h2", "lead"):
+                v = guide.get(k)
+                if isinstance(v, list) or not str(v or "").strip():
+                    errs.append(f"sections.guide.{k} missing or a raw list")
+            for i, it in enumerate(gitems[:6]):
+                d = str((it or {}).get("d") or "").strip()
+                if len(d) < (55 if plan["params"].get("lang") in ("ja", "zh", "ko") else 150):
+                    errs.append(f"sections.guide.items.{i}.d too short ({len(d)} chars)")
+    # app-shot: the phone/market photo needs real accompanying copy and a literal alt
+    appshot = ((content.get("sections") or {}).get("appshot") or {})
+    if "appshot" in order:
+        if not isinstance(appshot, dict):
+            errs.append("sections.appshot must be an object")
+        else:
+            for k in ("eyebrow", "h2", "lead", "alt"):
+                v = appshot.get(k)
+                if isinstance(v, list) or not str(v or "").strip():
+                    errs.append(f"sections.appshot.{k} missing or a raw list")
+            pts = appshot.get("points")
+            if not isinstance(pts, list) or len([x for x in pts if _nonempty(x)]) < 3:
+                errs.append("sections.appshot.points needs >= 3 captions")
+    partners = ((content.get("sections") or {}).get("partners") or {})
+    if "partners" in order:
+        for k in ("eyebrow", "h2", "lead"):
+            v = partners.get(k) if isinstance(partners, dict) else None
+            if isinstance(v, list) or not str(v or "").strip():
+                errs.append(f"sections.partners.{k} missing or a raw list")
     # ---- stats captions are WORDS, never the numbers they describe -----------
     # (live bug: 4,7/5 → caption "4,7", 1.405 → caption "1.280": the numbers band
     #  shipped as a wall of duplicated figures with no meaning)
@@ -903,6 +1002,9 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
     "glance": "blk-glance",
     "facts": "blk-facts",
     "notes": "blk-notes",
+    "guide": "blk-guide",
+    "appshot": "blk-appshot",
+    "partners": "blk-partners",
 }
 INC_HEAD = "<?php include __DIR__ . '/api_local/integration/header.php'; ?>"
 INC_FOOT = "<?php include __DIR__ . '/api_local/integration/footer.php'; ?>"
@@ -1018,6 +1120,9 @@ CANON = {  # canonical blk-* fragment per slot (authored clean, contract-safe)
     "glance": "blk-glance",
     "facts": "blk-facts",
     "notes": "blk-notes",
+    "guide": "blk-guide",
+    "appshot": "blk-appshot",
+    "partners": "blk-partners",
 }
 
 def frag_for(name: str, plan) -> str:
@@ -1047,6 +1152,8 @@ def R(name: str, plan, C, **kw) -> str:
         "{{SEED}}": str(plan.get("seed", "")),
         "{{REVIEWS}}": fmt_int(plan["numbers"].get("reviews", 641), plan["params"].get("lang", "en")),
         "{{USERS}}": fmt_int(plan["numbers"].get("users", 12500), plan["params"].get("lang", "en")),
+        "{{TRUST_LOGOS}}": trust_logos_html(plan),
+        "{{PARTNER_GRID}}": partner_grid_html(plan),
     }
     if name == "pulse-sim":
         for k, v in ((plan.get("pulse_sim") or {}).get("subs") or {}).items():
@@ -1348,11 +1455,27 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     SLOT_REMAP = {  # sections sharing schema intro key -> distinct content paths
         "stats-intro": "sections.stats.", "intro-center": "sections.ladder.",
     }
-    for slot in order:
+    i = 0
+    while i < len(order):
+        slot = order[i]
+        # first screen: the hero and the lead form are rendered as one split view
+        # (component contracts stay intact; CSS hides the band's long copy column)
+        if i == 0 and slot == "hero" and len(order) > 1 and order[1] in FORM_BANDS:
+            hero = R("hero", plan, C)
+            # the form on this screen is the action; the hero's own CTAs would only
+            # duplicate the same target (and the header CTA is always visible)
+            hero = re.sub(r'<a\b[^>]*class="[^"]*\bblk-btn\b[^"]*"[^>]*>.*?</a>', "",
+                          hero, flags=re.S)
+            hero = re.sub(r'<div class="hero-cta">\s*</div>', "", hero)
+            band = R(order[1], plan, C)
+            body_parts.append(f'<div class="first-screen">\n{hero}\n{band}\n</div>')
+            i += 2
+            continue
         html = R(slot, plan, C)
         if slot in SLOT_REMAP:
             html = html.replace("c:sections.intro.", SLOT_REMAP[slot])
         body_parts.append(html)
+        i += 1
     if B and (plan.get("blog") or {}).get("enabled"):
         import blog_assemble
         body_parts.append(blog_assemble.teaser_html(plan, B, covers))
@@ -1381,9 +1504,9 @@ def build_jsonld(plan, C, body: str = ""):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     n = plan["numbers"]; reg = plan.get("regulator", {})
     # FAQPage must describe questions a visitor can actually read: variants render
-    # 2–5 FAQ items (compare/mini-faq/faq), so the schema follows the rendered body
+    # 4–12 FAQ items (compare/mini-faq/faq), so the schema follows the rendered body
     # instead of the raw pack length (mismatch = structured-data risk).
-    fq = [q for q in ((C.get("faq") or {}).get("items") or [])[:6]
+    fq = [q for q in ((C.get("faq") or {}).get("items") or [])[:12]
           if isinstance(q, dict) and q.get("q") and q.get("a")
           and (q["q"] in body or esc(q["q"]) in body)]
     faq_entities = ",".join(json.dumps({"@type": "Question", "name": q["q"],
@@ -1471,14 +1594,6 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
                          str(cp.get("title") or "").strip(), flags=re.I).strip()
     eyebrow = eyebrow_raw or PAGE_LABELS.get(plan["params"].get("lang", "en"),
                                               PAGE_LABELS["en"]).get(which, which.upper())
-    intro = f"""<section class="page-intro"><div class="eyebrow">{esc(eyebrow)}</div>
-<h1>{h1_with_brand(cp.get('h1'), brand)}</h1><p>{esc(cp.get('lead', ''))}</p></section>"""
-    if "page-intro" in skeleton: body_parts.append(intro)
-    else:
-        # every indexed page MUST have h1 with .brand-line (audit) even in non-intro skeletons
-        body_parts.append('<section class="page-intro"><h1>'
-                          + h1_with_brand(cp.get("h1") or cp.get("title"), brand)
-                          + '</h1></section>')
     form_slot = next((x for x in ("access-band", "claim-band", "enroll-band")
                       if x in plan["layout"]["section_order"]), "access-band")
 
@@ -1493,8 +1608,25 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
                 "winrate": "numbers", "figures": "numbers", "numbers": "numbers",
                 "stack": "features", "features": "features",
                 "team-band": "people", "people": "people"}
+    intro = f"""<section class="page-intro"><div class="eyebrow">{esc(eyebrow)}</div>
+<h1>{h1_with_brand(cp.get('h1'), brand)}</h1><p>{esc(cp.get('lead', ''))}</p></section>"""
+    if "page-intro" not in skeleton:
+        # every indexed page MUST have h1 with .brand-line (audit) even in non-intro skeletons
+        intro = ('<section class="page-intro"><h1>'
+                 + h1_with_brand(cp.get("h1") or cp.get("title"), brand)
+                 + '</h1></section>')
+    form_token = next((t for t in skeleton if SLOT_FOR.get(t) == form_slot), None)
     rendered_form = False
     done = set()
+    # pages that carry a lead form put it on the first screen with their intro, exactly
+    # like the home page: copy left, form right (stacked on phones)
+    if which in ("contact", "register") or form_token:
+        body_parts.append(f'<div class="first-screen inner-form">\n{intro}\n'
+                          f'{inner_slot(form_slot)}\n</div>')
+        done.add(form_slot)
+        rendered_form = True
+    else:
+        body_parts.append(intro)
     for token in skeleton:
         if token in ("page-intro",):
             continue
@@ -1810,6 +1942,15 @@ def write_assets(out: pathlib.Path, plan):
     for ph in plan.get("photos", []):
         src = PEOPLE_DIR / ph
         if src.exists(): shutil.copy(src, img_dir / ph)
+    # app-shot photo (one per plan) + the form trust badges chosen by the plan
+    app = appshot_file(plan)
+    if app and (APPSHOT_DIR / app).exists():
+        shutil.copy(APPSHOT_DIR / app, img_dir / "appshot.jpg")
+    trust_dir = img_dir / "trust"
+    trust_dir.mkdir(exist_ok=True)
+    for b in partner_badges(plan):
+        src = TRUST_DIR / b["file"]
+        if src.exists(): shutil.copy(src, trust_dir / b["file"])
     # favicon + og: copy neutral placeholders (regenerated per brand by icon step)
     for f in ("favicon.svg", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "og-image.png"):
         src = ROOT / "assets-brand" / f

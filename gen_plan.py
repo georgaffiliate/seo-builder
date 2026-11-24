@@ -53,6 +53,18 @@ PALETTES_F = ROOT / "content" / "palettes-blk.json"
 REG_F = ROOT / "resources" / "regulators.json"
 BLOG_TOPICS_F = ROOT / "resources" / "blog-topics.json"
 PEOPLE_DIR = ROOT / "people"
+APPSHOT_DIR = ROOT / "appshots"
+TRUST_DIR = ROOT / "trust"
+
+def _bank(name: str, key: str) -> list:
+    try:
+        d = json.loads((ROOT / name / "manifest.json").read_text(encoding="utf-8"))
+        return [x for x in (d.get(key) or []) if isinstance(x, dict) and x.get("file")]
+    except Exception:
+        return []
+
+APPSHOT_BANK = _bank("appshots", "photos")
+TRUST_BANK = _bank("trust", "badges")
 
 # ---------------------------------------------------------------- registries --
 WIDGET_GROUPS = {
@@ -66,6 +78,12 @@ WIDGET_GROUPS = {
 }
 SKINS = ["rounded-air", "sharp-flat", "brutalist-block", "glass-soft",
           "classic-border", "dense-terminal"]
+# Default visual family for new offers: the navy/teal/blue "partner" layout.
+# The mobile partner layer in blocks.css carries the rest of the look; these
+# palettes keep the accent and type in the same family instead of picking a
+# random purple/green palette.
+PARTNER_PALETTES = ["p-partner-blue", "p-harbor-teal", "p-arctic-slate", "p-cloud-indigo"]
+PARTNER_SKINS = ["sharp-flat", "classic-border", "rounded-air"]
 # Hero concepts: each one is a composition with its own evidence (claims / quote /
 # steps / band), rendered by blocks/blk-hero-<letter>.html. The concept avoids the
 # last two plans; the letter is what assemble renders.
@@ -77,7 +95,7 @@ SECTION_POOL = ["intro-center", "features", "steps", "steps-live", "markets", "l
                  "streams", "security", "demo", "risk", "cta-band", "trust-band",
                  "ticker", "timeline", "stats-intro",
                  "numbers", "portal", "compare", "glance",
-                 "facts", "notes", "mini-faq"]
+                 "facts", "notes", "mini-faq", "guide", "appshot", "partners"]
 # Recognisable "screens" that rotate between offers: a plan picks 2-3 of them and
 # never repeats the ones the previous plan / same-brand sibling already shows, so
 # two offers of one factory visibly have DIFFERENT screens (human and Google view).
@@ -92,6 +110,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "features": ["b", "c"],
     "people": ["b", "c", "e", "f", "g", "h"],   # d renders quotes without portraits
     "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
+    "guide": ["b"], "appshot": ["b"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
@@ -215,6 +234,8 @@ def load_history()->list[dict]:
             "combo": (d.get("design",{}).get("skin",""), d.get("design",{}).get("palette_id","")),
             "people": d.get("people",[]) or [],
             "photos": d.get("photos",[]) or [],
+            "appshot": (d.get("appshot") or {}).get("file", "") if isinstance(d.get("appshot"), dict) else "",
+            "trust_badges": d.get("trust_badges", []) or [],
             "bins": (d.get("numbers",{}).get("reviews_bin"), d.get("numbers",{}).get("users_bin"),
                      tuple(d.get("numbers",{}).get("latency_bin") or ())),
             "blog_topics": [str(t.get("id") or "") for t in
@@ -242,9 +263,10 @@ def anchors_of(od:list)->set:
     return types_of(od) & set(ANCHOR_TYPES)
 
 def rotating_anchors(od: list) -> set:
-    """Anchor screens that must rotate. `people` is now on every offer (social proof),
-    so it is structural and never counts as a shared/duplicated anchor."""
-    return anchors_of(od) - {"people"}
+    """Anchor screens that must rotate. `people` and `faq` are on every offer now
+    (social proof and a full Q&A are content, not an optional screen), so they are
+    structural and never count as a shared/duplicated anchor."""
+    return anchors_of(od) - {"people", "faq"}
 
 
 def order_ok(od:list,hist:list,brand:str="")->bool:
@@ -395,13 +417,16 @@ def build_plan(rng, args, hist)->dict|None:
     # palette: ≠ neighbours, and (skin,palette) combo globally unused
     used_pal={h["palette"] for h in last2}
     used_combo={h["combo"] for h in hist}
-    pals=[p for p in palettes()]
+    pals=[p for p in palettes() if p["id"] in PARTNER_PALETTES] or [p for p in palettes()]
+    # p-partner-blue is the house default; the rest of the family takes over only
+    # when the combo is already in use or the palette was seen in the last two plans
+    pals.sort(key=lambda p: (p["id"] != "p-partner-blue", p["id"]))
     pool=[p for p in pals if p["id"] not in used_pal
            and rng.choice(p["good_skins"]) is not None] or pals
-    rng.shuffle(pool)
     chosen=None
     for p in pool:
-        skin_opts=[s for s in p["good_skins"] if s not in {h["skin"] for h in last2}] or SKINS
+        skins=[s for s in p["good_skins"] if s in PARTNER_SKINS] or p["good_skins"]
+        skin_opts=[s for s in skins if s not in {h["skin"] for h in last2}] or skins
         rng.shuffle(skin_opts)
         for s in skin_opts:
             if (s,p["id"]) not in used_combo:
@@ -485,7 +510,8 @@ def build_plan(rng, args, hist)->dict|None:
         want=rng.randint(5,8)
         fresh_n=min(len(novel),max(novel_need(hist),rng.randint(3,5)))
         picked=novel[:fresh_n]+rng.sample(stale,k=min(len(stale),want-fresh_n)) if relax \
-            else novel[:fresh_n]+[t for t in stale if t not in sib_types][:max(0,want-fresh_n)]
+            else novel[:fresh_n]+[t for t in stale if t not in sib_types and t not in prev_types
+                                   ][:max(0,want-fresh_n)]
         rng.shuffle(picked)
         extras=[rng.choice(pool_types[t]) for t in picked]
         for s in extras:
@@ -508,6 +534,24 @@ def build_plan(rng, args, hist)->dict|None:
         have={TYPE_OF.get(x,x) for x in od}
         if "people" not in have:
             od.insert(min(len(od), rng.randint(3, 8)), "people")
+        # a full Q&A screen and a long-form guide are content, not an optional anchor:
+        # every offer carries substantive text a visitor (and a crawler) can read
+        if "faq" not in have:
+            for alt in ("compare", "mini-faq"):
+                if alt in od:
+                    od[od.index(alt)] = "faq"
+                    break
+            else:
+                od.insert(min(len(od), rng.randint(3, 8)), "faq")
+        have={TYPE_OF.get(x,x) for x in od}
+        if "guide" not in have:
+            od.insert(min(len(od), rng.randint(3, 8)), "guide")
+        have={TYPE_OF.get(x,x) for x in od}
+        if "appshot" not in have:
+            od.insert(min(len(od), rng.randint(3, 8)), "appshot")
+        have={TYPE_OF.get(x,x) for x in od}
+        if "partners" not in have:
+            od.insert(min(len(od), rng.randint(3, 8)), "partners")
         if "scarcity" not in od and rng.random()<0.8: od.insert(rng.randrange(3,len(od)-2),"scarcity")
         # numbers and stats-intro are the same "stat screen" family: never both
         if "numbers" in od and "stats-intro" in od: od.remove("stats-intro")
@@ -515,10 +559,11 @@ def build_plan(rng, args, hist)->dict|None:
         seen=set(); od=[x for x in od if not (x in seen or seen.add(x))][:16]
         if len(od)<10: continue
         if not ({"people","faq","facts","security","compare"} & set(od)): continue
-        # the form band rotates: 35% right after the hero, 65% one to three screens deeper
+        # the form band is the conversion screen: it always sits immediately after
+        # the hero so the first viewport shows copy + form (the assembler pairs them
+        # in a side-by-side .first-screen wrapper)
         od.remove(form_band)
-        pos=rng.choices((1,2,3,4),weights=(35,30,20,15))[0]
-        od.insert(min(pos,max(1,len(od)-4)),form_band)
+        od.insert(1, form_band)
         score=structure_score(od,hist,brand)
         if best is None or score>best[0]: best=(score,od)
         if order_ok(od,hist,brand): order=od; break
@@ -616,6 +661,14 @@ def build_plan(rng, args, hist)->dict|None:
             if _done:
                 break
 
+    # structural screens (people, faq) do not satisfy the rotating-anchor rule by
+    # themselves: a plan still needs at least one of numbers/cta/office/compare
+    if not (set(order) & (set(ANCHOR_TYPES) - {"people", "faq"})):
+        for cand in ("numbers", "office", "cta", "compare"):
+            if cand not in order:
+                order.insert(min(len(order), rng.randint(3, 8)), cand)
+                break
+
     # dedupe pass above can swallow anchors (compare dropped next to faq, numbers
     # dropped next to people-e). Assemble refuses a page with fewer than two, so make
     # sure the order always carries them instead of failing at the very end.
@@ -636,6 +689,11 @@ def build_plan(rng, args, hist)->dict|None:
                     break
             order.append(cand)
             if len(_anchors()) >= 2: break
+
+    # a late anchor insertion can bring numbers next to stats-intro: they are the
+    # same stat-screen family, and assemble.validate_plan refuses both
+    if "numbers" in order and "stats-intro" in order:
+        drop_slot("stats-intro")
 
     inner={pg:rng.choice(v) for pg,v in sorted(INNER_SKELETONS.items())}
     for _ in range(10):
@@ -693,6 +751,20 @@ def build_plan(rng, args, hist)->dict|None:
     if any(p=="" for p in photos):
         photos=sorted(rng.sample(free,k=min(len(people),len(free))))
 
+    # app-shot photo: a real phone/market image, rotated so the fleet does not reuse one
+    used_app={h.get("appshot") for h in hist if h.get("appshot")}
+    app_pool=[x for x in APPSHOT_BANK if x["file"] not in used_app] or APPSHOT_BANK
+    app_pick=rng.choice(app_pool) if app_pool else {}
+    # trust badges: the four anchors stay, two rotate so strips differ between offers
+    must = ["binance", "coinbase", "visa", "mastercard"]
+    rest_pool = [b.get("key") for b in TRUST_BANK if b.get("key") not in must]
+    recent_badges = set()
+    for h in hist[-2:]:
+        recent_badges |= set(h.get("trust_badges") or [])
+    rest_pool = [k for k in rest_pool if k not in recent_badges] or rest_pool
+    rng.shuffle(rest_pool)
+    badges = [k for k in must if any(b.get("key") == k for b in TRUST_BANK)] + rest_pool[:2]
+
     plan = {
         "seed":args.seed, "product":"static-create-sites",
         "params":{"brand":args.brand,"geo":args.geo,"geo_short":(args.cc or LANG2CC.get(args.lang,"")).upper(),
@@ -708,6 +780,9 @@ def build_plan(rng, args, hist)->dict|None:
                       "variant_hash":hashlib.sha1(("|".join(f"{k}:{v}" for k,v in sorted(variants.items()))).encode()).hexdigest()[:10],
                       "novel_slots":sorted(set(order)-{t for h in hist[-1:] for t in h["order"]})},
         "inner_pages":inner,"widgets":widgets,"numbers":numbers,"people":people,"photos":photos,
+        "appshot":{"file":app_pick.get("file",""),"source":app_pick.get("source",""),
+                    "license":app_pick.get("license","")} if app_pick else {},
+        "trust_badges":badges,
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }

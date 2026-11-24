@@ -295,7 +295,12 @@ def brief(plan: dict) -> dict:
             "Treat every number as demo data: never write 'to be verified' or leave a value blank.",
             "Format numbers, prices and percentages with the locale separators of the plan language "
             "(comma decimals for pt/es/it/fr/de).",
-            "Arrays need full length: faq.items 5, features.cards 6, steps.steps 5, ladder.rows 4, markets.rows 4, risk.rows 3, security.cards 3, streams.cards 3, reviews.items 3, hero.stats 3, hero.device_rows 2, bands.mid_points 4, scarcity.units 4, inner_about.blocks 4.",
+            "Arrays need full length: faq.items 12, features.cards 6, steps.steps 5, ladder.rows 4, markets.rows 4, risk.rows 3, security.cards 3, streams.cards 3, reviews.items 3, hero.stats 3, hero.device_rows 2, bands.mid_points 4, scarcity.units 4, inner_about.blocks 4, sections.guide.items 6, sections.appshot.points 3.",
+            "faq.items are the main long-form text of the page: 12 DIFFERENT real questions a newcomer would ask (costs, eligibility, verification, markets, risk, withdrawals, support, data, demo, first steps). Every answer is 2-4 full sentences, 220-480 characters, factual and specific — no one-line stubs, no repeated ideas.",
+            "sections.guide is a long-form knowledge block: 6 DIFFERENT topics with a short title (2-5 words) and a 2-4 sentence explanation (180-420 characters), each teaching something practical about the workspace, verification, demo, market data, risk limits or support. Do not turn it into a second FAQ or repeat FAQ wording.",
+            "sections.appshot describes the real phone/market photo shown beside it: alt is a literal, neutral description of what the photo shows; points are 3 short practical captions about mobile use (watchlist, alerts, order history). Do not invent a different device or screenshot.",
+            "sections.partners introduces the large logo grid: one short eyebrow, one h2 naming integrations/trusted brands, and one 1-2 sentence lead. Do not list logos in the text; the grid is rendered by the program.",
+            "bands.trust_label is a short caption (2-4 words) above the form's brand/payment logo strip, in the plan language — not a sentence and not a list.",
             "livebar.* must be translated into the plan language (it feeds the top strip): all 9 fields plus 3-4 news headlines, short and concrete.",
             "Texts must read unlike the sibling offers: vary sentence openings, examples and section angles.",
             "Hero CTAs, eyebrows, section h2 wording and the submit button must be phrased freshly for THIS offer — never copy boilerplate like 'EMPIEZA HOY'/'Solicitar acceso' from sibling offers.",
@@ -306,9 +311,11 @@ def brief(plan: dict) -> dict:
 
 def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
     """Fillable skeleton from the schema: same keys, arrays expanded to required length."""
-    expand = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
+    expand = {"faq.items": 12, "sections.features.cards": 6, "sections.steps.steps": 5,
               "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
               "sections.security.cards": 3, "sections.streams.cards": 3,
+              "sections.guide.items": 6,
+              "sections.appshot.points": 3,
               "hero.stats": 3, "hero.device_rows": 2, "hero.proof.claims": 3,
               "hero.proof.steps": 3, "bands.mid_points": 4,
               "scarcity.units": 4, "inner_about.blocks": 4,
@@ -696,12 +703,13 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
             errs.append(f"hero.stats[1] users {u} outside bin {ub}")
         if l is None or not (lb[0] <= l <= lb[1]):
             errs.append(f"hero.stats[2] latency {l} outside bin {lb}")
-    mins = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
+    mins = {"faq.items": 12, "sections.features.cards": 6, "sections.steps.steps": 5,
             "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
             "sections.security.cards": 3, "sections.streams.cards": 3,
             "hero.stats": 3, "hero.device_rows": 2, "hero.proof.claims": 3,
             "hero.proof.steps": 3, "bands.mid_points": 4,
             "scarcity.units": 4, "inner_about.blocks": 4,
+            "sections.guide.items": 6, "sections.appshot.points": 3,
             "inner_tech.blocks": 3, "inner_who.blocks": 3, "inner_register.points": 3}
     for path, n in mins.items():
         node = pack

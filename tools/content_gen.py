@@ -52,7 +52,8 @@ def pick(rng, v, ctx):
 CHOICE_KEYS = {"title", "h1", "description", "og", "h1_rest", "h1_accent", "lead", "secondary",
                "cta_primary", "cta_secondary", "eyebrow", "h2", "mid_eyebrow", "mid_h2",
                "mid_lead", "form_title", "form_sub", "submit_nav", "btn", "stat_rating",
-               "stat_users", "stat_latency", "device_delta", "asset_1", "asset_2"}
+               "stat_users", "stat_latency", "device_delta", "asset_1", "asset_2",
+               "trust_label"}
 
 
 def _hero_proof_bank() -> dict:
@@ -276,7 +277,8 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
         },
         "bands": deep(rng, {k: bank["bands"][k] for k in
                            ("mid_eyebrow", "mid_h2", "mid_lead", "mid_points", "form_title", "form_sub",
-                            "form_consent", "submit_nav", "labels", "placeholders", "submit")}, ctx),
+                            "form_consent", "submit_nav", "labels", "placeholders", "submit",
+                            "trust_label")}, ctx),
         "ui": deep(rng, bank["ui"], ctx),
         "sections": deep(rng, bank["sections"], ctx),
         "reviews": {
@@ -346,7 +348,8 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
 
     # sections not present in a bank section set get defaults so any order builds
     for slot in ("intro", "ladder", "features", "steps", "markets", "security", "risk",
-                 "streams", "cta", "demo", "glance", "stats", "notes", "facts", "portal"):
+                 "streams", "cta", "demo", "glance", "stats", "notes", "facts", "portal",
+                 "guide", "appshot", "partners"):
         if slot not in content["sections"]:
             content["sections"][slot] = deep(rng, bank["sections"][slot], ctx)
 
@@ -355,12 +358,14 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     topup_new_keys(content, bank)
 
     # every array used by fragments must be long enough
-    mins = {"faq.items": 5, "sections.features.cards": 6, "sections.steps.steps": 5,
+    mins = {"faq.items": 12, "sections.features.cards": 6, "sections.steps.steps": 5,
             "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
             "sections.security.cards": 3, "sections.streams.cards": 3,
             "hero.stats": 3, "hero.device_rows": 2, "bands.mid_points": 4,
             "reviews.items": 3, "scarcity.units": 4, "inner_about.blocks": 4,
             "sections.facts.points": 4, "sections.portal.cards": 3,
+            "sections.guide.items": 6,
+            "sections.appshot.points": 3,
             "bands.side_stats": 3, "bands.side_labels": 3}
     for path, n in mins.items():
         node = content

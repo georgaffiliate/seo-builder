@@ -163,11 +163,35 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   виштовхували хедер із фолду. Клас сімейства L — `lb-ledger`, НЕ `ledger`: `ledger` — це картка
   hero-мокапа (padding 20px + border + shadow), і стрічка ловила її стилі (реальний баг 58px).
   Гейт: `preview/tops/build.py` рендерить усі 32 стрічки в справжньому оточенні й міряє висоту.
-- `SECTION_POOL` ×22 типи (`device` виведений з пулу — він дублював hero-мокап; `VARIANTS` ×21 слот). Стат-екрани
+- **Перший екран = hero + форма:** `section_order` завжди ставить form-band на позицію 1, а
+  `assemble.build_index` рендерить hero і band у спільному `.first-screen` (дві колонки на
+  десктопі, стек на телефоні). Тому форма видно без скролу; hero-кнопку всередині цієї пари
+  пригнічено CSS — дію виконує форма, а верхня CTA хедера лишається. На телефоні ховаються
+  зайві hero-докази, щоб форма влізла у перший viewport.
+- **Трастові логотипи під кожною формою:** усі form-фрагменти мають `.form-trust` з
+  `{{TRUST_LOGOS}}`; `plan.trust_badges` (6 ключів) вибирає `gen_plan`, `assemble` підставляє
+  SVG з банку `trust/` (Simple Icons, CC0) і копіює лише вибрані у `sites/<d>/img/trust/`.
+  Підпис — `bands.trust_label` (локальний, 2–4 слова).
+- **App-shot — обовʼязковий блок:** `appshot` (варіанти `a` картка / `b` реверс) показує реальне
+  фото телефона з графіками; банк `appshots/` (20 фото Pexels License, `manifest.json`) ротується
+  через `plan.appshot`, файл копіюється як `img/appshot.jpg`. Секція forced, як `guide`/`faq`.
+- **Partner logo grid — обовʼязковий блок:** `partners` показує 8 карток з `trust/` (6 з форми +
+  2 ротаційні), 2 колонки на телефоні / 4 на десктопі. Секція forced; `{{PARTNER_GRID}}` збирає
+  розмітку, `write_assets` копіює всі 8 SVG.
+- **Мобільний partner-шар:** останній `@media(max-width:700px)` у `blocks.css` робить заголовки
+  великими uppercase, form-band — кольоровою карткою з білими полями, статистику — картками,
+  відгуки — swipe-стрічкою, кроки — плитками з номерами, FAQ — картками. Десктоп лишається
+  редакційним; мобільний шар навмисно останній у каскаді.
+- `SECTION_POOL` ×25 типів (`device` виведений з пулу — він дублював hero-мокап; `VARIANTS` ×23 слоти). Стат-екрани
   не дублюють значення hero: `numbers` = rating/5·reviews·orders/s·API, `stats-intro` = reviews·orders·API
   (labels з `sections.stats`), `glance` = власні `sections.glance` + rows з markets; numbers і stats-intro
   взаємовиключні в одному плані. Додаєш тип → додай фрагмент `blk-<type>.html` і (для слотів з варіантами)
   по файлу на кожен варіант, інакше `assemble.py` впаде на валідації.
+- **Довгий контент — обовʼязковий, не опційний якір:** кожен план несе `people`, `faq` (12 Q&A,
+  відповідь 180+ символів) і `guide` (6 пояснень по 150+ символів; варіанти `a` картки / `b` глосарій).
+  FAQ і `people` структурні: `rotating_anchors()` їх не рахує, тому ротація `numbers/cta/office/compare`
+  лишається ≤1 спільного екрана між сусідами. Другий Q/A-екран (`compare`/`mini-faq`) не ставиться
+  разом із `faq` — вони ділять `faq.items`.
 - Новий варіант = інша структура (rail/таблиця/чips/рядки/акордеон), не інший колір. Контракт форми/калькулятора зберігати.
 - `twin_check.py` падає на: однаковий inventory/variant-map/slug-set, ≥72% inventory, positional ≥60% проти 2+ планів,
   class-Jaccard ≥85%, widget-superset, **content-fp ≥45% проти профілю, шаблон відгуків сиблінга (місто/стаж)**.
@@ -254,6 +278,8 @@ blocks/blk-*.html       канонічні фрагменти + варіанти
 skins/ ×6               geometric character (радиуси/тіні/щільність/типографіка)
 content/                схеми контенту + палітри × шрифти
 people/ ×183            банк аватарок (ніколи не повторюються між планами)
+appshots/ ×20           фото телефона з графіками (Pexels License, manifest.json)
+trust/ ×19              SVG-логотипи під формою (Simple Icons, CC0, manifest.json)
 integr.-example/        канон інтеграції (config плейсхолдери, crm.php канонічний)
 plans/ plans/*.json     історія планів (вхід twin_check; не видаляти)
 sites/                  вихід assembler'а

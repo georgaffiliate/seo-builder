@@ -63,7 +63,7 @@ def suspects(errs: list) -> list:
             if m not in out:
                 out.append(m)
         if "faq answer" in e:
-            for i in range(5):
+            for i in range(12):
                 for f in ("a", "q"):
                     p = f"faq.items.{i}.{f}"
                     if p not in out:
