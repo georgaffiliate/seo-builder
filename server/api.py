@@ -10,6 +10,7 @@ returns a JSON verdict.
 Endpoints:
   POST /build       enqueue a build  {"job_id":..., "status":"queued"}
   POST /build?wait=1  same, but hold the connection until the job finishes
+  POST /blog/article  generate ONE blog article as content JSON (no markup)
   GET  /jobs/<id>   job status / result
   GET  /healthz     liveness
 
@@ -277,6 +278,29 @@ class Handler(BaseHTTPRequestHandler):
             job["error"] = "cancelled by operator"
             _log(job, "!! cancelled by operator")
             return self._send(200, {"ok": True, "job_id": job["job_id"], "status": job["status"]})
+        if self.path.split("?", 1)[0] == "/blog/article":
+            if not self._auth():
+                return self._send(401, {"ok": False, "error": "unauthorized"})
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length > 200_000:
+                    return self._send(413, {"ok": False, "error": "payload too large"})
+                req = json.loads(self.rfile.read(length) or b"{}")
+            except (ValueError, json.JSONDecodeError):
+                return self._send(400, {"ok": False, "error": "invalid JSON body"})
+            err = _validate_article_req(req)
+            if err:
+                return self._send(400, {"ok": False, "error": err})
+            try:
+                from article import ArticleError, generate as generate_article
+                payload = generate_article(req)
+            except ArticleError as e:
+                return self._send(502, {"ok": False, "error": str(e)[:800]})
+            except Exception as e:  # noqa: BLE001  (never leak a traceback to the panel)
+                return self._send(500, {"ok": False, "error": f"{type(e).__name__}: {e}"[:800]})
+            return self._send(200, {"ok": True, "article": payload,
+                                    "domain": req.get("domain")})
+
         if self.path.split("?", 1)[0] != "/build":
             return self._send(404, {"ok": False, "error": "not found"})
         if not self._auth():
@@ -315,6 +339,27 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(code, self._job_public(job))
         return self._send(202, {"ok": True, "job_id": jid, "status": "queued",
                                 "domain": domain, "poll": f"/jobs/{jid}"})
+
+
+def _validate_article_req(req: dict) -> str | None:
+    if not isinstance(req, dict):
+        return "body must be a JSON object"
+    for key in ("lang", "brand"):
+        v = req.get(key)
+        if not isinstance(v, str) or not v.strip():
+            return f"missing required field: {key}"
+    for key in ("domain", "hub_label"):
+        if key in req and req[key] is not None and not isinstance(req[key], str):
+            return f"field {key} must be a string"
+    existing = req.get("existing")
+    if existing is not None and not isinstance(existing, list):
+        return "existing must be an array"
+    if isinstance(existing, list) and len(existing) > 60:
+        return "existing has too many entries"
+    topic = req.get("topic")
+    if topic is not None and not isinstance(topic, dict):
+        return "topic must be an object or null"
+    return None
 
 
 def _validate(req: dict) -> str | None:

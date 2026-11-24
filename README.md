@@ -119,6 +119,25 @@ python3 gen_plan.py --brand "Infinity Shop" --lang it --domain infinity-shop.sit
 Авторизація: заголовок `Authorization: Bearer <API_TOKEN>` на всіх ендпоінтах
 крім `/healthz`.
 
+### `POST /blog/article`
+
+Одна стаття блогу як **контент-JSON** (не HTML). Панель рендерить її у шелл живої
+сторінки сайту, тому верстка й CSS не залежать від моделі. `/build` не змінюється.
+
+```bash
+curl -sk -X POST https://seo-builder-tls:8443/blog/article \
+  -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"lang":"lt","brand":"Brento","domain":"site.lt",
+       "existing":[{"slug":"first","title":"Pirmas"}],
+       "topic":{"intent":"withdrawal fees"}}'
+```
+
+Відповідь `200 {"ok":true,"article":{...}}`, де `article` містить `slug`, `title`, `h1`,
+`excerpt`, `read_min`, `takeaways`, `sections[{h2,p,points}]`, `faq[{q,a}]`, `related`,
+`cta`. Модель відповідає лише за текст: числа/ліцензії не вигадуються, HTML/емодзі/депозит
+заборонені, а відповідь проходить валідатор (slug, довжини, ≥380 слів, 2–5 FAQ).
+Помилки: `400` некоректний запит, `502` модель не дала валідний JSON або немає ключа.
+
 ### `POST /build`
 
 Поставити сайт у чергу на збірку.
