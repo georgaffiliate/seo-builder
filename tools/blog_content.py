@@ -180,6 +180,149 @@ def offline_pack(plan: dict) -> dict:
             "articles": arts}
 
 
+# ------------------------------------------------------------ partial answers
+# A pack for 4-5 articles is a long single-shot JSON answer and providers cut them
+# (live: a Dutch pack died at char 18 830 while finish_reason still said "stop").
+# Two layers keep that from becoming an offline placeholder:
+#   1. close_truncated() keeps everything the cut answer still held,
+#   2. topics it did not deliver are asked for one article at a time.
+
+
+def _balance(fragment: str) -> str:
+    """Close an unfinished JSON fragment: the string, then every open array/object."""
+    depth, in_str, esc = [], False, False
+    for ch in fragment:
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch in "[{":
+            depth.append(ch)
+        elif ch in "]}":
+            if depth:
+                depth.pop()
+    out = fragment + ('"' if in_str else "")
+    out = re.sub(r"[,\s]+$", "", out)
+    out = re.sub(r',?\s*"[^"\n]*"\s*:\s*$', "", out)      # dangling "key":
+    out = re.sub(r"[,\s]+$", "", out)
+    return out + "".join("}" if d == "{" else "]" for d in reversed(depth))
+
+
+def close_truncated(raw: str) -> dict | None:
+    """Parse a JSON object the model cut mid-answer (drops the incomplete last member)."""
+    text = L.FENCE_RE.sub("", (raw or "").strip())
+    start = text.find("{")
+    if start < 0:
+        return None
+    text = text[start:]
+    for _ in range(10):
+        try:
+            obj = json.loads(_balance(text))
+            return obj if isinstance(obj, dict) else None
+        except Exception:
+            cut = text.rfind(",")
+            if cut < 0:
+                return None
+            text = text[:cut]
+    return None
+
+
+def parse_pack(raw: str) -> dict | None:
+    try:
+        obj = L.extract_json(raw)
+        if isinstance(obj, dict):
+            return obj
+    except Exception:
+        pass
+    return close_truncated(raw)
+
+
+def missing_topics(plan: dict, pack: dict) -> list:
+    got = {str((a or {}).get("topic") or "")
+           for a in (pack.get("articles") or []) if isinstance(a, dict)}
+    return [t for t in (plan["blog"].get("topics") or []) if str(t.get("id") or "") not in got]
+
+
+def ask_article(plan: dict, data: dict, topic: dict, known_slugs: list, titles: list,
+                cfg: dict, key: str) -> dict | None:
+    """One article in one small answer — the follow-up for a pack the provider cut."""
+    shape = json.dumps(data["shape"]["articles"][0], ensure_ascii=False)
+    rules = " ".join(r for r in data["rules"] if not r.startswith("Exactly one article"))
+    messages = [
+        {"role": "system", "content": "You write one article object for a guides section. Answer "
+                                      "with that JSON object only — no fences, no commentary."},
+        {"role": "user", "content":
+            "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand", "domain",
+                                                             "geo", "title_max_chars")},
+                                   ensure_ascii=False) +
+            "\nTOPIC BRIEF: " + json.dumps(topic, ensure_ascii=False) +
+            "\nARTICLE SHAPE (same keys and nesting, one object): " + shape +
+            "\nSlugs already used (pick a different one): " + json.dumps(known_slugs, ensure_ascii=False) +
+            "\nTitles already used (do not repeat): " + json.dumps(titles, ensure_ascii=False) +
+            "\nRules: " + rules +
+            "\nReturn ONLY the article object."},
+    ]
+    c2 = dict(cfg)
+    c2["max_tokens"] = min(int(cfg.get("max_tokens") or MAX_TOKENS), 6000)
+    raw, _ = L.http_pack(c2, key, messages)
+    art = parse_pack(raw)
+    if isinstance(art, dict):
+        if isinstance(art.get("articles"), list) and art["articles"]:
+            art = art["articles"][0]
+        elif isinstance(art.get("article"), dict):
+            art = art["article"]
+    if not isinstance(art, dict):
+        return None
+    art["topic"] = str(topic.get("id") or art.get("topic") or "")
+    if topic.get("date"):
+        art["date"] = str(topic["date"])
+    return art
+
+
+def prune_incomplete(pack: dict) -> int:
+    """Drop articles the cut answer left half-written, so they get asked for again.
+
+    A salvaged pack can end inside article 3: the topic would look "delivered" while
+    the card is empty. Removing it puts the topic back on the follow-up list."""
+    keep, dropped = [], 0
+    for a in (pack.get("articles") or []):
+        if not isinstance(a, dict):
+            continue
+        ok = (str(a.get("topic") or "").strip() and str(a.get("slug") or "").strip()
+              and isinstance(a.get("sections"), list) and a["sections"]
+              and isinstance(a.get("faq"), list) and a["faq"])
+        if ok:
+            keep.append(a)
+        else:
+            dropped += 1
+            print(f"· dropping a half-written article ({a.get('topic') or a.get('slug') or '?'})")
+    pack["articles"] = keep
+    return dropped
+
+
+def add_articles(plan: dict, pack: dict, arts: list) -> int:
+    """Merge extra articles in plan order and re-point `related` at real slugs."""
+    order = {str((t or {}).get("id") or ""): i
+             for i, t in enumerate(plan["blog"].get("topics") or [])}
+    cur = [a for a in (pack.get("articles") or []) if isinstance(a, dict)]
+    cur += [a for a in arts if isinstance(a, dict)]
+    cur.sort(key=lambda a: order.get(str(a.get("topic") or ""), 99))
+    pack["articles"] = cur
+    slugs = [str(a.get("slug") or "").strip() for a in cur]
+    for a in cur:
+        others = [s for s in slugs if s and s != str(a.get("slug") or "")]
+        rel = [r for r in (a.get("related") or []) if r in others]
+        if len(rel) < min(2, len(others)):
+            rel = (rel + [s for s in others if s not in rel])[:2]
+        a["related"] = rel
+    return len(cur)
+
+
 def pick_transport(cfg: dict, provider: str):
     key = L.resolve_key(cfg)
     use_http = provider == "http" or (provider == "auto" and bool(key))
@@ -191,6 +334,11 @@ def pick_transport(cfg: dict, provider: str):
         except SystemExit:
             return None, ""
     return ("http", key) if use_http else (None, "")
+
+
+def _usable(pack) -> bool:
+    """A pack worth building on: hub strings plus at least one real article."""
+    return isinstance(pack, dict) and isinstance(pack.get("hub"), dict) and bool(pack.get("articles"))
 
 
 def ask_model(plan: dict, data: dict, cfg: dict, transport: str, where: str):
@@ -207,12 +355,30 @@ def ask_model(plan: dict, data: dict, cfg: dict, transport: str, where: str):
         c2 = dict(cfg)
         c2["max_tokens"] = min(int(cfg.get("max_tokens") or MAX_TOKENS), MAX_TOKENS)
         raw, finish = L.http_pack(c2, key, messages)
-        try:
-            pack = L.extract_json(raw)
-        except Exception as e:
-            hint = " (output truncated — raise max_tokens)" if finish == "length" else ""
-            print(f"! blog JSON invalid{hint}: {e}; head: {raw[:140]}")
-            return None, messages
+        pack = parse_pack(raw)
+        if not _usable(pack):
+            # a long single-shot answer gets cut by the provider (live: a 4-article Dutch
+            # pack died at char 18 830 with finish_reason "stop"): one compact retry, and
+            # whatever either answer still held is kept for the per-article follow-up
+            hint = " (finish=length)" if finish == "length" else ""
+            print(f"! blog JSON incomplete{hint} at char {len(raw)} — retrying with a compact answer")
+            retry = messages + [
+                {"role": "assistant", "content": raw},
+                {"role": "user", "content": "That answer was not valid JSON — it was cut off or "
+                                            "malformed. Return the SAME pack again as compact JSON "
+                                            "(no indentation, no line breaks inside strings) and make "
+                                            "sure every string, array and object is closed. Only the "
+                                            "JSON object."},
+            ]
+            raw2, finish2 = L.http_pack(c2, key, retry)
+            pack2 = parse_pack(raw2)
+            pack = next((p for p in (pack2, pack) if _usable(p)), None) \
+                or (pack2 if isinstance(pack2, dict) else pack)
+            if isinstance(pack, dict):
+                print(f"· recovered {len(pack.get('articles') or [])} article(s) "
+                      f"({len(raw2)} chars, finish={finish2 or 'stop'})")
+            elif finish2 == "length":
+                print("! provider keeps cutting the answer — raise max_tokens in resources/llm.json")
         return pack, messages
     # CLI transport: the model writes the file itself
     brief_f = ROOT / "content" / f"{plan['params']['domain']}-blog-brief.json"
@@ -263,6 +429,27 @@ def main():
             print(f"· blog transport: {'http ' + cfg['base_url'] if transport == 'http' else 'opencode CLI'}"
                   f" · model: {cfg['model']} · {len(plan['blog']['topics'])} articles")
             pack, messages = ask_model(plan, data, cfg, transport, where)
+            if isinstance(pack, dict) and transport == "http":
+                prune_incomplete(pack)
+                miss = missing_topics(plan, pack)
+                if miss:
+                    print(f"· pack came back partial — asking for {len(miss)} article(s) separately")
+                    extra = []
+                    for topic in miss:
+                        known = [str((a or {}).get("slug") or "") for a in (pack.get("articles") or [])]
+                        known += [str(a.get("slug") or "") for a in extra]
+                        titles = [str((a or {}).get("title") or "") for a in (pack.get("articles") or [])]
+                        titles += [str(a.get("title") or "") for a in extra]
+                        art = ask_article(plan, data, topic, [s for s in known if s],
+                                          [t for t in titles if t], cfg, where)
+                        if art:
+                            extra.append(art)
+                            print(f"  ✓ {topic.get('id')}: “{str(art.get('title'))[:54]}”")
+                        else:
+                            print(f"  ✗ {topic.get('id')}: no usable article object")
+                    add_articles(plan, pack, extra)
+                else:
+                    add_articles(plan, pack, [])
             if isinstance(pack, dict):
                 for attempt in (1, 2):
                     errs = validate_blog(plan, pack)

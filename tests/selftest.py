@@ -867,6 +867,51 @@ chk(not _sa2.audit_countdown_labels('<div class="countdown"><small>dagen</small>
                                     '<small>uur</small><small>min</small><small>sec</small></div>', "nl"),
     "audit passes real countdown captions")
 
+print("== 12. a cut blog pack is recovered, not replaced by the offline bank")
+# live failure: the provider cut a 4-article Dutch pack at char 18 830 while
+# finish_reason still said "stop" — the build then wrote the offline placeholder pack.
+import blog_content as _bc
+_full = {"hub": {"eyebrow": "Gidsen", "title": "Gidsen voor beleggers", "lead": "Korte uitleg"},
+         "articles": [{"topic": t, "slug": f"{t}-slug", "title": f"Titel {t}",
+                       "sections": [{"h2": "Kop van de sectie", "p": ["Een alinea."]}],
+                       "related": [f"{o}-slug"]}
+                      for t, o in (("a", "b"), ("b", "a"))]}
+_raw = json.dumps(_full, ensure_ascii=False, indent=1)
+chk(_bc.parse_pack(_raw) == _full, "a complete blog pack parses as-is")
+_part = _bc.parse_pack(_raw[:len(_raw) // 2 + 40])
+chk(_part is not None and len(_part.get("articles") or []) < 2,
+    "a cut pack is salvaged up to the cut (not thrown away)")
+_blog_plan = {"params": {"brand": "Blogfix", "domain": "blogfix.site", "lang": "nl"},
+              "blog": {"enabled": True, "style": "a",
+                       "topics": [{"id": "a", "date": "2026-01-01"},
+                                  {"id": "b", "date": "2026-02-02"},
+                                  {"id": "c", "date": "2026-03-03"}]}}
+chk([t["id"] for t in _bc.missing_topics(_blog_plan, _part or {})] == ["b", "c"],
+    "topics the cut answer lost are listed for a follow-up")
+_half = {"articles": [{"topic": "a", "slug": "a-slug", "sections": [{"h2": "Kop", "p": ["x"]}],
+                       "faq": [{"q": "Vraag?", "a": "Antwoord."}]},
+                      {"topic": "b", "slug": "b-slug", "sections": [], "faq": []}]}
+chk(_bc.prune_incomplete(_half) == 1 and [a["topic"] for a in _half["articles"]] == ["a"]
+    and [t["id"] for t in _bc.missing_topics(_blog_plan, _half)] == ["b", "c"],
+    "a half-written article is dropped and asked for again")
+_got = {"articles": [{"topic": "a", "slug": "a-slug", "title": "Titel a", "related": ["zzz"]}]}
+_bc.add_articles(_blog_plan, _got, [{"topic": "c", "slug": "c-slug", "title": "Titel c"}])
+chk([a["topic"] for a in _got["articles"]] == ["a", "c"], "follow-up articles keep the plan order")
+chk(all(a["related"] and "zzz" not in a["related"] for a in _got["articles"]),
+    "related slugs are re-pointed at real articles")
+# the retry path: first answer cut, compact answer complete
+_orig_http = _bc.L.http_pack
+_seq = [("{oops — not json", "stop"),
+        (json.dumps(_full, ensure_ascii=False), "stop")]
+_bc.L.http_pack = lambda cfg, key, messages, *a, **k: _seq.pop(0) if _seq else ("", "stop")
+try:
+    _pack, _ = _bc.ask_model(_blog_plan, _bc.brief(_blog_plan),
+                             {"model": "stub", "base_url": "http://stub"}, "http", "KEY")
+finally:
+    _bc.L.http_pack = _orig_http
+chk(isinstance(_pack, dict) and len(_pack["articles"]) == 2,
+    "a cut answer triggers one compact retry and recovers the pack")
+
 # cleanup
 import shutil
 out = ROOT / "sites" / "selftest-e2e.site"
