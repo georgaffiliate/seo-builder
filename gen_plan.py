@@ -373,6 +373,23 @@ def pick_variant(rng, key: str, pool: list, hist: list, lookback: int = 3) -> st
     return rng.choice(fresh or pool)
 
 
+def break_widget_repeat(rng, widgets: dict, allsets: set, tries: int = 8) -> dict:
+    """Break a widget set that came out identical to a previous plan.
+
+    The old inline loop did `WIDGET_GROUPS[rng.choice(...)]`, which assigns the whole
+    option LIST to the group key, so `widgets[list]` raised "unhashable type: 'list'".
+    It only fired when the set collided with history (on production, with a large plan
+    history, almost always), which is why local tests never saw it.
+    """
+    used = 0
+    while frozenset(widgets.values()) in allsets and used < tries:
+        g = rng.choice(sorted(WIDGET_GROUPS))
+        opts = [o for o in WIDGET_GROUPS[g] if o != widgets.get(g)]
+        widgets[g] = rng.choice(opts or list(WIDGET_GROUPS[g]))
+        used += 1
+    return widgets
+
+
 def build_plan(rng, args, hist)->dict|None:
     last2=hist[-2:]
     # palette: ≠ neighbours, and (skin,palette) combo globally unused
@@ -425,10 +442,7 @@ def build_plan(rng, args, hist)->dict|None:
             if demos and rng.random()>0.25: pick=demos[0]
         widgets[g]=pick
     allsets={frozenset(h["widgets"]) for h in hist if h["widgets"]}
-    tries=0
-    while frozenset(widgets.values()) in allsets and tries<8:
-        g=WIDGET_GROUPS[rng.choice(sorted(WIDGET_GROUPS))]
-        widgets[g]=rng.choice(WIDGET_GROUPS[g]); tries+=1
+    break_widget_repeat(rng, widgets, allsets)
 
     # calculator / pulse-sim are G3 draws, not permanent screens — the plan forces one
     # only when asked (--calculator on|off, --pulse on|off)

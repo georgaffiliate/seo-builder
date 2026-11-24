@@ -376,6 +376,18 @@ for slot, vs in pairs:
         chk(any(c.exists() for c in cand), f"{slot}-{v}: fragment exists")
 chk(CANON_HINT.keys() <= {s for s, _ in pairs} | set(CANON_HINT), "canon fallbacks declared")
 
+print("== 1c. widget repeat breaker")
+import random as _rnd, gen_plan as _gp
+_old_groups = _gp.WIDGET_GROUPS
+_gp.WIDGET_GROUPS = {"G1": ["a", "b"]}
+try:
+    _out = _gp.break_widget_repeat(_rnd.Random(7), {"G1": "a"}, {frozenset({"a"})})
+    chk(_out == {"G1": "b"},
+        f"identical widget set is re-drawn, not crashed (got {_out})")
+    chk(all(isinstance(k, str) for k in _out), "widget group keys stay strings")
+finally:
+    _gp.WIDGET_GROUPS = _old_groups
+
 print("== 2. blocks.css sanity")
 css = (ROOT / "blocks" / "blocks.css").read_text()
 chk("@media(max-width:700px)" in css, "mobile breakpoint 700px")
