@@ -144,11 +144,6 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
     brand = plan["params"]["brand"]
     today = _dt.date.today().isoformat()
     base_slugs = set((plan.get("layout", {}).get("slugs") or {}).values()) | RESERVED_SLUGS
-    hub_slug = str(blog.get("hub_slug") or "guides").strip()
-    if not SLUG_RE.fullmatch(hub_slug):
-        errs.append(f"blog.hub_slug is not a lowercase hyphenated slug: '{hub_slug}'")
-    elif hub_slug in base_slugs:
-        errs.append(f"blog.hub_slug '{hub_slug}' collides with an existing page")
 
     if not B or not isinstance(B, dict):
         return ["blog pack is empty"]
@@ -183,8 +178,6 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
             errs.append(f"{tag}.slug '{slug}' collides with an existing page")
         elif slug in seen_slugs:
             errs.append(f"{tag}.slug '{slug}' is duplicated")
-        elif slug == hub_slug:
-            errs.append(f"{tag}.slug '{slug}' collides with the hub page")
         seen_slugs.add(slug)
         title = str(a.get("title") or "").strip()
         h1 = str(a.get("h1") or "").strip()
@@ -400,7 +393,6 @@ def teaser_html(plan, B, covers=None) -> str:
     if not arts:
         return ""
     style = (plan.get("blog") or {}).get("style") or "a"
-    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     px = f"{A.BLOG_DIR}/"
     eyebrow = A.esc(hub.get("eyebrow") or "Guides")
     title = A.esc(hub.get("title") or "Guides")
@@ -409,7 +401,7 @@ def teaser_html(plan, B, covers=None) -> str:
     return (f'<section class="section sec sec-blog-teaser" id="guides" data-blog-teaser="{style}">'
             f'<div class="wrap"><div class="blog-teaser-head"><div class="eyebrow">{eyebrow}</div>'
             f'<h2>{title}</h2><p>{lead}</p>'
-            f'<a class="blog-all" href="{px}{A.esc(hub_slug)}.php">{all_label} '
+            f'<a class="blog-all" href="{px}{A.BLOG_HUB}">{all_label} '
             f'<span aria-hidden="true">→</span></a></div>'
             f'{_teaser_inner(plan, B, covers, px)}</div></section>')
 
@@ -418,7 +410,6 @@ def hub_jsonld(plan, B, url: str) -> str:
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
-    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
     items = []
     for i, a in enumerate(B.get("articles") or [], start=1):
@@ -436,17 +427,16 @@ def hub_jsonld(plan, B, url: str) -> str:
         {"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
             {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
-             "item": f"https://{dom}/{hub_slug}.php"}]}]},
+             "item": f"https://{dom}/{A.BLOG_DIR}/{A.BLOG_HUB}"}]}]},
         ensure_ascii=False, separators=(",", ":"))
 
 
 def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
-    """Real /blog/<hub>.php hub: breadcrumb target, one crawl entry point for all articles."""
+    """Real /blog/index.php hub: breadcrumb target, one crawl entry point for all articles."""
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
-    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
-    url = f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"
+    url = f"https://{dom}/{A.BLOG_DIR}/{A.BLOG_HUB}"
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
     livebar, header, footer = A.build_header_footer(plan, C)
     body = (f'{livebar}{header}<main>'
@@ -463,13 +453,13 @@ def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
     keywords = str((C.get("meta") or {}).get("keywords") or "")
     page = A.page_shell(title, descr,
                         keywords.replace("{Brand}", brand).replace("{dom}", dom),
-                        f"/{A.BLOG_DIR}/{hub_slug}.php",
+                        f"/{A.BLOG_DIR}/{A.BLOG_HUB}",
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
                         jsonld=hub_jsonld(plan, B, url), blog=True)
     page = page.replace('href="#claim"', 'href="../index.php#claim"')
     page = A.finish_page(page, plan, C)
-    local = {f"{hub_slug}.php"} | {f"{a['slug']}.php" for a in (B.get("articles") or [])}
+    local = {A.BLOG_HUB} | {f"{a['slug']}.php" for a in (B.get("articles") or [])}
     return A.rebase_relative(page, local)
 
 
@@ -546,7 +536,6 @@ def article_jsonld(plan, B, art, url: str, image_url: str = "") -> str:
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
-    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
     words = sum(_words(s.get("h2")) + sum(_words(p) for p in (s.get("p") or []))
                 + sum(_words(x) for x in (s.get("points") or []))
@@ -575,7 +564,7 @@ def article_jsonld(plan, B, art, url: str, image_url: str = "") -> str:
              {"@type": "BreadcrumbList", "itemListElement": [
                  {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
                  {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
-                  "item": f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"},
+                  "item": f"https://{dom}/{A.BLOG_DIR}/{A.BLOG_HUB}"},
                  {"@type": "ListItem", "position": 3, "name": art.get("title") or "", "item": url}]}]
     faq = [x for x in (art.get("faq") or []) if isinstance(x, dict) and x.get("q") and x.get("a")]
     if faq:
@@ -595,7 +584,6 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
     slug = art["slug"]
     url = f"https://{dom}/{A.BLOG_DIR}/{slug}.php"
     hub = B.get("hub") or {}
-    hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     cover = (covers or {}).get(slug) or {}
     image_url = cover.get("url") if cover.get("png") else f"https://{dom}/og-image.png"
     livebar, header, footer = A.build_header_footer(plan, C)
@@ -630,7 +618,7 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
             f'<nav class="blog-crumbs" aria-label="{A.esc(hub.get("eyebrow") or "Guides")}">'
             f'<a href="../index.php">{A.esc((plan.get("layout", {}).get("menu") or ["Home"])[0])}</a>'
             f'<span aria-hidden="true">›</span>'
-            f'<a href="{A.esc(hub_slug)}.php">{A.esc(hub.get("eyebrow") or "Guides")}</a>'
+            f'<a href="{A.BLOG_HUB}">{A.esc(hub.get("eyebrow") or "Guides")}</a>'
             f'<span aria-hidden="true">›</span><span>{A.esc(art.get("title"))}</span></nav>'
             f'<article class="blk-blog blk-blog-{style}" data-blog-article="{style}">'
             f'<header class="blog-head"><div class="eyebrow">{A.esc(hub.get("eyebrow") or "Guide")}'
@@ -652,7 +640,7 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
                         og_type="article", og_image=image_url, blog=True)
     page = page.replace('href="#claim"', 'href="../index.php#claim"')
     page = A.finish_page(page, plan, C)
-    local = {f"{hub_slug}.php", f"{slug}.php"} | {
+    local = {A.BLOG_HUB, f"{slug}.php"} | {
         f"{a['slug']}.php" for a in (B.get("articles") or [])}
     return A.rebase_relative(page, local)
 

@@ -33,7 +33,9 @@ POSTBACK_SRC = ROOT / "_postback.php"
 
 # Blog/hub pages live one directory deep (/blog/<slug>.php) so the offer pages and the
 # content silo keep separate URL neighbourhoods. Every other page stays at the root.
+# The hub is the directory landing page: /blog/index.php.
 BLOG_DIR = "blog"
+BLOG_HUB = "index.php"
 
 BUILD_V = "0"
 COMMA_DECIMAL = {
@@ -585,12 +587,8 @@ def validate_plan(plan: dict) -> None:
             die(f"plan.blog needs 3..5 topics, got {len(topics)}")
         if len({t.get("id") for t in topics}) != len(topics):
             die("plan.blog topics repeat")
-        hub_slug = bl.get("hub_slug")
-        if hub_slug:
-            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(hub_slug)):
-                die(f"plan.blog.hub_slug is not a lowercase slug: {hub_slug!r}")
-            if hub_slug in set((plan["layout"].get("slugs") or {}).values()):
-                die(f"plan.blog.hub_slug '{hub_slug}' collides with an existing page")
+        # the hub is the fixed directory landing page (/blog/index.php); an old plan's
+        # hub_slug is ignored, not honoured — the silo must not move per plan.
 
 def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     errs = []
@@ -1802,13 +1800,19 @@ SITEMAP_T = """<?xml version="1.0" encoding="UTF-8"?>
 # 404.php is excluded so soft-404s stay 404 instead of 301-into-404.
 PHP_CANON_GUARD = (
     "<?php\n"
-    "$__u = parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH) ?: '/';\n"
-    "$__u = rtrim($__u, '/');\n"
+    "$__p = parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH) ?: '/';\n"
+    "$__u = rtrim($__p, '/');\n"
     "$__m = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';\n"
     "if ($__m !== 'POST' && $__u !== '' && substr($__u, -4) !== '.php') {\n"
+    "  $__root = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') : __DIR__;\n"
     "  $__q = (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '') ? '?' . $_SERVER['QUERY_STRING'] : '';\n"
-    "  header('Location: ' . $__u . '.php' . $__q, true, 301);\n"
-    "  exit;\n"
+    "  $__slash = ($__p !== '/' && substr($__p, -1) === '/');\n"
+    "  if (is_dir($__root . $__u)) {\n"
+    "    if (!$__slash) { header('Location: ' . $__u . '/' . $__q, true, 301); exit; }\n"
+    "  } else {\n"
+    "    header('Location: ' . $__u . '.php' . $__q, true, 301);\n"
+    "    exit;\n"
+    "  }\n"
     "}\n"
     "?>\n"
 )
@@ -1916,13 +1920,12 @@ def cmd_build(a):
         pages[f"{slug}.php"] = build_inner(plan, C, css_vars, fonts_import, theme, which)
     if B:
         import blog_assemble
-        hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
-        pages[f"{BLOG_DIR}/{hub_slug}.php"] = blog_assemble.build_hub(
+        pages[f"{BLOG_DIR}/{BLOG_HUB}"] = blog_assemble.build_hub(
             plan, C, B, css_vars, fonts_import, theme, covers=covers)
         for art in B.get("articles") or []:
             pages[f"{BLOG_DIR}/{art['slug']}.php"] = blog_assemble.build_article(
                 plan, C, B, art, css_vars, fonts_import, theme, covers=covers)
-        ok(f"blog pages: {BLOG_DIR}/{hub_slug}.php + "
+        ok(f"blog pages: {BLOG_DIR}/{BLOG_HUB} + "
            + ", ".join(f"{BLOG_DIR}/{a['slug']}.php" for a in B["articles"]))
     pages["thanks.php"] = build_thanks(plan, C, css_vars, fonts_import, theme)
     pages["terms.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "terms")

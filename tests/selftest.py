@@ -295,17 +295,16 @@ if _bp.exists():
             f"blog gate rejects foreign-script characters ({_cjk_errs[:1]})")
         chk(_ba.fmt_blog_date("2026-10-06", "it") == "6 ottobre 2026",
             "blog dates render in the site language (6 ottobre 2026)")
-        _hub = (_bd.get("blog") or {}).get("hub_slug")
-        chk(bool(_hub) and bool(__import__("re").fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(_hub))),
-            f"--blog plan carries a valid hub slug ({_hub})")
+        chk("hub_slug" not in (_bd.get("blog") or {}),
+            "hub is fixed at /blog/index.php (no per-plan hub slug)")
         _art = _pack["articles"][0]
         _ld = json.loads(_ba.article_jsonld(_bd, _pack, _art,
-                                            f"https://selftest-blog.site/{_art['slug']}.php",
+                                            f"https://selftest-blog.site/blog/{_art['slug']}.php",
                                             f"https://selftest-blog.site/img/{_art['slug']}.png"))
         _post = next(x for x in _ld["@graph"] if x.get("@type") == "BlogPosting")
         chk(bool(_post.get("image", {}).get("url")) and bool(_post.get("publisher", {}).get("logo")),
             "BlogPosting carries image + full publisher (name/logo)")
-        _hld = json.loads(_ba.hub_jsonld(_bd, _pack, "https://selftest-blog.site/guide.php"))
+        _hld = json.loads(_ba.hub_jsonld(_bd, _pack, "https://selftest-blog.site/blog/index.php"))
         chk(any(x.get("@type") == "ItemList" for x in _hld["@graph"]),
             "hub JSON-LD carries a top-level ItemList")
     _bp.unlink(missing_ok=True)
@@ -328,11 +327,13 @@ chk(_reb('<a href="#part-1">x</a>') == '<a href="#part-1">x</a>'
     and _reb('href="mailto:a@b.c"') == 'href="mailto:a@b.c"',
     "rebase: anchors, absolute and mailto links untouched")
 _bsrc = (ROOT / "blog_assemble.py").read_text()
-chk('f"/{A.BLOG_DIR}/{slug}.php"' in _bsrc and 'f"/{A.BLOG_DIR}/{hub_slug}.php"' in _bsrc,
-    "blog canonical URLs are built with BLOG_DIR")
-chk('f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"' in _bsrc
+chk('f"/{A.BLOG_DIR}/{slug}.php"' in _bsrc and 'f"/{A.BLOG_DIR}/{A.BLOG_HUB}"' in _bsrc,
+    "blog canonical URLs are built with BLOG_DIR + BLOG_HUB")
+chk('f"https://{dom}/{A.BLOG_DIR}/{A.BLOG_HUB}"' in _bsrc
     and 'f"https://{dom}/{A.BLOG_DIR}/{a[\'slug\']}.php"' in _bsrc,
     "blog/hub JSON-LD URLs carry the directory")
+chk(getattr(_asm_b, "BLOG_HUB", "") == "index.php",
+    "hub is the directory landing page (/blog/index.php)")
 chk("A.rebase_relative(page, local)" in _bsrc,
     "blog pages rebase shell links for the subdirectory")
 # a model that answers null for an array must produce a repair instruction, not a traceback

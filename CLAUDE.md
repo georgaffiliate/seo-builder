@@ -34,8 +34,8 @@ python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltrek
 #               Без --blog план/збірка байт-у-байт як раніше (блог-модуль не викликається).
 #               Контент статей: tools/blog_content.py (один LLM-виклик) → content/<domain>-blog.json.
 #               3 стилі (a|b|c) обирає план; header/footer/livebar/палітра — від основного сайту.
-#               Усі блог-сторінки — у /blog/ (BLOG_DIR): хаб /blog/<hub>.php, статті
-#               /blog/<slug>.php; офферні сторінки лишаються в корені.
+#               Усі блог-сторінки — у /blog/ (BLOG_DIR): головна /blog/index.php (BLOG_HUB),
+#               статті /blog/<slug>.php; офферні сторінки лишаються в корені.
 #   план    → plans/<domain>.json (палітра × скін × hero × порядок × віджети × слуги × меню ×
 #             числа × персони+фото × регулятор; валідатор упав → --seed +1)
 #   контент → content/<domain>-content.json. Маршрути (обирає gen_plan):
@@ -208,8 +208,9 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   → 301 на `.php` (панель віддає extensionless з 200 і перегенеровує sitemap без `.php`).
   Guard не ставиться на thanks.php (рядок 1 = postback) та 404.php (мʼякі 404 не мають 301-ити).
   seo_audit ловить non-.php locs у sitemap та canonical-и поза sitemap.
-- Блог живе в `/blog/` (`assemble.BLOG_DIR`): хаб і статті — `blog/<slug>.php`, canonical/sitemap/
-  JSON-LD — з текою. Shell authored для кореня (`index.php`, `blocks/…`, `img/…`), тому сторінки
+- Блог живе в `/blog/` (`assemble.BLOG_DIR`): головна — `blog/index.php` (`BLOG_HUB`), статті —
+  `blog/<slug>.php`; `hub_slug` у планах більше не використовується (старий ключ ігнорується).
+  Canonical/sitemap/JSON-LD — з текою. Shell authored для кореня (`index.php`, `blocks/…`, `img/…`), тому сторінки
   блогу проходять `assemble.rebase_relative(page, local={...})`: `../` додається всім кореневим
   лінкам/ассетам, а лінки всередині силу лишаються локальними. Не хардкодити `../` у шаблонах і
   не писати блог-файли в корінь. `seo_audit.norm_url` резолвить відносні лінки від теки сторінки.
@@ -223,7 +224,7 @@ tools/brand_icons.py    favicon/og з палітри плану (rsvg-convert + 
 tools/mobile_lint.py    статичний мобільний гейт (viewport/tbl-scroll/inline grid)
 tools/profile_write.py  реєстрація profiles/<domain>.json + взаємні siblings
 tools/blog_content.py   блог-пак (3–5 статей) одним LLM-викликом → content/<domain>-blog.json
-blog_assemble.py         блог-шар: teaser + /blog/<hub>.php + статті /blog/<slug>.php (3 стилі, обкладинки), валідатор паку
+blog_assemble.py         блог-шар: teaser + /blog/index.php + статті /blog/<slug>.php (3 стилі, обкладинки), валідатор паку
 blocks/blog.css          стилі хаба/обкладинок (лише для сторінок із plan.blog)
 resources/blog-topics.json  банк 20 тем для --blog
 resources/content-l10n.json  мовні банки текстів (it/cs/en; решта → en fallback)
