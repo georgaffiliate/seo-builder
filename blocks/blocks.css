@@ -1458,3 +1458,28 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .portal-cards,.verify-grid,.blog-teaser-grid{grid-template-columns:minmax(0,1fr)}
   .portal-cards article,.verify-grid article{min-width:0}
 }
+
+/* Phone field readability on the dark lead card.
+   iOS/Safari autofill and intl-tel-input widgets can repaint the number white
+   even when the input itself inherits a dark colour; force the whole chain. */
+.first-screen .form-group input.js-lead-phone,
+.first-screen .form-group .iti input,
+.first-screen .iti input[type="tel"]{
+  color:#0d1b2a!important;
+  -webkit-text-fill-color:#0d1b2a!important;
+  caret-color:#0d1b2a!important;
+  color-scheme:light;
+}
+.first-screen .form-group input.js-lead-phone::placeholder,
+.first-screen .form-group .iti input::placeholder{
+  color:#87919e!important;
+  -webkit-text-fill-color:#87919e!important;
+  opacity:1!important;
+}
+.first-screen .iti__selected-dial-code,
+.first-screen .iti__search-input{
+  color:#0d1b2a!important;
+  -webkit-text-fill-color:#0d1b2a!important;
+  background:#fff!important;
+}
+.first-screen .iti__selected-flag{background:#fff!important}
