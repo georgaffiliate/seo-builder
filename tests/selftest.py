@@ -911,6 +911,19 @@ finally:
     _bc.L.http_pack = _orig_http
 chk(isinstance(_pack, dict) and len(_pack["articles"]) == 2,
     "a cut answer triggers one compact retry and recovers the pack")
+# the other two shapes the same model produced: a raw newline inside a string value
+# (live: "Invalid control character ... char 25 541") and a dangling comma
+_sloppy = '{"hub":{"title":"A\nB","lead":"x",},"articles":[{"topic":"a","slug":"a",},],}'
+chk(_lc.extract_json(_sloppy)["hub"]["lead"] == "x",
+    "raw newlines inside strings and trailing commas are parsed, not rejected")
+_orig2 = _bc.L.http_pack
+_bc.L.http_pack = lambda cfg, key, messages, *a, **k: ('{"hub":{"eyebrow":"Gidsen","title":"Gidsen",'
+                                                      '"lead":"Korte uitleg"}}', "stop")
+try:
+    _hub = _bc.ask_hub(_blog_plan, _bc.brief(_blog_plan), {"model": "stub"}, "KEY")
+finally:
+    _bc.L.http_pack = _orig2
+chk(_hub.get("eyebrow") == "Gidsen", "the hub-only seed call returns the hub labels")
 
 # cleanup
 import shutil

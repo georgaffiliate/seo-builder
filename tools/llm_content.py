@@ -777,15 +777,50 @@ def merge_skeleton(sk: dict, got: dict) -> dict:
     return out
 
 
+def _strip_trailing_commas(text: str) -> str:
+    """Drop commas that dangle before a closing bracket (models love them)."""
+    out, in_str, esc = [], False, False
+    for i, ch in enumerate(text):
+        if in_str:
+            out.append(ch)
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+            out.append(ch)
+            continue
+        if ch == "," and re.match(r"\s*[}\]]", text[i + 1:i + 64]):
+            continue
+        out.append(ch)
+    return "".join(out)
+
+
 def extract_json(text: str) -> dict:
+    """Parse the model's JSON answer.
+
+    strict=False: models write real newlines and tabs inside string values, and the
+    parser used to reject the whole pack with "Invalid control character" (live: a
+    5-article Dutch blog pack died at char 25 541 while the copy was perfectly fine).
+    Trailing commas before a closing bracket are the other recurring slip.
+    """
     text = FENCE_RE.sub("", text.strip())
-    try:
-        return json.loads(text)
-    except Exception:
-        start, end = text.find("{"), text.rfind("}")
-        if start >= 0 and end > start:
-            return json.loads(text[start:end + 1])
-        raise
+    tries = (text, _strip_trailing_commas(text))
+    start, end = text.find("{"), text.rfind("}")
+    if start >= 0 and end > start:
+        body = text[start:end + 1]
+        tries += (body, _strip_trailing_commas(body))
+    last = None
+    for cand in tries:
+        try:
+            return json.loads(cand, strict=False)
+        except Exception as e:
+            last = e
+    raise last if last else ValueError("not JSON")
 
 
 def normalize_contacts(pack: dict, plan: dict) -> None:

@@ -222,7 +222,7 @@ def close_truncated(raw: str) -> dict | None:
     text = text[start:]
     for _ in range(10):
         try:
-            obj = json.loads(_balance(text))
+            obj = json.loads(_balance(text), strict=False)
             return obj if isinstance(obj, dict) else None
         except Exception:
             cut = text.rfind(",")
@@ -336,6 +336,26 @@ def pick_transport(cfg: dict, provider: str):
     return ("http", key) if use_http else (None, "")
 
 
+def ask_hub(plan: dict, data: dict, cfg: dict, key: str) -> dict:
+    """Just the hub labels — the last-resort seed when the pack itself never parsed."""
+    messages = [
+        {"role": "system", "content": "You write the labels of a guides (blog) hub page for a "
+                                      "landing site. Answer with that JSON object only."},
+        {"role": "user", "content":
+            "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand",
+                                                             "domain", "geo")}, ensure_ascii=False) +
+            "\nHUB SHAPE (same keys, short labels): " + json.dumps(data["shape"]["hub"], ensure_ascii=False) +
+            "\nReturn ONLY the hub object."},
+    ]
+    c2 = dict(cfg)
+    c2["max_tokens"] = min(int(cfg.get("max_tokens") or MAX_TOKENS), 2000)
+    raw, _ = L.http_pack(c2, key, messages)
+    hub = parse_pack(raw)
+    if isinstance(hub, dict) and isinstance(hub.get("hub"), dict):
+        hub = hub["hub"]
+    return hub if isinstance(hub, dict) else {}
+
+
 def _usable(pack) -> bool:
     """A pack worth building on: hub strings plus at least one real article."""
     return isinstance(pack, dict) and isinstance(pack.get("hub"), dict) and bool(pack.get("articles"))
@@ -429,6 +449,13 @@ def main():
             print(f"· blog transport: {'http ' + cfg['base_url'] if transport == 'http' else 'opencode CLI'}"
                   f" · model: {cfg['model']} · {len(plan['blog']['topics'])} articles")
             pack, messages = ask_model(plan, data, cfg, transport, where)
+            if transport == "http" and not isinstance(pack, dict):
+                # not one usable JSON object came back: seed the pack from the hub and let
+                # the per-article follow-up write the articles (6 small answers instead of
+                # one long one that this provider keeps breaking)
+                print("· no usable pack — rebuilding it from the hub and single articles")
+                pack = {"hub": ask_hub(plan, data, cfg, where), "articles": []}
+                messages = messages or []
             if isinstance(pack, dict) and transport == "http":
                 prune_incomplete(pack)
                 miss = missing_topics(plan, pack)
@@ -465,7 +492,9 @@ def main():
                         raw, _ = L.http_pack(dict(cfg, max_tokens=min(int(cfg.get("max_tokens") or MAX_TOKENS),
                                                                      MAX_TOKENS)), where, messages)
                         try:
-                            pack = L.extract_json(raw)
+                            pack = parse_pack(raw)
+                            if pack is None:
+                                raise ValueError("no JSON object in the repair answer")
                         except Exception as e:
                             print(f"! repair unparsable: {e}")
                             pack = None
