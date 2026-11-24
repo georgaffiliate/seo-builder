@@ -163,14 +163,22 @@ NOTFOUND_L10N = {
     "nb": ("Siden ble ikke funnet", "Tilbake til startsiden"),
 }
 
-# Phone prefixes per country — mirrors tools/content_gen.PHONE_CC (keep in sync).
-# A +39 number on a .es offer is the sort of leak that reads as a copied template,
-# so the phone is checked against the plan country and regenerated when it drifts.
+# Phone prefixes per country — mirrors tools/content_gen.PHONE_CC (selftest enforces
+# parity). A +39 number on a .es offer is the sort of leak that reads as a copied
+# template, so the phone is checked against the plan country and regenerated when it
+# drifts. The table used to stop at IE: every non-EU offer (TR, JP, BR…) then shipped
+# the invalid "+00" prefix, which read as placeholder data on a live page.
 PHONE_CC = {"IT": "+39", "CZ": "+420", "SK": "+421", "PL": "+48", "DE": "+49",
             "AT": "+43", "FR": "+33", "BE": "+32", "NL": "+31", "ES": "+34",
             "PT": "+351", "HU": "+36", "RO": "+40", "BG": "+359", "GR": "+30",
             "HR": "+385", "SI": "+386", "LT": "+370", "LV": "+371", "EE": "+372",
-            "FI": "+358", "SE": "+46", "DK": "+45", "NO": "+47", "IE": "+353"}
+            "FI": "+358", "SE": "+46", "DK": "+45", "NO": "+47", "IE": "+353",
+            "GB": "+44", "CH": "+41", "TR": "+90", "JP": "+81", "KR": "+82",
+            "IN": "+91", "BR": "+55", "MX": "+52", "PE": "+51", "ZA": "+27",
+            "NG": "+234", "KE": "+254", "MY": "+60", "SG": "+65", "HK": "+852",
+            "PH": "+63", "CA": "+1", "AU": "+61", "GE": "+995", "AZ": "+994",
+            "IL": "+972", "NZ": "+64", "US": "+1", "TH": "+66", "AE": "+971",
+            "CN": "+86", "UA": "+380", "RS": "+381"}
 LANG_CC = {"it": "IT", "cs": "CZ", "sk": "SK", "pl": "PL", "de": "DE", "fr": "FR",
            "es": "ES", "pt": "PT", "nl": "NL", "hu": "HU", "ro": "RO", "bg": "BG",
            "el": "GR", "hr": "HR", "sl": "SI", "lt": "LT", "lv": "LV", "et": "EE",
@@ -771,6 +779,32 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
             v = partners.get(k) if isinstance(partners, dict) else None
             if isinstance(v, list) or not str(v or "").strip():
                 errs.append(f"sections.partners.{k} missing or a raw list")
+    # long editorial pages (product / offer / FAQ): real body copy, not a card grid
+    for key, min_words, min_sections, min_faq in (("inner_product", 450, 5, 6),
+                                                  ("inner_offer", 450, 5, 6),
+                                                  ("inner_faq", 600, 2, 12)):
+        page = content.get(key) or {}
+        if not isinstance(page, dict):
+            errs.append(f"{key} must be an object")
+            continue
+        secs = [s for s in (page.get("sections") or []) if isinstance(s, dict)]
+        fqs = [x for x in (page.get("faq") or []) if isinstance(x, dict) and str(x.get("q") or "").strip()]
+        blob = " ".join(str(v) for v in (page.get("lead"),) if v)
+        for s in secs:
+            blob += " " + " ".join(str(x) for x in (s.get("paragraphs") or []))
+            blob += " " + " ".join(str(x) for x in (s.get("bullets") or []))
+        for x in fqs:
+            blob += " " + str(x.get("q") or "") + " " + str(x.get("a") or "")
+        words = len(blob.split())
+        if words < min_words:
+            errs.append(f"{key} has {words} words, needs >= {min_words}")
+        if len(secs) < min_sections:
+            errs.append(f"{key}.sections has {len(secs)} entries, needs >= {min_sections}")
+        if len(fqs) < min_faq:
+            errs.append(f"{key}.faq has {len(fqs)} entries, needs >= {min_faq}")
+        for i, s in enumerate(secs):
+            if not str(s.get("h2") or "").strip() or not [x for x in (s.get("paragraphs") or []) if str(x or "").strip()]:
+                errs.append(f"{key}.sections.{i} needs h2 + paragraph")
     # ---- stats captions are WORDS, never the numbers they describe -----------
     # (live bug: 4,7/5 → caption "4,7", 1.405 → caption "1.280": the numbers band
     #  shipped as a wall of duplicated figures with no meaning)
@@ -1283,6 +1317,9 @@ def footer_html(plan, C):
     slugs = plan["layout"].get("slugs", {})
     menu = plan["layout"].get("menu", ["Home", "About", "Tech", "Contact"])
     pairs = [(menu[0] if str(menu[0]).strip() else "Home", "index.php"),
+             (page_nav_label(plan, C, "product"), f"{slugs.get('product','product')}.php"),
+             (page_nav_label(plan, C, "offer"), f"{slugs.get('offer','offer')}.php"),
+             (page_nav_label(plan, C, "faq"), f"{slugs.get('faq','faq')}.php"),
              (page_nav_label(plan, C, "about"), f"{slugs.get('about','about')}.php"),
              (page_nav_label(plan, C, "who"), f"{slugs.get('who','who')}.php"),
              (page_nav_label(plan, C, "contact"), f"{slugs.get('contact','contact')}.php"),
@@ -1350,8 +1387,10 @@ def build_header_footer(plan, C, current=""):
     labels = PAGE_LABELS.get(lang, PAGE_LABELS["en"])
 
     pairs = [(menu[0] if str(menu[0]).strip() else labels.get("home", "Home"), "index.php"),
+             (page_nav_label(plan, C, "product"), f"{slugs.get('product','product')}.php"),
+             (page_nav_label(plan, C, "offer"), f"{slugs.get('offer','offer')}.php"),
+             (page_nav_label(plan, C, "faq"), f"{slugs.get('faq','faq')}.php"),
              (page_nav_label(plan, C, "about"), f"{slugs.get('about','about')}.php"),
-             (page_nav_label(plan, C, "who"), f"{slugs.get('who','who')}.php"),
              (page_nav_label(plan, C, "contact"), f"{slugs.get('contact','contact')}.php")]
     def nav_link(t, h):
         cur = ' aria-current="page"' if h == current else ""
@@ -1530,10 +1569,14 @@ def build_jsonld(plan, C, body: str = ""):
     if fq: graph.append({"@type": "FAQPage", "@id": f"https://{dom}/#faq", "mainEntity": json.loads(f"[{faq_entities}]")})
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
 
-PAGE_LABELS = {"it": {"about": "Chi siamo", "who": "Per chi", "contact": "Contatti", "register": "Registrazione"},
-                "cs": {"about": "O nás", "who": "Pro koho", "contact": "Kontakt", "register": "Registrace"},
-                "es": {"about": "Quiénes somos", "who": "Para quién", "contact": "Contacto", "register": "Registro"},
-                "en": {"about": "About", "who": "Who it's for", "contact": "Contact", "register": "Registration"}}
+PAGE_LABELS = {"it": {"about": "Chi siamo", "who": "Per chi", "contact": "Contatti", "register": "Registrazione",
+                      "product": "Piattaforma", "offer": "Come funziona", "faq": "Domande"},
+                "cs": {"about": "O nás", "who": "Pro koho", "contact": "Kontakt", "register": "Registrace",
+                      "product": "Platforma", "offer": "Jak to funguje", "faq": "Dotazy"},
+                "es": {"about": "Quiénes somos", "who": "Para quién", "contact": "Contacto", "register": "Registro",
+                      "product": "Plataforma", "offer": "Cómo funciona", "faq": "Preguntas"},
+                "en": {"about": "About", "who": "Who it's for", "contact": "Contact", "register": "Registration",
+                      "product": "Platform", "offer": "How it works", "faq": "FAQ"}}
 
 
 TITLE_CONNECTORS = {"a", "al", "and", "auf", "bei", "con", "da", "das", "de", "del", "della",
@@ -1676,6 +1719,76 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     page = finish_page(page, plan, C)
     return page
 
+def build_long_inner(plan, C, css_vars, fonts_import, theme, which):
+    """Product / offer / FAQ pages: long editorial body + FAQ + closing form.
+
+    The home page is a screen-by-screen sales page; these pages are the depth layer
+    a visitor (and a crawler) reads when they want to understand the service.
+    """
+    brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
+    slugs = plan["layout"].get("slugs", {})
+    cp = C.get(f"inner_{which}") or {}
+    livebar, header, footer = build_header_footer(plan, C, f"{slugs.get(which, which)}.php")
+    label = PAGE_LABELS.get(plan["params"].get("lang", "en"), PAGE_LABELS["en"]).get(which, which.title())
+    eyebrow = str(cp.get("title") or label).strip()
+    h1 = h1_with_brand(cp.get("h1") or cp.get("title") or label, brand)
+    lead = str(cp.get("lead") or "").strip()
+    sections = [s for s in (cp.get("sections") or []) if isinstance(s, dict)]
+    faqs = [x for x in (cp.get("faq") or []) if isinstance(x, dict) and str(x.get("q") or "").strip()]
+
+    toc = []
+    body = [livebar, header, "<main>",
+            f'<section class="page-intro long-intro"><div class="wrap">'
+            f'<div class="eyebrow">{esc(eyebrow)}</div><h1>{h1}</h1>'
+            + (f'<p class="long-lead">{esc(lead)}</p>' if lead else "") + "</div>"]
+    if len(sections) > 1:
+        for i, s in enumerate(sections):
+            toc.append(f'<a href="#long-{i+1}">{esc(s.get("h2") or label)}</a>')
+        body.append(f'<div class="wrap"><nav class="long-toc" aria-label="{esc(label)}">'
+                    + "".join(toc) + "</nav></div>")
+    body.append("</section>")
+
+    body.append('<section class="section long-body"><div class="wrap">')
+    for i, s in enumerate(sections):
+        body.append(f'<article class="long-block" id="long-{i+1}">')
+        body.append(f'<h2>{esc(s.get("h2") or label)}</h2>')
+        for p in (s.get("paragraphs") or []):
+            if str(p or "").strip():
+                body.append(f'<p>{esc(p)}</p>')
+        bullets = [b for b in (s.get("bullets") or []) if str(b or "").strip()]
+        if bullets:
+            body.append('<ul class="long-list">' + "".join(f'<li>{esc(b)}</li>' for b in bullets) + "</ul>")
+        body.append("</article>")
+    body.append("</div></section>")
+
+    if faqs:
+        faq_title = "FAQ" if which == "faq" else (PAGE_LABELS.get(plan["params"].get("lang", "en"),
+                    PAGE_LABELS["en"]).get("faq", "FAQ"))
+        body.append(f'<section class="section alt sec-faq long-faq"><div class="wrap">'
+                    f'<div class="eyebrow">{esc(faq_title)}</div><h2>{esc(faq_title)}</h2>'
+                    f'<div class="faq-list">')
+        for x in faqs:
+            body.append(f'<details><summary>{esc(x.get("q"))}</summary>'
+                        f'<p>{esc(x.get("a"))}</p></details>')
+        body.append("</div></div></section>")
+
+    form_slot = next((x for x in ("access-band", "claim-band", "enroll-band")
+                      if x in plan["layout"]["section_order"]), "access-band")
+    body.append(f'<div class="inner-cta-form">{R(form_slot, plan, C)}</div>')
+    body.append("</main>"); body.append(footer)
+    body_html = ensure_anchors("\n".join(body))
+    title = brand_first(cp.get("title") or label, brand, label)
+    descr = clamp_meta(lead or cp.get("h1") or label)
+    page = page_shell(title, descr,
+                       (C.get("meta") or {}).get("keywords", "").replace("{Brand}", brand).replace("{dom}", dom),
+                       f"/{slugs.get(which, which)}.php",
+                       plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
+                       body_html, jsonld=build_inner_jsonld(plan, C, which))
+    page = page.replace('href="#claim"', 'href="index.php#claim"')
+    page = finish_page(page, plan, C)
+    return page
+
+
 def build_inner_jsonld(plan, C, which):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     slugs = plan["layout"].get("slugs", {})
@@ -1683,7 +1796,7 @@ def build_inner_jsonld(plan, C, which):
     # schema names in the site language and matching the visible nav wording
     label = page_nav_label(plan, C, which)
     home = (plan["layout"].get("menu") or ["Home"])[0]
-    return json.dumps({"@context": "https://schema.org", "@graph": [
+    graph = [
         {"@type": "WebPage", "@id": f"https://{dom}/{slug}.php",
          "url": f"https://{dom}/{slug}.php", "name": f"{label} — {brand}",
          "inLanguage": plan["params"].get("locale", ""),
@@ -1691,7 +1804,16 @@ def build_inner_jsonld(plan, C, which):
         {"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
             {"@type": "ListItem", "position": 2, "name": label,
-             "item": f"https://{dom}/{slug}.php"}]}]}, ensure_ascii=False, separators=(",", ":"))
+             "item": f"https://{dom}/{slug}.php"}]}]
+    cp = C.get(f"inner_{which}") or {}
+    fq = [x for x in (cp.get("faq") or []) if isinstance(x, dict) and x.get("q") and x.get("a")]
+    if fq:
+        graph.append({"@type": "FAQPage", "@id": f"https://{dom}/{slug}.php#faq",
+                      "mainEntity": [{"@type": "Question", "name": x["q"],
+                                      "acceptedAnswer": {"@type": "Answer", "text": x["a"]}}
+                                     for x in fq]})
+    return json.dumps({"@context": "https://schema.org", "@graph": graph},
+                      ensure_ascii=False, separators=(",", ":"))
 
 def build_legal(plan, C, css_vars, fonts_import, theme, which):
     """terms.php / privacy.php — unique titles, legal body from content pack or neutral stub."""
@@ -2105,9 +2227,12 @@ def cmd_build(a):
         _asm_mod.BUILD_V = BUILD_V
     has_calc = "calculator" in plan["layout"]["section_order"]
     pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme, B=B, covers=covers)}
-    for which in ("about", "who", "contact", "register"):
+    for which in ("about", "who", "contact", "register", "product", "offer", "faq"):
         slug = plan["layout"].get("slugs", {}).get(which, which)
-        pages[f"{slug}.php"] = build_inner(plan, C, css_vars, fonts_import, theme, which)
+        if which in ("product", "offer", "faq"):
+            pages[f"{slug}.php"] = build_long_inner(plan, C, css_vars, fonts_import, theme, which)
+        else:
+            pages[f"{slug}.php"] = build_inner(plan, C, css_vars, fonts_import, theme, which)
     if B:
         import blog_assemble
         pages[f"{BLOG_DIR}/{BLOG_HUB}"] = blog_assemble.build_hub(

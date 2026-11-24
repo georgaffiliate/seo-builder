@@ -789,7 +789,10 @@
    "tech": "Strumenti",
    "who": "A chi serve",
    "contact": "Contatti",
-   "register": "Registrazione"
+   "register": "Registrazione",
+   "product": "Piattaforma",
+   "offer": "Come funziona",
+   "faq": "Domande"
   },
   "_livebar": {
    "crypto": "CRIPTO",
@@ -1680,7 +1683,10 @@
    "tech": "Nástroje",
    "who": "Pro koho",
    "contact": "Kontakt",
-   "register": "Registrace"
+   "register": "Registrace",
+   "product": "Platforma",
+   "offer": "Jak to funguje",
+   "faq": "Dotazy"
   },
   "_livebar": {
    "crypto": "KRYPTO",
@@ -2592,7 +2598,10 @@
    "tech": "Tools",
    "who": "Audience",
    "contact": "Contact",
-   "register": "Registration"
+   "register": "Registration",
+   "product": "Platform",
+   "offer": "How it works",
+   "faq": "FAQ"
   },
   "_livebar": {
    "crypto": "CRYPTO",
@@ -3556,7 +3565,10 @@
    "tech": "Herramientas",
    "who": "Para quién",
    "contact": "Contacto",
-   "register": "Registro"
+   "register": "Registro",
+   "product": "Plataforma",
+   "offer": "Cómo funciona",
+   "faq": "Preguntas"
   },
   "contacts": {
    "streets": [

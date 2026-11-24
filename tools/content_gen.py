@@ -27,7 +27,8 @@ PHONE_CC = {"IT": "+39 ", "CZ": "+420 ", "SK": "+421 ", "PL": "+48 ", "DE": "+49
             "IN": "+91 ", "BR": "+55 ", "MX": "+52 ", "PE": "+51 ", "ZA": "+27 ",
             "NG": "+234 ", "KE": "+254 ", "MY": "+60 ", "SG": "+65 ", "HK": "+852 ",
             "PH": "+63 ", "CA": "+1 ", "AU": "+61 ", "GE": "+995 ", "AZ": "+994 ",
-            "IL": "+972 ", "NZ": "+64 ", "US": "+1 ", "TH": "+66 ", "AE": "+971 "}
+            "IL": "+972 ", "NZ": "+64 ", "US": "+1 ", "TH": "+66 ", "AE": "+971 ",
+            "CN": "+86 ", "UA": "+380 ", "RS": "+381 "}
 ZIP_RE = re.compile(r"^[A-Za-z0-9 -]{2,8}$")
 # captions that advertise a mock panel as placeholder data (mirrored in tools/seo_audit.py)
 PLACEHOLDER_NOTE = re.compile(
@@ -150,6 +151,106 @@ def merged_bank(bank_all: dict, lang: str) -> dict:
     return _merge(_en, _src) if _src else _en
 
 
+def _long_text(*vals) -> str:
+    return " ".join(str(v).strip() for v in vals if str(v or "").strip())
+
+
+def _long_card_text(items, *fields) -> str:
+    out = []
+    for it in items or []:
+        if not isinstance(it, dict):
+            continue
+        piece = " — ".join(str(it.get(f) or "").strip() for f in fields if str(it.get(f) or "").strip())
+        if piece:
+            out.append(piece)
+    return " ".join(out)
+
+
+def _long_section(h2, paragraphs, bullets) -> dict:
+    ps = [p for p in paragraphs if str(p or "").strip()] or ["—"]
+    bs = [b for b in bullets if str(b or "").strip()]
+    return {"h2": str(h2 or "").strip(), "paragraphs": ps, "bullets": bs}
+
+
+def long_inner_pages(content: dict) -> dict:
+    """Offline fallback for the three long editorial pages.
+
+    The LLM path writes these keys itself; this builder derives readable, localised
+    long-form pages from the existing pack so a bank-only build still has real body
+    copy instead of empty shells.
+    """
+    sec = content.get("sections") or {}
+    faq_items = list(((content.get("faq") or {}).get("items") or []))
+    tech = content.get("inner_tech") or {}
+    reg = content.get("inner_register") or {}
+    bands = content.get("bands") or {}
+    feat = sec.get("features") or {}
+    security = sec.get("security") or {}
+    markets = sec.get("markets") or {}
+    appshot = sec.get("appshot") or {}
+    guide = sec.get("guide") or {}
+    portal = sec.get("portal") or {}
+    steps = sec.get("steps") or {}
+    risk = sec.get("risk") or {}
+    cards = feat.get("cards") or []
+
+    product_sections = [
+        _long_section(feat.get("h2"), [feat.get("lead"), _long_card_text(cards[:3], "t", "d")],
+                      [c.get("t") for c in cards[:3]]),
+        _long_section(security.get("h2"), [_long_card_text(security.get("cards") or [], "d")],
+                      [c.get("t") for c in (security.get("cards") or [])]),
+        _long_section(markets.get("h2"), [markets.get("lead"), markets.get("disclaimer")],
+                      [r.get("sym") for r in (markets.get("rows") or [])]),
+        _long_section(appshot.get("h2"), [appshot.get("lead"), _long_text(*(appshot.get("points") or []))],
+                      appshot.get("points") or []),
+        _long_section((guide.get("h2") or portal.get("h2")), [guide.get("lead"), _long_card_text((guide.get("items") or [])[:2], "t", "d")],
+                      [x.get("t") for x in (guide.get("items") or [])[:3]]),
+    ]
+    offer_sections = [
+        _long_section(steps.get("h2"), [_long_card_text((steps.get("steps") or [])[:3], "t", "d"),
+                                        _long_card_text((steps.get("steps") or [])[3:], "t", "d")],
+                      [x.get("t") for x in (steps.get("steps") or [])]),
+        _long_section(bands.get("mid_h2"), [bands.get("mid_lead"), _long_text(*(bands.get("mid_points") or []))],
+                      bands.get("mid_points") or []),
+        _long_section(risk.get("h2"), [risk.get("lead"), _long_card_text(risk.get("rows") or [], "t", "d")],
+                      [x.get("t") for x in (risk.get("rows") or [])]),
+        _long_section(security.get("h2"), [_long_card_text(security.get("cards") or [], "d")],
+                      [c.get("t") for c in (security.get("cards") or [])]),
+        _long_section((portal.get("h2") or guide.get("h2")), [portal.get("lead"), _long_card_text(portal.get("cards") or [], "t", "d")],
+                      [c.get("k") for c in (portal.get("cards") or [])]),
+    ]
+    faq_sections = [
+        _long_section(guide.get("h2"), [guide.get("lead"), _long_card_text((guide.get("items") or [])[:3], "t", "d")],
+                      [x.get("t") for x in (guide.get("items") or [])[:3]]),
+        _long_section(appshot.get("h2"), [appshot.get("lead"), _long_text(*(appshot.get("points") or []))],
+                      appshot.get("points") or []),
+    ]
+
+    return {
+        "inner_product": {
+            "title": tech.get("title") or (feat.get("h2") or ""),
+            "h1": tech.get("h1") or (feat.get("h2") or ""),
+            "lead": _long_text(tech.get("lead"), feat.get("lead")),
+            "sections": product_sections,
+            "faq": faq_items[:6],
+        },
+        "inner_offer": {
+            "title": steps.get("h2") or bands.get("mid_h2") or "",
+            "h1": steps.get("h2") or bands.get("mid_h2") or "",
+            "lead": _long_text(bands.get("mid_lead"), reg.get("lead")),
+            "sections": offer_sections,
+            "faq": faq_items[6:12],
+        },
+        "inner_faq": {
+            "title": (content.get("faq") or {}).get("h2") or "FAQ",
+            "h1": (content.get("faq") or {}).get("h2") or "FAQ",
+            "lead": guide.get("lead") or (content.get("faq") or {}).get("h2") or "",
+            "sections": faq_sections,
+            "faq": faq_items,
+        },
+    }
+
+
 def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     p = plan["params"]
     lang = p["lang"]
@@ -232,6 +333,8 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     _r2 = round(_bal - _r1, 2)
 
     content = {
+        "page_labels": {k: (v.format(**ctx) if isinstance(v, str) else v)
+                        for k, v in (bank.get("page_labels") or {}).items()},
         "meta": {
             "title_home": pick(rng, bank["meta"]["title"], ctx),
             "description": pick(rng, bank["meta"]["description"], ctx),
@@ -341,6 +444,8 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
                        ("register", "inner_register")):
         node = deep(rng, bank[key], ctx)
         content[key] = node
+
+    content.update(long_inner_pages(content))
 
     content["legal"] = {k: v.format(**ctx) for k, v in bank["legal"].items()}
     content["footer"] = {k: v.format(**ctx) for k, v in bank["footer"].items()}

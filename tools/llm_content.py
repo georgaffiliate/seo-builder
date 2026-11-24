@@ -300,6 +300,7 @@ def brief(plan: dict) -> dict:
             "sections.guide is a long-form knowledge block: 6 DIFFERENT topics with a short title (2-5 words) and a 2-4 sentence explanation (180-420 characters), each teaching something practical about the workspace, verification, demo, market data, risk limits or support. Do not turn it into a second FAQ or repeat FAQ wording.",
             "sections.appshot describes the real phone/market photo shown beside it: alt is a literal, neutral description of what the photo shows; points are 3 short practical captions about mobile use (watchlist, alerts, order history). Do not invent a different device or screenshot.",
             "sections.partners introduces the large logo grid: one short eyebrow, one h2 naming integrations/trusted brands, and one 1-2 sentence lead. Do not list logos in the text; the grid is rendered by the program.",
+            "inner_product, inner_offer and inner_faq are full content pages, not cards: inner_product and inner_offer need 5 sections with a real h2, 2 paragraphs (each 2-4 sentences) and 3 bullets per section, plus 6 FAQ items; total page body 450+ words. inner_faq needs 2 intro sections and 12 different questions with answers of 180+ characters. Write them as unique editorial copy, never as a repeat of the home page or each other.",
             "bands.trust_label is a short caption (2-4 words) above the form's brand/payment logo strip, in the plan language — not a sentence and not a list.",
             "livebar.* must be translated into the plan language (it feeds the top strip): all 9 fields plus 3-4 news headlines, short and concrete.",
             "Texts must read unlike the sibling offers: vary sentence openings, examples and section angles.",
@@ -316,6 +317,12 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
               "sections.security.cards": 3, "sections.streams.cards": 3,
               "sections.guide.items": 6,
               "sections.appshot.points": 3,
+              "inner_product.sections": 5, "inner_offer.sections": 5, "inner_faq.sections": 2,
+              "inner_product.sections.0.paragraphs": 2, "inner_offer.sections.0.paragraphs": 2,
+              "inner_faq.sections.0.paragraphs": 2,
+              "inner_product.sections.0.bullets": 3, "inner_offer.sections.0.bullets": 3,
+              "inner_faq.sections.0.bullets": 3,
+              "inner_product.faq": 6, "inner_offer.faq": 6, "inner_faq.faq": 12,
               "hero.stats": 3, "hero.device_rows": 2, "hero.proof.claims": 3,
               "hero.proof.steps": 3, "bands.mid_points": 4,
               "scarcity.units": 4, "inner_about.blocks": 4,
@@ -710,6 +717,8 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
             "hero.proof.steps": 3, "bands.mid_points": 4,
             "scarcity.units": 4, "inner_about.blocks": 4,
             "sections.guide.items": 6, "sections.appshot.points": 3,
+            "inner_product.sections": 5, "inner_offer.sections": 5, "inner_faq.sections": 2,
+            "inner_product.faq": 6, "inner_offer.faq": 6, "inner_faq.faq": 12,
             "inner_tech.blocks": 3, "inner_who.blocks": 3, "inner_register.points": 3}
     for path, n in mins.items():
         node = pack

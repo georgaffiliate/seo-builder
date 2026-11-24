@@ -107,6 +107,13 @@ chk(_sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><t
     and _sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>5.320,50</td>") != {}
     and _sa2.audit_market_prices("EUR/USD 500 miliardi e EUR/USD 1,0842") == {},
     "price gate: same symbol twice is caught, prose numbers are not a quote")
+import content_gen as _cg
+chk({k: v.strip() for k, v in _cg.PHONE_CC.items()} == _asm3.PHONE_CC,
+    "phone prefixes: assemble mirrors content_gen (non-EU countries included)")
+_tel_tr = _asm3.contacts_for({"params": {"domain": "x.com.tr", "cc": "TR"}, "seed": 7},
+                             {"meta": {}})["telephone"]
+chk(_tel_tr.startswith("+90 "),
+    f"contacts: a TR offer gets a +90 number, not the '+00' placeholder ({_tel_tr})")
 chk(bool(set(_asm3._sym_keys("BTC / EUR")) & set(_asm3._sym_keys("BTC/EUR"))) and
     bool(set(_asm3._sym_keys("XAU/EUR")) & set(_asm3._sym_keys("GOLD/EUR"))) and
     bool(set(_asm3._sym_keys("DAX 40")) & set(_asm3._sym_keys("DAX40"))),

@@ -178,6 +178,12 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
 - **Partner logo grid — обовʼязковий блок:** `partners` показує 8 карток з `trust/` (6 з форми +
   2 ротаційні), 2 колонки на телефоні / 4 на десктопі. Секція forced; `{{PARTNER_GRID}}` збирає
   розмітку, `write_assets` копіює всі 8 SVG.
+- **Довгі внутрішні сторінки:** `product`, `offer`, `faq` — окремі редакційні лендінги
+  (`build_long_inner`): intro + TOC + 5 секцій (H2, 2 абзаци, 3 буліти) + FAQ + форма внизу.
+  `content_gen.long_inner_pages()` збирає offline-версію з localized sections (450+/600+ слів),
+  LLM пише `inner_product` / `inner_offer` / `inner_faq`; `assemble.validate_content` валить
+  сторінку, якщо слів/секцій/FAQ менше норми. Сторінки додані в меню, футер, sitemap і JSON-LD
+  (FAQPage для сторінок із `faq`).
 - **Мобільний partner-шар:** останній `@media(max-width:700px)` у `blocks.css` робить заголовки
   великими uppercase, form-band — кольоровою карткою з білими полями, статистику — картками,
   відгуки — swipe-стрічкою, кроки — плитками з номерами, FAQ — картками. Десктоп лишається

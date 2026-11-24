@@ -356,6 +356,9 @@ INNER_SKELETONS = {
     "contact": [["form-first", "hours", "map"], ["page-intro", "cards", "consult"], ["page-intro", "contact-grid", "office"]],
     "register": [["benefits", "core"], ["core", "points"], ["steps", "core", "mini-faq"]],
     "who": [["page-intro", "team-band", "features", "numbers", "cta"], ["page-intro", "pipeline", "compare", "cta"], ["page-intro", "stack", "figures", "cta"]],
+    "product": [["page-intro", "rich", "cta"], ["page-intro", "rich", "faq", "cta"]],
+    "offer": [["page-intro", "rich", "cta"], ["page-intro", "rich", "faq", "cta"]],
+    "faq": [["page-intro", "rich", "faq", "cta"]],
 }
 MENU_POOLS = {
     "cs": [["Domů", "Program", "Technologie", "Kontakt"], ["Úvod", "Jak to funguje", "Motor", "Napište nám"], ["Domů", "O projektu", "Metoda", "Kontakt"]],
@@ -365,14 +368,20 @@ MENU_POOLS = {
     "fallback": [["Home","About","Tech","Contact"],["Home","Method","Platform","Support"],["Home","About","Tools","Contact"]]
 }
 SLUG_POOLS = {
-    "cs": {"about": ["o-nas", "o-projektu", "pribeh"], "contact": ["kontakt", "podpora", "spojeni"], "register": ["registrace", "ucet", "zalozit-ucet"], "who": ["pro-koho", "komu-pomahame", "profily", "uzivatele"]},
-    "it": {"about": ["chi-siamo", "progetto", "programma", "redazione"], "contact": ["contatti", "parliamo", "scrivici", "supporto"], "register": ["accesso", "inizia", "iscrizione", "registrati"], "who": ["per-chi", "a-chi-serve", "profili", "utenti"]},
+    "cs": {"about": ["o-nas", "o-projektu", "pribeh"], "contact": ["kontakt", "podpora", "spojeni"], "register": ["registrace", "ucet", "zalozit-ucet"], "who": ["pro-koho", "komu-pomahame", "profily", "uzivatele"],
+           "product": ["platforma", "nastroje"], "offer": ["jak-to-funguje", "postup"], "faq": ["dotazy", "faq"]},
+    "it": {"about": ["chi-siamo", "progetto", "programma", "redazione"], "contact": ["contatti", "parliamo", "scrivici", "supporto"], "register": ["accesso", "inizia", "iscrizione", "registrati"], "who": ["per-chi", "a-chi-serve", "profili", "utenti"],
+           "product": ["piattaforma", "strumenti"], "offer": ["come-funziona", "metodo"], "faq": ["domande", "faq"]},
     "es": {"about": ["equipo", "quienes-somos", "sobre-nosotros", "proyecto"],
            "contact": ["contacto", "hablanos", "escribenos", "soporte"],
            "register": ["registro", "empezar", "crear-cuenta", "unete"],
-           "who": ["para-quien", "a-quien-se-dirige", "perfiles", "usuarios"]},
+           "who": ["para-quien", "a-quien-se-dirige", "perfiles", "usuarios"],
+           "product": ["plataforma", "herramientas"], "offer": ["como-funciona", "metodo"],
+           "faq": ["preguntas", "faq"]},
     "fallback": {"about": ["about","project"], "who": ["who-its-for","audience","for-whom"],
-                 "contact": ["contact","contacts"], "register": ["register","open-account"]}
+                 "contact": ["contact","contacts"], "register": ["register","open-account"],
+                 "product": ["platform","tools"], "offer": ["how-it-works","method"],
+                 "faq": ["faq","questions"]}
 }
 
 def pick_people(rng, lang: str, hist: list) -> list:
