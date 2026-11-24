@@ -92,10 +92,14 @@ python3 gen_plan.py --brand "Infinity Shop" --lang it --domain infinity-shop.sit
   якщо модель не дала валідний JSON — детермінований offline-пак, щоб збірка не падала.
 - **3 структурні стилі** (`a` editorial / `b` magazine + TOC / `c` compact brief),
   які обирає план. Хедер, футер, livebar, палітра, скін і шрифти — від основного сайту.
-- **Хаб** `guide.php` (локальний слаг із `plan.blog.hub_slug`) + teaser на головній:
+- **Хаб** `blog/guide.php` (локальний слаг із `plan.blog.hub_slug`) + teaser на головній:
   обидва лінкують усі статті, хлібні крихти статей ведуть на хаб, а не на `#guides`.
+  **Усі блог-сторінки живуть у `/blog/`** (`assemble.BLOG_DIR`), тобто `/blog/<slug>.php`,
+  поки офферні сторінки лишаються в корені. Shell-лінки (`index.php`, `blocks/…`, `img/…`)
+  ребейзяться на `../` через `assemble.rebase_relative()`, лінки всередині силу лишаються
+  локальними; canonical і sitemap містять `/blog/`.
 - **Кожна стаття має власну обкладинку 1200×630** (детермінований SVG/PNG з палітри,
-  `img/blog-<slug>.png`), яка йде в `og:image` і `BlogPosting.image`.
+  `img/blog-<slug>.png` у корені), яка йде в `og:image` і `BlogPosting.image`.
 - `BlogPosting` містить повний `publisher` (name + logo), `mainEntityOfPage`, `wordCount`;
   `BreadcrumbList` веде `Home → хаб → стаття`; `FAQPage` — лише видимі питання.
 - Дати в teaser/byline — мовою сайту (`6 ottobre 2026`), ISO лишається в `<time datetime>`

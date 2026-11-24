@@ -31,6 +31,10 @@ INTEGRATION_SRC = ROOT / "integration-example" / "integration"
 PEOPLE_DIR = ROOT / "people"
 POSTBACK_SRC = ROOT / "_postback.php"
 
+# Blog/hub pages live one directory deep (/blog/<slug>.php) so the offer pages and the
+# content silo keep separate URL neighbourhoods. Every other page stays at the root.
+BLOG_DIR = "blog"
+
 BUILD_V = "0"
 COMMA_DECIMAL = {
     "it", "de", "es", "fr", "pl", "cs", "sk", "sl", "hr", "hu", "ro", "bg", "tr",
@@ -355,6 +359,28 @@ def finish_page(page: str, plan, C: dict) -> str:
                 .replace("{{EMAIL}}", c["email"]))
     page = self_heal_page(page, brand)
     return page
+
+
+_REL_ATTR_RE = re.compile(r'\b(href|src|action|poster)="([^"]*)"', re.I)
+_REL_KEEP = ("#", "/", "../", "http://", "https://", "//", "mailto:", "tel:",
+             "data:", "javascript:", "?")
+
+
+def rebase_relative(html: str, local=()) -> str:
+    """Re-point root-relative links/assets for a page served one directory deep.
+
+    The shell is authored for pages at the site root (`index.php`, `blocks/blocks.css`,
+    `img/blog-x.png`). A page in /blog/ must reach them through `../`. Links that already
+    point inside the silo (passed as `local`), in-page anchors and absolute URLs stay.
+    """
+    keep_local = set(local)
+
+    def one(m):
+        attr, url = m.group(1), m.group(2)
+        if not url or url in keep_local or url.lower().startswith(_REL_KEEP):
+            return m.group(0)
+        return f'{attr}="../{url}"'
+    return _REL_ATTR_RE.sub(one, html)
 
 def ui_defaults(C: dict, plan) -> None:
     """Never ship aria-label="" — packs regularly leave ui.aria_* blank."""
@@ -1795,7 +1821,7 @@ def write_seo_files(out: pathlib.Path, plan, pages: list[str], blog: dict | None
     for a in ((blog or {}).get("articles") or []):
         d = str(a.get("date") or "")
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) and a.get("slug"):
-            article_dates[f"{a['slug']}.php"] = d
+            article_dates[f"{BLOG_DIR}/{a['slug']}.php"] = d
     urls = []
     for p in pages:
         loc = f"https://{dom}/" if p == "index.php" else f"https://{dom}/{p}"
@@ -1891,13 +1917,13 @@ def cmd_build(a):
     if B:
         import blog_assemble
         hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
-        pages[f"{hub_slug}.php"] = blog_assemble.build_hub(plan, C, B, css_vars,
-                                                           fonts_import, theme, covers=covers)
+        pages[f"{BLOG_DIR}/{hub_slug}.php"] = blog_assemble.build_hub(
+            plan, C, B, css_vars, fonts_import, theme, covers=covers)
         for art in B.get("articles") or []:
-            pages[f"{art['slug']}.php"] = blog_assemble.build_article(plan, C, B, art,
-                                                                     css_vars, fonts_import, theme,
-                                                                     covers=covers)
-        ok(f"blog pages: {hub_slug}.php + {', '.join(a['slug'] + '.php' for a in B['articles'])}")
+            pages[f"{BLOG_DIR}/{art['slug']}.php"] = blog_assemble.build_article(
+                plan, C, B, art, css_vars, fonts_import, theme, covers=covers)
+        ok(f"blog pages: {BLOG_DIR}/{hub_slug}.php + "
+           + ", ".join(f"{BLOG_DIR}/{a['slug']}.php" for a in B["articles"]))
     pages["thanks.php"] = build_thanks(plan, C, css_vars, fonts_import, theme)
     pages["terms.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "terms")
     pages["privacy.php"] = build_legal(plan, C, css_vars, fonts_import, theme, "privacy")
@@ -1906,7 +1932,9 @@ def cmd_build(a):
     for fname, html in pages.items():
         if fname not in ("thanks.php", "404.php"):
             html = PHP_CANON_GUARD + html
-        (out / fname).write_text(html, encoding="utf-8")
+        target = out / fname
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(html, encoding="utf-8")
     ok(f"pages written: {', '.join(sorted(pages))}")
 
     write_assets(out, plan); ok("assets: app.js/calculator.js/blocks.css/skin.css")

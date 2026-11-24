@@ -352,19 +352,20 @@ def _cover_img(covers, slug: str, cls: str) -> str:
             f'width="1200" height="630" loading="lazy" decoding="async">')
 
 
-def _teaser_inner(plan, B, covers=None) -> str:
+def _teaser_inner(plan, B, covers=None, link_prefix="") -> str:
     hub = B.get("hub") or {}
     arts = B.get("articles") or []
     style = (plan.get("blog") or {}).get("style") or "a"
     lang = plan["params"].get("lang", "en")
     min_label = A.esc(hub.get("min_read_label") or "min")
+    px = link_prefix
 
     def meta(a):
         return (f'<span class="blog-card-meta">{A.esc(fmt_blog_date(a["date"], lang))} · '
                 f'{int(a.get("read_min") or 1)} {min_label}</span>')
 
     def card(a):
-        return (f'<a class="blog-card" href="{A.esc(a["slug"])}.php">'
+        return (f'<a class="blog-card" href="{px}{A.esc(a["slug"])}.php">'
                 f'{_cover_img(covers, a["slug"], "blog-card-cover")}'
                 f'<span class="blog-card-k">{A.esc(hub.get("eyebrow") or "Guide")}</span>'
                 f'<h3>{A.esc(a["title"])}</h3>'
@@ -373,18 +374,18 @@ def _teaser_inner(plan, B, covers=None) -> str:
     if style == "b" and len(arts) > 1:
         feature = arts[0]
         rows = "".join(
-            f'<a class="blog-row" href="{A.esc(a["slug"])}.php"><time datetime="{A.esc(a["date"])}">'
+            f'<a class="blog-row" href="{px}{A.esc(a["slug"])}.php"><time datetime="{A.esc(a["date"])}">'
             f'{A.esc(fmt_blog_date(a["date"], lang))}</time><span>{A.esc(a["title"])}</span>'
             f'<em>{int(a.get("read_min") or 1)} {min_label}</em></a>'
             for a in arts[1:])
-        return (f'<div class="blog-teaser-split"><a class="blog-feature" href="{A.esc(feature["slug"])}.php">'
+        return (f'<div class="blog-teaser-split"><a class="blog-feature" href="{px}{A.esc(feature["slug"])}.php">'
                 f'{_cover_img(covers, feature["slug"], "blog-card-cover")}'
                 f'<span class="blog-card-k">{A.esc(hub.get("eyebrow") or "Guide")}</span>'
                 f'<h3>{A.esc(feature["title"])}</h3><p>{A.esc(feature["excerpt"])}</p>{meta(feature)}'
                 f'</a><div class="blog-rows">{rows}</div></div>')
     if style == "c":
         rows = "".join(
-            f'<a class="blog-num-row" href="{A.esc(a["slug"])}.php"><i>{i + 1:02d}</i>'
+            f'<a class="blog-num-row" href="{px}{A.esc(a["slug"])}.php"><i>{i + 1:02d}</i>'
             f'<span><b>{A.esc(a["title"])}</b><small>{A.esc(a["excerpt"])}</small></span>'
             f'<em>{int(a.get("read_min") or 1)} {min_label}</em></a>'
             for i, a in enumerate(arts))
@@ -400,6 +401,7 @@ def teaser_html(plan, B, covers=None) -> str:
         return ""
     style = (plan.get("blog") or {}).get("style") or "a"
     hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
+    px = f"{A.BLOG_DIR}/"
     eyebrow = A.esc(hub.get("eyebrow") or "Guides")
     title = A.esc(hub.get("title") or "Guides")
     lead = A.esc(hub.get("lead") or "")
@@ -407,9 +409,9 @@ def teaser_html(plan, B, covers=None) -> str:
     return (f'<section class="section sec sec-blog-teaser" id="guides" data-blog-teaser="{style}">'
             f'<div class="wrap"><div class="blog-teaser-head"><div class="eyebrow">{eyebrow}</div>'
             f'<h2>{title}</h2><p>{lead}</p>'
-            f'<a class="blog-all" href="{A.esc(hub_slug)}.php">{all_label} '
+            f'<a class="blog-all" href="{px}{A.esc(hub_slug)}.php">{all_label} '
             f'<span aria-hidden="true">→</span></a></div>'
-            f'{_teaser_inner(plan, B, covers)}</div></section>')
+            f'{_teaser_inner(plan, B, covers, px)}</div></section>')
 
 
 def hub_jsonld(plan, B, url: str) -> str:
@@ -420,7 +422,7 @@ def hub_jsonld(plan, B, url: str) -> str:
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
     items = []
     for i, a in enumerate(B.get("articles") or [], start=1):
-        u = f"https://{dom}/{a['slug']}.php"
+        u = f"https://{dom}/{A.BLOG_DIR}/{a['slug']}.php"
         items.append({"@type": "ListItem", "position": i, "name": a.get("title") or "",
                       "url": u})
     return json.dumps({"@context": "https://schema.org", "@graph": [
@@ -439,17 +441,17 @@ def hub_jsonld(plan, B, url: str) -> str:
 
 
 def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
-    """Real /guide.php hub: breadcrumb target, one crawl entry point for all articles."""
+    """Real /blog/<hub>.php hub: breadcrumb target, one crawl entry point for all articles."""
     brand = plan["params"]["brand"]
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
     hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
-    url = f"https://{dom}/{hub_slug}.php"
+    url = f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
     livebar, header, footer = A.build_header_footer(plan, C)
     body = (f'{livebar}{header}<main>'
             f'<nav class="blog-crumbs" aria-label="{A.esc(hub.get("eyebrow") or "Guides")}">'
-            f'<a href="index.php">{A.esc(home)}</a><span aria-hidden="true">›</span>'
+            f'<a href="../index.php">{A.esc(home)}</a><span aria-hidden="true">›</span>'
             f'<span>{A.esc(hub.get("eyebrow") or "Guides")}</span></nav>'
             f'<section class="section sec sec-blog-hub" data-blog-hub="1"><div class="wrap">'
             f'<div class="blog-teaser-head"><div class="eyebrow">{A.esc(hub.get("eyebrow") or "Guides")}</div>'
@@ -461,12 +463,14 @@ def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
     keywords = str((C.get("meta") or {}).get("keywords") or "")
     page = A.page_shell(title, descr,
                         keywords.replace("{Brand}", brand).replace("{dom}", dom),
-                        f"/{hub_slug}.php",
+                        f"/{A.BLOG_DIR}/{hub_slug}.php",
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
                         jsonld=hub_jsonld(plan, B, url), blog=True)
-    page = page.replace('href="#claim"', 'href="index.php#claim"')
-    return A.finish_page(page, plan, C)
+    page = page.replace('href="#claim"', 'href="../index.php#claim"')
+    page = A.finish_page(page, plan, C)
+    local = {f"{hub_slug}.php"} | {f"{a['slug']}.php" for a in (B.get("articles") or [])}
+    return A.rebase_relative(page, local)
 
 
 def _meta_line(plan, B, art) -> str:
@@ -571,7 +575,7 @@ def article_jsonld(plan, B, art, url: str, image_url: str = "") -> str:
              {"@type": "BreadcrumbList", "itemListElement": [
                  {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},
                  {"@type": "ListItem", "position": 2, "name": hub.get("eyebrow") or "Guides",
-                  "item": f"https://{dom}/{hub_slug}.php"},
+                  "item": f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"},
                  {"@type": "ListItem", "position": 3, "name": art.get("title") or "", "item": url}]}]
     faq = [x for x in (art.get("faq") or []) if isinstance(x, dict) and x.get("q") and x.get("a")]
     if faq:
@@ -589,7 +593,7 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
     if style not in BLOG_STYLES:
         style = "a"
     slug = art["slug"]
-    url = f"https://{dom}/{slug}.php"
+    url = f"https://{dom}/{A.BLOG_DIR}/{slug}.php"
     hub = B.get("hub") or {}
     hub_slug = (plan.get("blog") or {}).get("hub_slug") or "guides"
     cover = (covers or {}).get(slug) or {}
@@ -624,7 +628,7 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
                   if cover.get("rel") else "")
     body = (f"{livebar}{header}<main>"
             f'<nav class="blog-crumbs" aria-label="{A.esc(hub.get("eyebrow") or "Guides")}">'
-            f'<a href="index.php">{A.esc((plan.get("layout", {}).get("menu") or ["Home"])[0])}</a>'
+            f'<a href="../index.php">{A.esc((plan.get("layout", {}).get("menu") or ["Home"])[0])}</a>'
             f'<span aria-hidden="true">›</span>'
             f'<a href="{A.esc(hub_slug)}.php">{A.esc(hub.get("eyebrow") or "Guides")}</a>'
             f'<span aria-hidden="true">›</span><span>{A.esc(art.get("title"))}</span></nav>'
@@ -641,14 +645,16 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
     keywords = str((C.get("meta") or {}).get("keywords") or "")
     page = A.page_shell(title, descr,
                         keywords.replace("{Brand}", brand).replace("{dom}", dom),
-                        f"/{slug}.php",
+                        f"/{A.BLOG_DIR}/{slug}.php",
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
                         jsonld=article_jsonld(plan, B, art, url, image_url),
                         og_type="article", og_image=image_url, blog=True)
-    page = page.replace('href="#claim"', 'href="index.php#claim"')
+    page = page.replace('href="#claim"', 'href="../index.php#claim"')
     page = A.finish_page(page, plan, C)
-    return page
+    local = {f"{hub_slug}.php", f"{slug}.php"} | {
+        f"{a['slug']}.php" for a in (B.get("articles") or [])}
+    return A.rebase_relative(page, local)
 
 
 def _palette(plan) -> dict:

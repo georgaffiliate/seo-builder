@@ -119,8 +119,8 @@ def norm_url(href, page):
     if href.startswith("http"): return href
     if href.startswith("/"):
         return "PATH:" + href
-    base = page if page.startswith("PATH:") else "PATH:/"
-    cur = base[5:].rsplit("/", 1)[0]
+    # resolve against the page's own directory: pages may live one level deep (/blog/…)
+    cur = (page[5:] if page.startswith("PATH:") else page).rsplit("/", 1)[0]
     while href.startswith("../"):
         href = href[3:]
         cur = cur.rsplit("/", 1)[0] if "/" in cur else ""
@@ -513,7 +513,7 @@ def main():
         body_words = len(re.findall(r"\w+", unescape(" ".join(_page_text_nodes(art_html).split()))))
         chk(body_words >= 300, "ERR", f"article body /{path}",
             f"article body on /{path} is {body_words} words — thin copy (<300)")
-        chk('href="index.php#claim"' in art_html, "ERR", f"article CTA /{path}",
+        chk(bool(re.search(r'href="(?:\.\./)?index\.php#claim"', art_html)), "ERR", f"article CTA /{path}",
             f"article page /{path} does not link to the offer's form (index.php#claim)")
 
     # ---- guides hub (plan.blog): a real CollectionPage + ItemList ----

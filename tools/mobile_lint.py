@@ -68,6 +68,9 @@ def main():
     errs, warns, checks = [], [], 0
 
     pages = sorted(p for p in site.glob("*.php") if not p.name.startswith("_"))
+    blog_dir = site / "blog"
+    if blog_dir.is_dir():
+        pages += sorted(p for p in blog_dir.glob("*.php") if not p.name.startswith("_"))
     for page in pages:
         html = page.read_text(encoding="utf-8")
         checks += 1

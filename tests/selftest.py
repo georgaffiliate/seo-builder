@@ -312,6 +312,29 @@ if _bp.exists():
     _bf.unlink(missing_ok=True)
 else:
     chk(False, "--blog plan generated")
+
+print("== 6d. blog pages live under /blog/")
+_asm_b = sys.modules.get("assemble")
+chk(getattr(_asm_b, "BLOG_DIR", "") == "blog", "BLOG_DIR is 'blog'")
+_reb = _asm_b.rebase_relative
+chk(_reb('<a href="index.php">x</a>') == '<a href="../index.php">x</a>',
+    "rebase: root links gain ../")
+chk(_reb('<img src="img/blog-a.png">') == '<img src="../img/blog-a.png">',
+    "rebase: article covers gain ../")
+chk(_reb('<a href="guides.php">x</a>', {"guides.php"}) == '<a href="guides.php">x</a>',
+    "rebase: links inside the silo stay local")
+chk(_reb('<a href="#part-1">x</a>') == '<a href="#part-1">x</a>'
+    and _reb('href="https://example.com/a"') == 'href="https://example.com/a"'
+    and _reb('href="mailto:a@b.c"') == 'href="mailto:a@b.c"',
+    "rebase: anchors, absolute and mailto links untouched")
+_bsrc = (ROOT / "blog_assemble.py").read_text()
+chk('f"/{A.BLOG_DIR}/{slug}.php"' in _bsrc and 'f"/{A.BLOG_DIR}/{hub_slug}.php"' in _bsrc,
+    "blog canonical URLs are built with BLOG_DIR")
+chk('f"https://{dom}/{A.BLOG_DIR}/{hub_slug}.php"' in _bsrc
+    and 'f"https://{dom}/{A.BLOG_DIR}/{a[\'slug\']}.php"' in _bsrc,
+    "blog/hub JSON-LD URLs carry the directory")
+chk("A.rebase_relative(page, local)" in _bsrc,
+    "blog pages rebase shell links for the subdirectory")
 # a model that answers null for an array must produce a repair instruction, not a traceback
 _broken = {"sections": {"facts": {"points": None}, "portal": {"cards": None}},
            "reviews": {"items": None}, "faq": {"items": None},

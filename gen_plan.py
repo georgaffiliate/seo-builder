@@ -1373,7 +1373,7 @@ def main():
     print(f"  slugs    : {d['layout']['slugs']}")
     if d.get("blog"):
         bl = d["blog"]
-        print(f"  blog     : style {bl.get('style')} · hub {bl.get('hub_slug') or 'guides'}.php · "
+        print(f"  blog     : style {bl.get('style')} · hub /blog/{bl.get('hub_slug') or 'guides'}.php · "
               f"{len(bl.get('topics') or [])} articles · "
               + ", ".join(t.get("id", "") for t in (bl.get("topics") or [])))
     if d.get("_warnings"): print("  WARN:",d["_warnings"])
