@@ -82,7 +82,8 @@ SKINS = ["rounded-air", "sharp-flat", "brutalist-block", "glass-soft",
 # The mobile partner layer in blocks.css carries the rest of the look; these
 # palettes keep the accent and type in the same family instead of picking a
 # random purple/green palette.
-PARTNER_PALETTES = ["p-partner-blue", "p-harbor-teal", "p-arctic-slate", "p-cloud-indigo"]
+PARTNER_PALETTES = ["p-partner-blue", "p-harbor-teal", "p-arctic-slate", "p-cloud-indigo",
+                    "p-partner-midnight", "p-partner-graphite", "p-partner-teal-night", "p-partner-ink"]
 PARTNER_SKINS = ["sharp-flat", "classic-border", "rounded-air"]
 # Hero concepts: each one is a composition with its own evidence (claims / quote /
 # steps / band), rendered by blocks/blk-hero-<letter>.html. The concept avoids the
@@ -418,9 +419,9 @@ def build_plan(rng, args, hist)->dict|None:
     used_pal={h["palette"] for h in last2}
     used_combo={h["combo"] for h in hist}
     pals=[p for p in palettes() if p["id"] in PARTNER_PALETTES] or [p for p in palettes()]
-    # p-partner-blue is the house default; the rest of the family takes over only
-    # when the combo is already in use or the palette was seen in the last two plans
-    pals.sort(key=lambda p: (p["id"] != "p-partner-blue", p["id"]))
+    # light/dark partner palettes are drawn randomly; the family keeps the type
+    # and geometry consistent while the theme changes from offer to offer
+    rng.shuffle(pals)
     pool=[p for p in pals if p["id"] not in used_pal
            and rng.choice(p["good_skins"]) is not None] or pals
     chosen=None

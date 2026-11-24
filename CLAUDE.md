@@ -182,6 +182,10 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   великими uppercase, form-band — кольоровою карткою з білими полями, статистику — картками,
   відгуки — swipe-стрічкою, кроки — плитками з номерами, FAQ — картками. Десктоп лишається
   редакційним; мобільний шар навмисно останній у каскаді.
+- **Partner-палітри:** `gen_plan.PARTNER_PALETTES` = 4 світлі (`p-partner-blue`, `p-harbor-teal`,
+  `p-arctic-slate`, `p-cloud-indigo`) + 4 темні (`p-partner-midnight`, `p-partner-graphite`,
+  `p-partner-teal-night`, `p-partner-ink`). Пул перемішується `rng.shuffle`, тому тема
+  світла/темна обирається випадково; скіни — `sharp-flat / classic-border / rounded-air`.
 - `SECTION_POOL` ×25 типів (`device` виведений з пулу — він дублював hero-мокап; `VARIANTS` ×23 слоти). Стат-екрани
   не дублюють значення hero: `numbers` = rating/5·reviews·orders/s·API, `stats-intro` = reviews·orders·API
   (labels з `sections.stats`), `glance` = власні `sections.glance` + rows з markets; numbers і stats-intro
