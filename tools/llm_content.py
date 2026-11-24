@@ -319,7 +319,10 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
 
     def walk(node, path):
         if isinstance(node, dict):
-            return {k: walk(v, f"{path}.{k}" if path else k) for k, v in node.items()}
+            # "_doc" entries are notes to the human reader, not fillable copy —
+            # keeping them let Ukrainian/French hints ride along inside the pack
+            return {k: walk(v, f"{path}.{k}" if path else k)
+                    for k, v in node.items() if k != "_doc"}
         if isinstance(node, list):
             n = expand.get(path)
             if path == "reviews.items":
@@ -337,7 +340,13 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
                 return out
             if n:
                 tmpl = node[0] if node else ""
-                return [walk(json.loads(json.dumps(tmpl)), f"{path}.0") for _ in range(n)]
+                if isinstance(tmpl, (dict, list)):
+                    return [walk(json.loads(json.dumps(tmpl)), f"{path}.0") for _ in range(n)]
+                # a scalar example in the schema is a FIXTURE, not copy: repeating it
+                # ("днів" ×4, an Italian claim ×3, a Ukrainian instruction ×4) shipped
+                # another language onto the page whenever the model skipped the slot.
+                # Empty slots make the hole visible to the validator instead.
+                return ["" for _ in range(n)]
             return [walk(v, path) for v in node]
         return node
 
@@ -426,6 +435,103 @@ def _pack_get(pack: dict, path: str):
     return node
 
 
+# ---- schema fixtures are not copy -------------------------------------------
+# The skeleton is built from content/content-pack.schema.json, whose example values are
+# a mix of ellipses ("…") and Ukrainian/Italian hints. A model that skips a slot used to
+# leave those in place and the gate waved them through, because "…" is not an empty
+# string: ing-rendement.xyz shipped its scarcity band as "…" heading/lead/button and the
+# countdown captions as the Ukrainian schema example "днів" ×4 on a Dutch page.
+FIXTURE_ONLY = re.compile(r"^[\s…\.·:;\-–—_/\\]+$")
+CYR_RE = re.compile(r"[А-Яа-яЁёЇїІіЄєҐґ]")
+CYR_LANGS = {"ru", "uk", "bg", "mk", "sr", "be", "kk"}
+SKIP_SCRIPT_PATHS = (".photo", ".ic", ".g", ".sym", ".vv", ".device_bal_v")
+
+
+def scrub_placeholders(node, path="", hits=None):
+    """Turn every ellipsis-only value into "" so validation sees a hole, not copy."""
+    if hits is None:
+        hits = []
+    if isinstance(node, dict):
+        for k, v in list(node.items()):
+            p = f"{path}.{k}".strip(".")
+            if isinstance(v, str) and v.strip() and FIXTURE_ONLY.match(v):
+                node[k] = ""
+                hits.append(p)
+            else:
+                scrub_placeholders(v, p, hits)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            p = f"{path}.{i}".strip(".")
+            if isinstance(v, str) and v.strip() and FIXTURE_ONLY.match(v):
+                node[i] = ""
+                hits.append(p)
+            else:
+                scrub_placeholders(v, p, hits)
+    return hits
+
+
+def script_leaks(pack: dict, lang: str, brand: str = "") -> list:
+    """Strings written in an alphabet the plan language does not use.
+
+    Catches a schema fixture (Cyrillic "днів") or a master pack leaking through a
+    translation step, whatever the route — the page language is the contract."""
+    if lang in CYR_LANGS:
+        return []
+    brand_key = brand.strip().casefold()
+    out = []
+
+    def walk(node, path=""):
+        if isinstance(node, str):
+            if path.endswith(SKIP_SCRIPT_PATHS) or path.split(".")[-1].startswith("_"):
+                return
+            if brand_key and node.strip().casefold() == brand_key:
+                return
+            m = CYR_RE.search(node)
+            if m:
+                out.append(f"{path} ('{node.strip()[:24]}')")
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                if k.startswith("_"):
+                    continue
+                walk(v, f"{path}.{k}".strip("."))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, f"{path}.{i}".strip("."))
+
+    walk(pack)
+    return out
+
+
+def scarcity_errors(pack: dict, plan: dict) -> list:
+    """The countdown band: four captions and real copy — never a fixture, never "днів"×4."""
+    sc = pack.get("scarcity")
+    used = "scarcity" in ((plan.get("layout") or {}).get("section_order") or [])
+    if sc is None:
+        return ["scarcity block missing — the countdown needs eyebrow/h2/lead/btn/units"] if used else []
+    if not isinstance(sc, dict):
+        return ["scarcity is not an object"]
+    errs = []
+    if used:
+        for k in ("eyebrow", "h2", "lead", "btn"):
+            v = str(sc.get(k) or "").strip()
+            if not v:
+                errs.append(f"scarcity.{k} empty — write it in the plan language")
+            elif len(v) < 3:
+                errs.append(f"scarcity.{k} is a stub ('{v}')")
+    units = [str(u).strip() for u in (sc.get("units") or []) if str(u).strip()]
+    if used and len(units) != 4:
+        errs.append(f"scarcity.units needs 4 time labels (days/hours/minutes/seconds), got {len(units)}")
+    low = [u.casefold() for u in units]
+    if len(set(low)) != len(low):
+        errs.append("scarcity.units repeats one label (the four captions must differ: days, hours, minutes, seconds)")
+    for u in units:
+        if len(u) > 16:
+            errs.append(f"scarcity.units label too long ('{u[:20]}') — one short word")
+        if re.search(r"\d", u):
+            errs.append(f"scarcity.units label carries digits ('{u}')")
+    return errs
+
+
 def missing_fragment_keys(pack: dict, plan: dict) -> list:
     """Every {{c:…}} key a rendered fragment needs must exist and be non-empty.
 
@@ -509,6 +615,12 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     if _miss:
         errs.append("fragments need these content keys (missing or empty): "
                     + ", ".join(_miss[:12]))
+    errs += scarcity_errors(pack, plan)
+    _lang = plan["params"].get("lang", "en")
+    _script = script_leaks(pack, _lang, plan["params"].get("brand", ""))
+    if _script:
+        errs.append(f"copy in another alphabet for a '{_lang}' pack "
+                    f"(write it in the plan language): " + ", ".join(_script[:6]))
     # pages assembled outside the section fragments (legal, thanks, footer, meta) are
     # not covered by the fragment scan — a missing legal body used to fall back to an
     # English stub on a translated site
@@ -697,6 +809,9 @@ def normalize_contacts(pack: dict, plan: dict) -> None:
 
 
 def prepare_and_validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
+    scrubbed = scrub_placeholders(pack)
+    if scrubbed:
+        print(f"· placeholder fixtures emptied ({len(scrubbed)}): " + ", ".join(scrubbed[:6]))
     normalize_contacts(pack, plan)
     return validate(pack, plan, brief_data)
 

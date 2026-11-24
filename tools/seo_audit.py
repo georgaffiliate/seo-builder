@@ -335,15 +335,62 @@ def audit_market_prices(html):
 
 
 def audit_visible_cyrillic(pages):
-    """Cyrillic in RENDERED page text (spot offer-language leaks)."""
+    """Cyrillic in RENDERED page text of a page that is not written in Cyrillic."""
     out = []
     for path, (_, html) in pages.items():
-        hit = CYR_RE.search(_page_text_nodes(html))
-        if hit:
-            frag = " ".join(_page_text_nodes(html).split())
-            pos = CYR_RE.search(frag).start()
-            out.append((path, frag[max(0, pos - 30):pos + 40]))
+        m_lang = PAGE_LANG_RE.search(html)
+        if (m_lang.group(1) if m_lang else "").lower().split("-")[0] in CYR_LANGS:
+            continue
+        text = " ".join(_page_text_nodes(html).split())
+        if CYR_RE.search(text):
+            pos = CYR_RE.search(text).start()
+            out.append((path, text[max(0, pos - 30):pos + 40]))
     return out
+
+
+DOTS_ONLY_RE = re.compile(r"^[\s…\.]{1,12}$")
+
+
+def audit_placeholder_text(pages):
+    """Visible copy that is nothing but an ellipsis.
+
+    The content skeleton carries the schema's "…" examples; when a model skips a slot
+    they render as a real heading, lead or button label (ing-rendement.xyz shipped its
+    whole countdown band that way). Text nodes are what the visitor reads, so this is
+    checked on the rendered page, not on the pack."""
+    out = []
+    for path, (code, html) in pages.items():
+        if code != 200:
+            continue
+        body = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.S | re.I)
+        body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
+        for m in re.finditer(r">([^<>]{1,12})<", body):
+            val = m.group(1).strip()
+            if val and val != "." and DOTS_ONLY_RE.match(val):
+                out.append((path, val))
+    return out
+
+
+PAGE_LANG_RE = re.compile(r'<html[^>]+lang=["\']([a-zA-Z-]+)', re.I)
+CYR_LANGS = {"ru", "uk", "bg", "mk", "sr", "be", "kk"}
+
+
+def audit_countdown_labels(html, lang=""):
+    """The countdown prints four captions; a single label copied four times (or one in
+    another alphabet) means the units array was never written for this language."""
+    m = re.search(r'<div class="countdown"', html)
+    if not m:
+        return []
+    chunk = html[m.start(): m.start() + 3000]
+    labels = [x.strip() for x in re.findall(r"<small>([^<]*)</small>", chunk)][:4]
+    if not labels:
+        return []
+    bad = []
+    if len({x.casefold() for x in labels}) != len(labels):
+        bad.append(f"labels repeat: {labels}")
+    if lang not in CYR_LANGS and CYR_RE.search(" ".join(labels)):
+        bad.append(f"foreign alphabet in countdown captions: {labels}")
+    return bad
 
 def main():
     folder = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "."
@@ -577,8 +624,23 @@ def main():
         f"CYRILLIC comments in shipped files ({len(cyr_hits)} spots) — rewrite in English, e.g. "
         + "; ".join(f"{p}:{ln}" for p, ln, _ in cyr_hits[:6]))
     vis_cyr = audit_visible_cyrillic(seen_pages)
-    chk(not vis_cyr, "WARN", "no Cyrillic in rendered page text",
+    chk(not vis_cyr, "ERR", "no Cyrillic on a non-Cyrillic page",
         f"Cyrillic visible on pages: " + "; ".join(f"{p}: …{s}…" for p, s in vis_cyr[:4]))
+    # schema fixtures rendered as copy: a "…" heading / lead / button label
+    ph_ph = audit_placeholder_text(seen_pages)
+    chk(not ph_ph, "ERR", "no bare ellipsis as copy",
+        "placeholder text visible as copy (content pack kept a schema fixture): "
+        + "; ".join(f"{p} “{v}”" for p, v in ph_ph[:4]))
+    cd_bad = []
+    for path, (code, html) in seen_pages.items():
+        if code != 200:
+            continue
+        m_lang = PAGE_LANG_RE.search(html)
+        lang = (m_lang.group(1) if m_lang else "").lower().split("-")[0]
+        for why in audit_countdown_labels(html, lang):
+            cd_bad.append((path, why))
+    chk(not cd_bad, "ERR", "countdown captions distinct and in the page language",
+        "countdown units broken: " + "; ".join(f"{p}: {w}" for p, w in cd_bad[:3]))
     # foreign-script leak: an Italian page once shipped 允许 inside an article
     cjk_hits = []
     for path, (code, html) in seen_pages.items():

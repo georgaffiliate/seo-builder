@@ -829,6 +829,44 @@ _ov = [len(a & b) for a, b in zip(anchor_sets, anchor_sets[1:])]
 chk(len(anchor_sets) >= 4 and max(_ov, default=0) <= 1,
     f"anchor screens rotate between consecutive plans (max overlap {max(_ov, default=0)})")
 
+print("== 11. schema fixtures never ship as copy")
+# live bug on ing-rendement.xyz (nl): the countdown band rendered as "…" h2/lead/CTA
+# and its four captions as the Ukrainian schema example "днів", because the skeleton
+# repeats schema fixtures and "…" passed every "non-empty" check.
+_schema = json.loads((ROOT / "content" / "content-pack.schema.json").read_text(encoding="utf-8"))
+_fp = {"params": {"brand": "Fixturebrand", "domain": "fixture.site", "lang": "nl"},
+       "numbers": {"rating": "4,6"},
+       "layout": {"section_order": ["scarcity"], "variants": {}}, "photos": []}
+_sk = _lc.skeleton(_schema, _fp, {})
+chk(not re.search(r"[А-Яа-яЁёЇїІіЄєҐґ]", json.dumps(_sk["scarcity"], ensure_ascii=False)),
+    "skeleton scarcity block carries no Cyrillic fixture")
+chk(all(u == "" for u in _sk["scarcity"]["units"]), "skeleton units are empty slots, not a repeated label")
+chk(_sk["bands"]["mid_points"] == [""] * 4, "scalar list fixtures are not duplicated")
+chk(_sk["hero"]["proof"]["claims"] == [""] * 3, "foreign-language list fixtures are not duplicated")
+_raw = _lc.merge_skeleton(_sk, {})          # the model skipped the scarcity slot entirely
+chk(any("placeholder fixtures" in e for e in _asm3.validate_content(_raw, _fp, strict=True)),
+    "validator rejects a pack that kept the '…' fixtures")
+_scrubbed = _lc.scrub_placeholders(_raw)
+chk("scarcity.h2" in _scrubbed and not _raw["scarcity"]["h2"].strip(),
+    "ellipsis fixtures are emptied before validation")
+chk(any("scarcity" in e for e in _asm3.validate_content(_raw, _fp, strict=True)),
+    "emptied scarcity copy is reported as missing, not shipped")
+_bad_units = json.loads(json.dumps(_raw))
+_bad_units["scarcity"] = {"eyebrow": "Toegang", "h2": "Aanmelden sluit binnenkort",
+                          "lead": "Uw aanvraag komt in de wachtrij.", "btn": "Aanmelden",
+                          "units": ["днів", "днів", "днів", "днів"]}
+_e = _asm3.validate_content(_bad_units, _fp, strict=True)
+chk(any("another alphabet" in e for e in _e) and any("repeats a label" in e for e in _e),
+    "Ukrainian countdown captions on an nl pack are rejected")
+_live_html = ('<html lang="nl"><body><h2>…</h2><p>Toegang</p>'
+              '<div class="countdown" id="countdown"><div><b>02</b><small>днів</small></div>'
+              '<div><b>13</b><small>днів</small></div></div></body></html>')
+chk(bool(_sa2.audit_placeholder_text({"/": (200, _live_html)})), "audit sees '…' rendered as copy")
+chk(bool(_sa2.audit_countdown_labels(_live_html, "nl")), "audit sees broken countdown captions")
+chk(not _sa2.audit_countdown_labels('<div class="countdown"><small>dagen</small>'
+                                    '<small>uur</small><small>min</small><small>sec</small></div>', "nl"),
+    "audit passes real countdown captions")
+
 # cleanup
 import shutil
 out = ROOT / "sites" / "selftest-e2e.site"

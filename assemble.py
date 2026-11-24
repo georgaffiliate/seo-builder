@@ -720,6 +720,55 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         elif isinstance(node, list):
             for i, v in enumerate(node): _scan(v, f"{path}.{i}")
     _scan(content)
+    # ---- schema fixtures and foreign alphabets never reach the page ----------
+    # The skeleton is built from content/content-pack.schema.json and its example
+    # values are ellipses plus Ukrainian/Italian hints. A model that skips a slot
+    # leaves them in place, and "…" is not an empty string, so the gate used to
+    # wave it through: ing-rendement.xyz shipped its countdown band as a "…"
+    # heading/lead/button and the four captions as the Ukrainian "днів" on a
+    # Dutch page. Both are hard errors now, whatever route produced the pack.
+    FIXTURE_ONLY = re.compile(r"^[\s…\.·:;\-–—_/\\]+$")
+    CYR_RE = re.compile(r"[А-Яа-яЁёЇїІіЄєҐґ]")
+    _lang = (plan["params"].get("lang") or "en").lower()
+    _cyr_lang = _lang in ("ru", "uk", "bg", "mk", "sr", "be", "kk")
+    _skip_script = (".photo", ".ic", ".g", ".sym", ".vv", ".device_bal_v")
+    _brand_key = str(plan["params"].get("brand") or "").strip().casefold()
+    _fixes, _scripts = [], []
+
+    def _audit_copy(node, path=""):
+        if isinstance(node, str):
+            if path.endswith(_skip_script) or path.split(".")[-1].startswith("_"):
+                return
+            if node.strip() and FIXTURE_ONLY.match(node):
+                _fixes.append(path)
+            elif not _cyr_lang and node.strip().casefold() != _brand_key and CYR_RE.search(node):
+                _scripts.append(f"{path} ('{node.strip()[:24]}')")
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                _audit_copy(v, f"{path}.{k}".strip("."))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                _audit_copy(v, f"{path}.{i}")
+    _audit_copy(content)
+    if _fixes:
+        errs.append("placeholder fixtures left in the pack ('…' is not copy): "
+                    + ", ".join(_fixes[:6]))
+    if _scripts:
+        errs.append(f"copy in another alphabet for a '{_lang}' site: " + ", ".join(_scripts[:6]))
+    # ---- countdown band: real copy and four DIFFERENT captions ---------------
+    order = (plan.get("layout") or {}).get("section_order") or []
+    if "scarcity" in order:
+        sc = content.get("scarcity") or {}
+        for k in ("eyebrow", "h2", "lead", "btn"):
+            if not str(sc.get(k) or "").strip():
+                errs.append(f"scarcity.{k} empty — the countdown band needs copy")
+        units = [str(u).strip() for u in (sc.get("units") or []) if str(u).strip()]
+        if len(units) != 4:
+            errs.append(f"scarcity.units needs 4 time labels, got {len(units)}")
+        elif len({u.casefold() for u in units}) != 4:
+            errs.append("scarcity.units repeats a label — needs days/hours/minutes/seconds")
+        elif any(re.search(r"\d", u) or len(u) > 16 for u in units):
+            errs.append(f"scarcity.units labels must be short words without digits: {units}")
     # ---- card icons are monochrome glyphs, not emoji -------------------------
     # (a coloured 🔔 among ▤/◍ glyphs reads as a different design system)
     EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF]")

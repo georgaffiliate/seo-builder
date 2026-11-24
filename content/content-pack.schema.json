@@ -124,7 +124,8 @@
                "gain":"+1.240 € цього місяця","photo":"з plan.photos у ТОЖНОМУ порядку (стать узгоджена)","quote":"конкретна вигода, без обіцянок"}]
   },
 
-  "scarcity": {"eyebrow":"…","h2":"…","lead":"…","btn":"…","units":["днів","годин","хв","сек"]},
+  "scarcity": {"_doc":"countdown band: eyebrow/h2/lead/btn + units = four time captions in the plan language (days, hours, minutes, seconds)",
+               "eyebrow":"…","h2":"…","lead":"…","btn":"…","units":["…","…","…","…"]},
 
   "livebar": {
     "_doc": "слова для смуги в хедері, мовою гео (числа/пари підставляє план)",
