@@ -1703,8 +1703,21 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   height:22px;max-width:100%;justify-self:center}
 
 @media(max-width:900px){
+  /* the composition axis must collapse to one column like the base first screen —
+     data-first selectors are more specific than the base media rule */
+  .first-screen[data-first="a"],
+  .first-screen[data-first="b"],
+  .first-screen[data-first="c"],
+  .first-screen[data-first="d"]{
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-content:stretch;width:auto}
   .first-screen[data-first="b"]>.blk-hero h1{max-width:18ch!important}
   .first-screen[data-first="c"]>.blk-band{order:-1}
   .first-screen[data-first="c"]>.blk-hero{order:1}
   .first-screen[data-first="d"]{border-radius:20px;margin-top:10px;margin-bottom:10px}
+  /* form-field arrangements b/d/e must not keep a 2/3-column grid on a tablet */
+  .first-screen>.blk-band>form,
+  .first-screen>.blk-band .lead-form,
+  .first-screen>.blk-band .cols2{grid-template-columns:minmax(0,1fr)!important}
+  .first-screen>.blk-band>form{max-width:none}
 }
