@@ -291,9 +291,14 @@ def trust_logos_html(plan) -> str:
 
 
 def partner_badges(plan) -> list[dict]:
+    """Eight marks for the partner grid; the plan rotates its own set."""
+    by_key = {b.get("key"): b for b in TRUST_BANK}
+    keys = [k for k in (plan.get("partner_badges") or []) if k in by_key]
+    if len(keys) >= 6:
+        return [by_key[k] for k in keys[:8]]
     badges = trust_badges(plan)
-    keys = {b.get("key") for b in badges}
-    return badges + [b for b in TRUST_BANK if b.get("key") not in keys][:2]
+    used = {b.get("key") for b in badges}
+    return badges + [b for b in TRUST_BANK if b.get("key") not in used][:2]
 
 
 def partner_grid_html(plan) -> str:
@@ -2070,7 +2075,7 @@ def write_assets(out: pathlib.Path, plan):
         shutil.copy(APPSHOT_DIR / app, img_dir / "appshot.jpg")
     trust_dir = img_dir / "trust"
     trust_dir.mkdir(exist_ok=True)
-    for b in partner_badges(plan):
+    for b in {x["file"]: x for x in (trust_badges(plan) + partner_badges(plan))}.values():
         src = TRUST_DIR / b["file"]
         if src.exists(): shutil.copy(src, trust_dir / b["file"])
     # favicon + og: copy neutral placeholders (regenerated per brand by icon step)

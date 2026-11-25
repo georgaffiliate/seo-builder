@@ -176,8 +176,11 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   фото телефона з графіками; банк `appshots/` (20 фото Pexels License, `manifest.json`) ротується
   через `plan.appshot`, файл копіюється як `img/appshot.jpg`. Секція forced, як `guide`/`faq`.
 - **Partner logo grid — обовʼязковий блок:** `partners` показує 8 карток з `trust/` (6 з форми +
-  2 ротаційні), 2 колонки на телефоні / 4 на десктопі. Секція forced; `{{PARTNER_GRID}}` збирає
-  розмітку, `write_assets` копіює всі 8 SVG.
+  2 ротаційні, для сітки — окремий набір `plan.partner_badges`), 2 колонки на телефоні / 4 на десктопі.
+  Секція forced; 5 верстк: `a` сітка, `b` стрічка, `c` split, `d` numbered rail, `e` темна панель.
+  `{{PARTNER_GRID}}` збирає розмітку, `write_assets` копіює всі використані SVG.
+- **FAQ — 5 верстк:** `a` split, `b` grid, `c` wide, `d` numbered rows, `e` two columns.
+  `faq`/`partners` ротуються явно по останніх 3 планах, включно з canonical.
 - **Довгі внутрішні сторінки:** `product`, `offer`, `faq` — окремі редакційні лендінги
   (`build_long_inner`): intro + TOC + 5 секцій (H2, 2 абзаци, 3 буліти) + FAQ + форма внизу.
   `content_gen.long_inner_pages()` збирає offline-версію з localized sections (450+/600+ слів),

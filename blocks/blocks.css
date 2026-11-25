@@ -1515,3 +1515,86 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .long-block p{font-size:15px;line-height:1.65}
   .long-list li{font-size:14px}
 }
+
+/* variant b: one horizontal logo strip, no card grid */
+.partners-head{max-width:820px}
+.partner-strip{display:flex;align-items:center;justify-content:space-between;gap:24px;
+  margin-top:32px;padding:24px 0;border-block:1px solid var(--line);overflow-x:auto;
+  scrollbar-width:none}
+.partner-strip::-webkit-scrollbar{display:none}
+.partner-strip .partner-card{flex:1 1 0;min-width:92px;min-height:44px;padding:8px;
+  background:transparent;border:0;border-radius:0}
+.partner-strip .partner-card img{height:24px;max-width:92px}
+
+/* variant c: wide editorial FAQ, no left column and no cards */
+.faq-head{max-width:760px}
+.faq-wide{margin-top:28px;max-width:820px}
+.faq-wide details{background:transparent;border:0;border-bottom:1px solid var(--line);
+  border-radius:0;padding:20px 2px}
+.faq-wide summary{font-size:17px}
+@media(max-width:700px){
+  .partner-strip{justify-content:flex-start;gap:12px;margin-inline:-18px;padding:18px;
+    border-block:0;background:var(--bg-soft)}
+  .partner-strip .partner-card{flex:0 0 82px;min-width:82px;min-height:48px}
+  .partner-strip .partner-card img{height:21px}
+  .faq-wide{margin-top:20px}
+  .faq-wide details{padding:16px 0}
+  .faq-wide summary{font-size:15.5px}
+}
+
+/* variant c: split heading + two-column logo grid */
+.sec-partners[data-var="c"] .split-media{align-items:start}
+.sec-partners[data-var="c"] .partner-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0}
+.sec-partners[data-var="c"] .partner-card{min-height:66px}
+@media(max-width:700px){
+  .sec-partners[data-var="c"] .partner-grid{grid-template-columns:repeat(2,minmax(0,1fr));
+    margin-top:18px;gap:9px}
+}
+
+/* variant d: numbered partner rail (2 columns desktop, 1 row per logo on phone) */
+.partner-rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 34px;
+  margin-top:30px;border-top:1px solid var(--line);counter-reset:partner}
+.partner-rail .partner-card{counter-increment:partner;justify-content:flex-start;gap:16px;
+  min-height:0;padding:18px 0;background:transparent;border:0;border-bottom:1px solid var(--line);
+  border-radius:0}
+.partner-rail .partner-card::before{content:counter(partner,decimal-leading-zero);
+  font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--acc-text);flex:none}
+.partner-rail .partner-card img{height:22px;max-width:110px;margin-left:auto}
+
+/* variant e: dark trust panel, white marks */
+.partners-panel{background:var(--ink);color:var(--bg);border-radius:24px;
+  padding:clamp(26px,5vw,56px)}
+.partners-panel .eyebrow{color:var(--acc-ondark,var(--acc-2))}
+.partners-panel h2{color:inherit}
+.partners-panel .partners-lead{color:color-mix(in srgb,var(--bg) 72%,transparent)}
+.partner-grid-dark{margin-top:30px}
+.partner-grid-dark .partner-card{background:color-mix(in srgb,var(--bg) 8%,transparent);
+  border-color:color-mix(in srgb,var(--bg) 18%,transparent)}
+.partner-grid-dark .partner-card img{filter:grayscale(1) brightness(0) invert(1);opacity:.92}
+
+/* variant d: numbered FAQ rows */
+.faq-numbered{margin-top:26px;max-width:none}
+.faq-numbered details{border-bottom:1px solid var(--line);padding:18px 2px;background:transparent;
+  border-radius:0}
+.faq-numbered summary{display:grid;grid-template-columns:42px minmax(0,1fr) 22px;gap:0 10px;
+  align-items:start;font-size:16.5px}
+.faq-num{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--acc-text);
+  padding-top:4px}
+.faq-numbered summary::after{grid-column:3;grid-row:1}
+
+/* variant e: two independent FAQ columns */
+.faq-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 42px;margin-top:28px}
+.faq-columns .faq-list details{padding:18px 2px}
+@media(max-width:700px){
+  .partner-rail{grid-template-columns:minmax(0,1fr);gap:0;margin-top:20px}
+  .partner-rail .partner-card{padding:15px 0}
+  .partner-rail .partner-card img{height:20px;max-width:98px}
+  .partners-panel{border-radius:20px;padding:24px 18px}
+  .partner-grid-dark{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .partner-grid-dark .partner-card{min-height:58px}
+  .faq-numbered{margin-top:20px}
+  .faq-numbered details{padding:15px 0}
+  .faq-numbered summary{grid-template-columns:30px minmax(0,1fr) 18px;font-size:15.5px}
+  .faq-num{font-size:10px;padding-top:3px}
+  .faq-columns{grid-template-columns:minmax(0,1fr);gap:0}
+}

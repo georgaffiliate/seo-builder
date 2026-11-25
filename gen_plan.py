@@ -110,8 +110,8 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "enroll-band": ["b", "c", "d", "e"],
     "features": ["b", "c"],
     "people": ["b", "c", "e", "f", "g", "h"],   # d renders quotes without portraits
-    "steps": ["b"], "faq": ["b"], "cta-band": ["b", "c"],
-    "guide": ["b"], "appshot": ["b"],
+    "steps": ["b"], "faq": ["b", "c", "d", "e"], "cta-band": ["b", "c"],
+    "guide": ["b"], "appshot": ["b"], "partners": ["b", "c", "d", "e"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
@@ -243,6 +243,7 @@ def load_history()->list[dict]:
             "photos": d.get("photos",[]) or [],
             "appshot": (d.get("appshot") or {}).get("file", "") if isinstance(d.get("appshot"), dict) else "",
             "trust_badges": d.get("trust_badges", []) or [],
+            "partner_badges": d.get("partner_badges", []) or [],
             "bins": (d.get("numbers",{}).get("reviews_bin"), d.get("numbers",{}).get("users_bin"),
                      tuple(d.get("numbers",{}).get("latency_bin") or ())),
             "blog_topics": [str(t.get("id") or "") for t in
@@ -611,6 +612,16 @@ def build_plan(rng, args, hist)->dict|None:
         if pool and rng.random()<0.8: variants[slot]=pool[0]
         elif rng.random()<0.45: variants[slot]=rng.choice(opts)
 
+    # trust/FAQ blocks repeat on every offer: rotate all three layouts explicitly,
+    # including the canonical file, and never reuse a neighbour's layout
+    for _slot in ("partners", "faq"):
+        if _slot not in order:
+            continue
+        _opts = [""] + list(VARIANTS.get(_slot) or [])
+        _used = {(h.get("variants") or {}).get(_slot, "") for h in hist[-3:]}
+        _pool = [v for v in _opts if v not in _used] or _opts
+        variants[_slot] = rng.choice(_pool)
+
     # livebar strip: a second structural axis (not a page section, always present)
     variants["livebar"]=pick_variant(rng, "livebar", VARIANTS["livebar"], hist, 2)
     variants["logo"]=pick_variant(rng, "logo", VARIANTS["logo"], hist, 3)
@@ -780,6 +791,18 @@ def build_plan(rng, args, hist)->dict|None:
     rest_pool = [k for k in rest_pool if k not in recent_badges] or rest_pool
     rng.shuffle(rest_pool)
     badges = [k for k in must if any(b.get("key") == k for b in TRUST_BANK)] + rest_pool[:2]
+    # the larger partner grid gets its own eight-mark set: two anchors + six rotating
+    recent_partner = set()
+    for h in hist[-2:]:
+        recent_partner |= set(h.get("partner_badges") or [])
+    partner_pool = [b.get("key") for b in TRUST_BANK
+                    if b.get("key") not in ("binance", "coinbase")
+                    and b.get("key") not in recent_partner]
+    if len(partner_pool) < 6:
+        partner_pool = [b.get("key") for b in TRUST_BANK if b.get("key") not in ("binance", "coinbase")]
+    rng.shuffle(partner_pool)
+    partner_badges = [k for k in ("binance", "coinbase")
+                      if any(b.get("key") == k for b in TRUST_BANK)] + partner_pool[:6]
 
     plan = {
         "seed":args.seed, "product":"static-create-sites",
@@ -799,6 +822,7 @@ def build_plan(rng, args, hist)->dict|None:
         "appshot":{"file":app_pick.get("file",""),"source":app_pick.get("source",""),
                     "license":app_pick.get("license","")} if app_pick else {},
         "trust_badges":badges,
+        "partner_badges":partner_badges,
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }
