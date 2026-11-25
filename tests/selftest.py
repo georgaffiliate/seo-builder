@@ -661,6 +661,8 @@ chk(_lz.needs_translation("content.hero.lead", "Keeps listings") and
     not _lz.needs_translation("content.hero.device_rows.0.s", "MIX-GL") and
     not _lz.needs_translation("content.meta.email", "info@bitnova-pt.site"),
     "localize: copy is translated, tickers/emails are not")
+chk(not _lz.needs_translation("content.scarcity.units.2", "min"),
+    "localize: universal unit 'min' is not sent for translation")
 chk(not _lz.needs_translation("content.meta.keywords", "Bitnova, bitnova login") and
     not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU") and
     _lz.mark_eyebrow("BITNOVA · PT", "Bitnova") and _lz.mark_eyebrow("ALIAS · SI", "Alias Test") and

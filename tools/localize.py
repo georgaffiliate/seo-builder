@@ -29,7 +29,9 @@ WHITELIST_PATHS = {
     "meta.email", "meta.telephone", "hero.device_bal_v", "hero.device_pct",
     "ui.cur_code", "ui.cur_sym", "ui.min_init",
 }
-WHITELIST_WORDS = {"api", "sepa", "visa", "mastercard", "eur", "ms", "swift"}
+WHITELIST_WORDS = {"api", "sepa", "visa", "mastercard", "eur", "ms", "swift", "min"}
+# "min" — універсальне скорочення хвилини: es/it/cs/pt пишуть його так само, тому
+# переклад давав хибне «not translated ('min')» і валив усю збірку.
 TICKER_RE = re.compile(r"[A-Z0-9/.\-]{3,12}")
 
 
