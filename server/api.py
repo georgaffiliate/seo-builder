@@ -45,6 +45,9 @@ _jobs: dict[str, dict] = {}
 # running child processes live OUTSIDE the job dict: json.dumps() must never meet a Popen
 _procs: dict[str, subprocess.Popen] = {}
 _queue: "queue.Queue[str]" = queue.Queue()
+# Порядок черги для діагностики (queue_pos у /jobs). Тримаємо окремо, бо queue.Queue
+# не дає зазирнути всередину; елементи знімаються, коли воркер бере job або його скасовано.
+_queued_order: list[str] = []
 
 
 # --------------------------------------------------------------------------- jobs
@@ -57,6 +60,45 @@ def _log(job: dict, line: str) -> None:
 
 def _tail(text: str, limit: int = LOG_TAIL) -> str:
     return text[-limit:] if len(text) > limit else text
+
+
+ACTIVE_STATES = ("queued", "running", "deploying")
+
+
+def _active_job_for(domain: str) -> dict | None:
+    """Уже поставлене в чергу/збирається завдання для цього домену (захист від дублів)."""
+    with _lock:
+        for job in _jobs.values():
+            if job.get("domain") == domain and job["status"] in ACTIVE_STATES:
+                return job
+    return None
+
+
+def _job_summary(job: dict, order: list[str] | None = None) -> dict:
+    """Компактний стан job для панелі: хто збирається, хто в черзі і скільки вже чекає."""
+    now = time.time()
+    started, finished = job.get("started_at"), job.get("finished_at")
+    created = job.get("created_at") or now
+    pos = None
+    if order is not None and job["job_id"] in order:
+        pos = order.index(job["job_id"]) + 1
+    return {
+        "job_id": job["job_id"],
+        "domain": job.get("domain"),
+        "status": job["status"],
+        "stage": job.get("stage"),
+        "queue_pos": pos,
+        "created_at": created,
+        "started_at": started,
+        "finished_at": finished,
+        # скільки чекав у черзі; для тих, хто ще чекає — скільки чекає зараз
+        "wait_sec": int((started if started else now) - created),
+        # скільки вже збирається/збирався
+        "run_sec": int((finished if finished else now) - started) if started else None,
+        "error": job.get("error"),
+        "pages": job.get("pages"),
+        "active": job["status"] in ACTIVE_STATES,
+    }
 
 
 def _run(cmd: list[str], timeout: int, job: dict | None = None) -> tuple[int, str, str]:
@@ -100,7 +142,16 @@ def _worker() -> None:
         job = _jobs.get(jid)
         if job is None:
             continue
-        req = job["request"]
+        with _lock:
+            try:
+                _queued_order.remove(jid)
+            except ValueError:
+                pass
+        if job["status"] != "queued":   # скасовано, поки стояв у черзі
+            _log(job, "== skipped: cancelled before start")
+            job.setdefault("finished_at", time.time())
+            continue
+        job["started_at"] = time.time()
         try:
             _execute(job)
         except Exception as exc:  # noqa: BLE001 - worker must never die
@@ -109,6 +160,8 @@ def _worker() -> None:
             _log(job, f"!! internal error: {exc}")
         finally:
             job["finished_at"] = time.time()
+            if job["status"] in ("done", "failed"):
+                job["stage"] = job["status"]
             _log(job, f"== job {jid} finished: {job['status']}")
 
 
@@ -117,6 +170,7 @@ def _execute(job: dict) -> None:
     domain = req["domain"]
 
     job["status"] = "running"
+    job["stage"] = "build"
     _log(job, "== building: gen_plan.py --build")
     cmd = [sys.executable, str(ROOT / "gen_plan.py"),
            "--brand", req["brand"], "--lang", req["lang"], "--domain", domain]
@@ -166,6 +220,7 @@ def _execute(job: dict) -> None:
 
     if req.get("deploy"):
         job["status"] = "deploying"
+        job["stage"] = "deploy"
         _log(job, "== deploying via tools/deploy.py")
         dcmd = [sys.executable, str(ROOT / "tools" / "deploy.py"),
                 "--domain", domain, "--site", str(site)]
@@ -227,6 +282,9 @@ class Handler(BaseHTTPRequestHandler):
         pub = {k: v for k, v in job.items()
                if k != "log" and not k.startswith("_")
                and isinstance(v, (str, int, float, bool, list, dict, type(None)))}
+        with _lock:
+            order = list(_queued_order)
+        pub.update(_job_summary(job, order))
         pub["log_tail"] = "\n".join(job["log"][-12:])
         return pub
 
@@ -235,22 +293,29 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         if path == "/healthz":
             with _lock:
-                running = [{"job_id": j["job_id"], "domain": j.get("domain"),
-                            "status": j["status"],
-                            "age_sec": int(time.time() - j.get("created_at", time.time()))}
-                           for j in _jobs.values() if j["status"] in ("running", "deploying")]
+                order = list(_queued_order)
+                all_jobs = list(_jobs.values())
+            running = [_job_summary(j, order) for j in all_jobs
+                       if j["status"] in ("running", "deploying")]
+            queue = [_job_summary(_jobs[jid], order) for jid in order
+                     if jid in _jobs and _jobs[jid]["status"] == "queued"]
             return self._send(200, {"ok": True, "service": "seo-builder",
-                                    "queued": _queue.qsize(), "jobs": len(_jobs),
-                                    "running": running})
+                                    "queued": len(queue), "jobs": len(all_jobs),
+                                    "running": running, "queue": queue})
         if path == "/jobs":
             if not self._auth():
                 return self._send(401, {"ok": False, "error": "unauthorized"})
             with _lock:
-                jobs = [{"job_id": j["job_id"], "status": j["status"], "domain": j.get("domain"),
-                         "age_sec": int(time.time() - j.get("created_at", time.time())),
-                         "queue_pos": None} for j in _jobs.values()]
-            jobs.sort(key=lambda j: j["age_sec"], reverse=True)
-            return self._send(200, {"ok": True, "queued": _queue.qsize(), "jobs": jobs})
+                order = list(_queued_order)
+                all_jobs = list(_jobs.values())
+            jobs = [_job_summary(j, order) for j in all_jobs]
+            # спочатку те, що зараз робиться, далі черга за порядком, далі завершені
+            rank = {"running": 0, "deploying": 0, "queued": 1}
+            jobs.sort(key=lambda j: (rank.get(j["status"], 2),
+                                     j["queue_pos"] if j["queue_pos"] else 10**6,
+                                     -(j.get("finished_at") or j.get("created_at") or 0)))
+            return self._send(200, {"ok": True, "queued": sum(1 for j in jobs if j["status"] == "queued"),
+                                    "jobs": jobs})
         m = re.fullmatch(r"/jobs/([a-f0-9-]{16,})", path)
         if m:
             if not self._auth():
@@ -272,11 +337,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(404, {"ok": False, "error": "job not found"})
             with _lock:
                 proc = _procs.get(job["job_id"])
+                try:
+                    _queued_order.remove(job["job_id"])   # скасоване в черзі не має займати місце
+                except ValueError:
+                    pass
             if proc is not None and proc.poll() is None:
                 _kill_tree(proc)
-            job["status"] = "failed"
-            job["error"] = "cancelled by operator"
-            _log(job, "!! cancelled by operator")
+            if job["status"] not in ("done", "failed"):
+                job["status"] = "failed"
+                job["error"] = "cancelled by operator"
+                job["finished_at"] = time.time()
+                _log(job, "!! cancelled by operator")
             return self._send(200, {"ok": True, "job_id": job["job_id"], "status": job["status"]})
         if self.path.split("?", 1)[0] == "/blog/article":
             if not self._auth():
@@ -319,15 +390,34 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"ok": False, "error": err})
 
         domain = req["domain"]
+        # Дубль по домену: якщо збірка вже в черзі або виконується — повертаємо її job_id.
+        # Це головний захист від «ретраїв», які плодили по кілька збірок одного сайту.
+        active = _active_job_for(domain)
+        if active is not None:
+            return self._send(200, {"ok": True, "job_id": active["job_id"], "status": active["status"],
+                                    "domain": domain, "deduped": True,
+                                    "poll": f"/jobs/{active['job_id']}"})
+
         if (ROOT / "plans" / f"{domain}.json").exists() and not req.get("force"):
             return self._send(409, {"ok": False,
                                     "error": f"domain {domain} already has a plan; pass force=true to rebuild"})
 
         jid = uuid.uuid4().hex
-        job = {"job_id": jid, "status": "queued", "domain": domain,
+        job = {"job_id": jid, "status": "queued", "domain": domain, "stage": "queued",
                "request": req, "log": [], "created_at": time.time()}
+        deduped = False
         with _lock:
-            _jobs[jid] = job
+            again = next((j for j in _jobs.values()
+                          if j.get("domain") == domain and j["status"] in ACTIVE_STATES), None)
+            if again is not None:          # паралельний POST встиг першим
+                jid, job, deduped = again["job_id"], again, True
+            else:
+                _jobs[jid] = job
+                _queued_order.append(jid)
+        if deduped:
+            return self._send(200, {"ok": True, "job_id": jid, "status": job["status"],
+                                    "domain": domain, "deduped": True, "poll": f"/jobs/{jid}"})
+
         _queue.put(jid)
 
         wait = self.path.split("?", 1)[-1] if "?" in self.path else ""
