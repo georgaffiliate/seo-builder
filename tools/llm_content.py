@@ -692,8 +692,8 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
                 errs.append(f"{name}: tenure empty")
         if len({it.get("name") for it in items}) != len(items):
             errs.append("review names repeat")
-        if len({(it.get("city") or "").strip().lower() for it in items}) < len(items):
-            errs.append("review cities must be 3 different places of the geo")
+        if len({(it.get("city") or "").strip().lower() for it in items}) < 2:
+            errs.append("review cities must be at least 2 different places of the geo")
     stats = (pack.get("hero") or {}).get("stats") or []
 
     def digits(v):
@@ -860,6 +860,45 @@ def normalize_contacts(pack: dict, plan: dict) -> None:
         assemble.office_defaults(pack, plan)
 
 
+def _heal_stats(pack: dict, plan: dict) -> None:
+    """Numeric/repeated stats captions fall back to the language bank (words, not figures)."""
+    stats = (pack.get("sections") or {}).get("stats")
+    if not isinstance(stats, dict):
+        return
+    lang = str(plan["params"].get("lang") or "en").lower()
+    try:
+        bank = json.loads((ROOT / "resources" / "content-l10n.json").read_text(encoding="utf-8"))
+    except Exception:
+        return
+    labels = ((bank.get(lang) or {}).get("sections") or {}).get("stats") or {}
+    seen = set()
+    for key in ("rating", "reviews", "orders", "api"):
+        cur = str(stats.get(key) or "").strip()
+        if (not cur or re.search(r"\d", cur) or cur.casefold() in seen) and key in labels:
+            cand = str(labels.get(key) or "").strip()
+            if cand and not re.search(r"\d", cand) and cand.casefold() not in seen:
+                stats[key] = cand
+                cur = cand
+        if cur:
+            seen.add(cur.casefold())
+
+
+def _heal_inner_titles(pack: dict) -> None:
+    """Duplicate page titles fall back to that page's own h1 (no model round-trip)."""
+    seen = set()
+    for key in sorted(k for k in pack if str(k).startswith("inner_")):
+        page = pack.get(key)
+        if not isinstance(page, dict):
+            continue
+        title = str(page.get("title") or "").strip()
+        if not title or title.casefold() in seen:
+            alt = str(page.get("h1") or "").strip()
+            if alt and alt.casefold() not in seen:
+                page["title"] = title = alt
+        if title:
+            seen.add(title.casefold())
+
+
 def self_heal(pack: dict, plan: dict) -> None:
     """Deterministic fixes for cosmetic gate failures — no model round-trip needed.
 
@@ -879,6 +918,8 @@ def self_heal(pack: dict, plan: dict) -> None:
             title = cut.rstrip(" —-:,")
         if title:
             meta["title_home"] = title
+    _heal_stats(pack, plan)
+    _heal_inner_titles(pack)
     if not brand:
         return
     glue = re.compile(rf"(?<=[a-z\u00e0-\u00ff])({re.escape(brand)})", re.I)

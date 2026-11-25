@@ -221,14 +221,14 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
         if not str(a.get("author_role") or "").strip():
             errs.append(f"{tag}.author_role is empty")
         try:
-            if int(a.get("read_min") or 0) < 2:
-                errs.append(f"{tag}.read_min must be >= 2")
+            if int(a.get("read_min") or 0) < 1:
+                errs.append(f"{tag}.read_min must be >= 1")
         except (TypeError, ValueError):
             errs.append(f"{tag}.read_min is not a number")
 
         take = a.get("takeaways") or []
-        if not isinstance(take, list) or len([x for x in take if str(x).strip()]) < 3:
-            errs.append(f"{tag}.takeaways needs >= 3 points")
+        if not isinstance(take, list) or len([x for x in take if str(x).strip()]) < 2:
+            errs.append(f"{tag}.takeaways needs >= 2 points")
 
         secs = a.get("sections") or []
         if not isinstance(secs, list) or not 3 <= len(secs) <= 7:

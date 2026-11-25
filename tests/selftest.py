@@ -99,6 +99,12 @@ _keys = _rc.suspects(["faq answer too short (3 chars): Sì.…",
                       "office.addr_label is a sentence, use a short label: Indirizzo completo"])
 chk("faq.items.0.a" in _keys and "office.addr_label" in _keys,
     "repair stage maps validator findings to exact keys")
+_op = {"office": {"addr_label": "Correo de contacto disponible en tu panel.",
+                  "hours_label": "Horario"}}
+_asm3.office_defaults(_op, {"params": {"lang": "it", "geo": ""}})
+chk(len(_op["office"]["addr_label"].split()) <= 3
+    and not _op["office"]["addr_label"].endswith("."),
+    "office captions are truncated to a 1-3 word label without a model call")
 _healed = _asm3.self_heal_page(_dup, "Acme")
 chk(_healed.count("The same long paragraph") == 2 and 'aria-hidden="true"' in _healed and
     "Acme" in _asm3.self_heal_page("<p>oAcme panel</p>", "Acme"),
@@ -906,6 +912,18 @@ chk(_hp["meta"]["title_home"].startswith("Acme ") and len(_hp["meta"]["title_hom
     "self-heal: title_home gains the brand and fits 70 chars without a model call")
 chk(_hp["hero"]["h1_rest"] == "theo Acme platform",
     "self-heal: a glued brand gets its space back")
+_sp = {"sections": {"stats": {"rating": "4,5", "reviews": "Recensioni verificate",
+                              "orders": "3158", "api": "Uptime API"}}}
+_lc._heal_stats(_sp, {"params": {"lang": "it"}})
+_sstats = _sp["sections"]["stats"]
+chk(not any(re.search(r"\d", _sstats[k]) for k in ("rating", "orders"))
+    and len({_sstats[k].casefold() for k in ("rating", "reviews", "orders", "api")}) == 4,
+    "self-heal: numeric stats captions fall back to the language bank")
+_tp = {"inner_product": {"title": "Stessa pagina", "h1": "Piattaforma unica"},
+       "inner_offer": {"title": "Stessa pagina", "h1": "Come funziona"}}
+_lc._heal_inner_titles(_tp)
+chk(_tp["inner_product"]["title"] != _tp["inner_offer"]["title"],
+    "self-heal: duplicate inner titles fall back to each page h1")
 chk(_lc.repair_targets(["faq answer too short (1 chars): ……",
                         "persona name reused from another offer: Ana K."])
     == ["faq.items", "reviews.items"],
@@ -1070,6 +1088,28 @@ chk(_fixed_n == 1 and _rep_pack["articles"][0]["slug"] == "a-new"
     "per-article repair rewrites the failing article and keeps the rest untouched")
 chk(_rep_pack["articles"][1]["related"] == ["a-new"],
     "related slugs follow the rewritten article")
+_pol_plan = {"params": {"brand": "Blogfix", "domain": "blogfix.site", "lang": "it"}}
+_pol = {"articles": [{
+    "title": "Titolo " + "molto lungo " * 7,
+    "h1": "Breve",
+    "excerpt": "Corto.",
+    "read_min": 1,
+    "sections": [{"h2": "Kop van de sectie",
+                  "p": ["Una frase abbastanza lunga da essere un paragrafo completo."]}],
+    "takeaways": ["uno", "due"]}]}
+_bc.polish_pack(_pol_plan, _pol)
+_pa = _pol["articles"][0]
+chk(18 <= len(_pa["title"]) <= 72
+    and len(_ba.A.brand_first(_pa["title"], "Blogfix")) <= 70,
+    "blog polish: a long title is trimmed to the 70-char brand budget")
+chk(12 <= len(_pa["h1"]) <= 90 and 60 <= len(_pa["excerpt"]) <= 190,
+    "blog polish: short h1/excerpt are filled from the article body")
+chk(_pa["read_min"] >= 2, "blog polish: read_min is computed from the body words")
+_take2 = _bc.offline_pack(_tol_plan)
+for _a2 in _take2["articles"]:
+    _a2["takeaways"] = _a2["takeaways"][:2]
+chk(not _ba.validate_blog(_tol_plan, _take2),
+    "two takeaways are accepted (three are requested, not required)")
 _reuse_pack = _bc.offline_pack(_tol_plan)
 _reuse_pack["hub"]["title"] = "Gidsen voor de praktijk"
 _tmp_blog = ROOT / "content" / "_selftest-blog-reuse.json"

@@ -384,8 +384,13 @@ def office_defaults(C: dict, plan) -> None:
         cur = str(office.get(key) or "").strip()
         # a label is a label: "Correo de contacto disponible en tu panel de usuario"
         # rendered as a <small> caption and broke the office grid rhythm
-        if not cur or len(cur.split()) > 4:
+        if cur and len(cur.split()) > 3:
+            cur = " ".join(cur.split()[:3])
+        cur = cur.rstrip(" .,;:—-")
+        if not cur:
             office[key] = val
+        else:
+            office[key] = cur
     if not str(office.get("addr") or "").strip():
         office["addr"] = str(plan["params"].get("geo") or "").strip()
 

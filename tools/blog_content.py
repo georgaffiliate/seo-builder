@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import llm_content as L
-from blog_assemble import body_word_target, validate_blog
+from blog_assemble import A, body_word_target, validate_blog
 
 MAX_TOKENS = 16000
 
@@ -278,6 +278,77 @@ def article_words(art: dict) -> int:
     return sum(len(re.findall(r"\w+", str(x or ""), re.UNICODE))
                for s in (art.get("sections") or []) if isinstance(s, dict)
                for x in [s.get("h2"), *(s.get("p") or []), *(s.get("points") or [])])
+
+
+def _trim(text, limit: int) -> str:
+    text = " ".join(str(text or "").split())
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    if " " in cut:
+        cut = cut[:cut.rfind(" ")]
+    return cut.rstrip(" .,;:—-")
+
+
+def _first_body(art: dict) -> str:
+    for sec in art.get("sections") or []:
+        if not isinstance(sec, dict):
+            continue
+        for para in sec.get("p") or []:
+            if str(para or "").strip():
+                return str(para)
+    return ""
+
+
+def polish_article(plan: dict, art: dict) -> None:
+    """Mechanical length fixes: titles/h1/excerpt/read_min never need a model call.
+
+    The gate still rejects a broken value, but the generator repairs its own small
+    misses before validating, so a 74-char title no longer costs a repair round-trip.
+    """
+    brand = plan["params"]["brand"]
+    title = str(art.get("title") or "").strip()
+    h1 = str(art.get("h1") or "").strip()
+    excerpt = str(art.get("excerpt") or "").strip()
+    if len(title) < 18 and h1:
+        title = h1
+    for _ in range(10):
+        if not title or len(A.brand_first(title, brand)) <= 70:
+            break
+        shorter = _trim(title, max(18, len(title) - 4))
+        if shorter == title:
+            break
+        title = shorter
+    if len(title) < 18 and h1 and h1.casefold() != title.casefold():
+        title = _trim(f"{title} — {h1}".strip(" —"), 72)
+    art["title"] = title
+    if len(h1) > 90:
+        h1 = _trim(h1, 90)
+    if len(h1) < 12:
+        h1 = _trim(title if len(title) >= 12 else _first_body(art), 90)
+    art["h1"] = h1
+    if len(excerpt) > 190:
+        excerpt = _trim(excerpt, 190)
+    if len(excerpt) < 60:
+        body = _first_body(art)
+        cand = body or (f"{h1}. {excerpt}" if h1 else excerpt)
+        if len(cand) < 60 and h1 and h1.casefold() not in cand.casefold():
+            cand = f"{cand} — {h1}".strip(" —")
+        excerpt = _trim(cand, 190)
+    art["excerpt"] = excerpt
+    art["read_min"] = max(2, round(article_words(art) / 200))
+
+
+def polish_pack(plan: dict, pack: dict) -> None:
+    for art in (pack.get("articles") or []):
+        if isinstance(art, dict):
+            polish_article(plan, art)
+
+
+def gate(plan: dict, pack: dict) -> list[str]:
+    """Polish the mechanical misses, then run the same gate assembly will run."""
+    polish_pack(plan, pack)
+    return validate_blog(plan, pack)
 
 
 def _repoint_related(pack: dict) -> None:
@@ -572,7 +643,7 @@ def main():
                 # and a short article often came back identical after it).
                 full_done = 0
                 for attempt in (1, 2, 3):
-                    errs = validate_blog(plan, pack)
+                    errs = gate(plan, pack)
                     if not errs:
                         break
                     by_idx, pack_level = article_error_map(errs)
@@ -611,7 +682,7 @@ def main():
                     if not isinstance(pack, dict):
                         break
                 if isinstance(pack, dict):
-                    errs = validate_blog(plan, pack)
+                    errs = gate(plan, pack)
                     if errs:
                         print("! blog pack still invalid: " + "; ".join(errs[:6]))
             elif pack is not None:
@@ -619,7 +690,7 @@ def main():
 
     fell_back = False
     invalid_pack = None
-    if not isinstance(pack, dict) or validate_blog(plan, pack):
+    if not isinstance(pack, dict) or gate(plan, pack):
         if isinstance(pack, dict):
             invalid_pack = pack
         if a.strict and not a.offline:
@@ -632,7 +703,7 @@ def main():
             # this is a placeholder, not copy: mark it so a later --build never
             # mistakes it for a valid blog pack and reuses English filler on a local site
             pack["_offline_fallback"] = True
-        errs = validate_blog(plan, pack)
+        errs = gate(plan, pack)
         if errs:
             die("offline blog pack failed its own gate: " + "; ".join(errs[:8]))
 
