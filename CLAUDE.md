@@ -180,7 +180,10 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   Секція forced; 5 верстк: `a` сітка, `b` стрічка, `c` split, `d` numbered rail, `e` темна панель.
   `{{PARTNER_GRID}}` збирає розмітку, `write_assets` копіює всі використані SVG.
 - **FAQ — 5 верстк:** `a` split, `b` grid, `c` wide, `d` numbered rows, `e` two columns.
-  `faq`/`partners` ротуються явно по останніх 3 планах, включно з canonical.
+  `faq`/`partners`/`guide`/`appshot` ротуються явно по останніх 3 планах, включно з canonical.
+- **Guide — 4 верстки:** `a` картки, `b` глосарій, `c` акордеон, `d` swipe-rail.
+  **App-shot — 4 верстки:** `a` image/copy, `b` reverse, `c` photo-cover з overlay, `d` banner + 3 points.
+  Для обох на телефоні окремі мобільні правила (rail/accordion/stack).
 - **Довгі внутрішні сторінки:** `product`, `offer`, `faq` — окремі редакційні лендінги
   (`build_long_inner`): intro + TOC + 5 секцій (H2, 2 абзаци, 3 буліти) + FAQ + форма внизу.
   `content_gen.long_inner_pages()` збирає offline-версію з localized sections (450+/600+ слів),

@@ -111,7 +111,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "features": ["b", "c"],
     "people": ["b", "c", "e", "f", "g", "h"],   # d renders quotes without portraits
     "steps": ["b"], "faq": ["b", "c", "d", "e"], "cta-band": ["b", "c"],
-    "guide": ["b"], "appshot": ["b"], "partners": ["b", "c", "d", "e"],
+    "guide": ["b", "c", "d"], "appshot": ["b", "c", "d"], "partners": ["b", "c", "d", "e"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
     "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
@@ -614,7 +614,7 @@ def build_plan(rng, args, hist)->dict|None:
 
     # trust/FAQ blocks repeat on every offer: rotate all three layouts explicitly,
     # including the canonical file, and never reuse a neighbour's layout
-    for _slot in ("partners", "faq"):
+    for _slot in ("partners", "faq", "guide", "appshot"):
         if _slot not in order:
             continue
         _opts = [""] + list(VARIANTS.get(_slot) or [])
