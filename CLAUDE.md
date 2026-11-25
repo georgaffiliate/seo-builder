@@ -190,6 +190,13 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   LLM пише `inner_product` / `inner_offer` / `inner_faq`; `assemble.validate_content` валить
   сторінку, якщо слів/секцій/FAQ менше норми. Сторінки додані в меню, футер, sitemap і JSON-LD
   (FAQPage для сторінок із `faq`).
+- **First-screen композиції:** `layout.variants.first_screen` (`a` split, `b` centered, `c` form-left,
+  `d` dark panel) ротуються разом із forced-блоками. `build_index` ставить `data-first` на
+  `.first-screen`; форма/поля/consent не змінюються, змінюється лише композиція й трактування
+  trust-логотипів (рядок, центр, верх картки, сітка).
+- **Google/social preview:** `brand_icons.py` робить `og-image.jpg` 1200×630 з брендовою панеллю
+  + реальним `img/appshot.jpg`; `page_shell` віддає `og-image.jpg`, `og:image:alt`, twitter:image
+  і `robots: max-image-preview:large`; JSON-LD має `primaryImageOfPage`.
 - **Мобільний partner-шар:** останній `@media(max-width:700px)` у `blocks.css` робить заголовки
   великими uppercase, form-band — кольоровою карткою з білими полями, статистику — картками,
   відгуки — swipe-стрічкою, кроки — плитками з номерами, FAQ — картками. Десктоп лишається

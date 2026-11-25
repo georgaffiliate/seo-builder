@@ -84,7 +84,7 @@ def api_uptime(lang: str = "en") -> str:
     _, dec = num_sep(lang)
     return f"99{dec}9%"
 REQUIRED_PLAN_KEYS = ["params", "design", "layout", "widgets", "numbers"]
-SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer", "form"}
+SPECIAL_VARIANTS = {"livebar", "logo", "header", "footer", "form", "first_screen"}
 FORM_BANDS = {"access-band", "claim-band", "enroll-band"}
 
 # footer legal labels + rights line per geo language (fallback English)
@@ -1081,11 +1081,11 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
                theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True,
                og_type="website", og_image="", blog=False):
     body = safe_emails(body)
-    og_url = og_image or "https://{DOM}/og-image.png"
+    og_url = og_image or "https://{DOM}/og-image.jpg"
     blog_css = (f'<link rel="stylesheet" href="blocks/blog.css?v={BUILD_V}">\n'
                 if blog else "")
     dom_css = f"<style>{esc(css_vars)}</style>"
-    rob = "noindex,follow" if noindex else "index,follow"
+    rob = "noindex,follow" if noindex else "index,follow,max-image-preview:large,max-snippet:-1"
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
     # a noindex page must not advertise a canonical target (search engines ignore it
     # and the pair reads as a contradiction)
@@ -1118,10 +1118,12 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <meta property="og:image" content="{esc(og_url)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{esc(title)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{esc(title)}">
 <meta name="twitter:description" content="{esc(og_desc or descr)}">
 <meta name="twitter:image" content="{esc(og_url)}">
+<meta name="twitter:image:alt" content="{esc(title)}">
 <link rel="stylesheet" href="blocks/blocks.css?v={BUILD_V}">
 <link rel="stylesheet" href="skin.css?v={BUILD_V}">
 {blog_css}<style>@import url('{fonts_import}');</style>
@@ -1512,7 +1514,8 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
                           hero, flags=re.S)
             hero = re.sub(r'<div class="hero-cta">\s*</div>', "", hero)
             band = R(order[1], plan, C)
-            body_parts.append(f'<div class="first-screen">\n{hero}\n{band}\n</div>')
+            _fs = (plan["layout"].get("variants") or {}).get("first_screen") or "a"
+            body_parts.append(f'<div class="first-screen" data-first="{esc(_fs)}">\n{hero}\n{band}\n</div>')
             i += 2
             continue
         html = R(slot, plan, C)
@@ -1560,7 +1563,7 @@ def build_jsonld(plan, C, body: str = ""):
     alt = [brand.lower(), f"{brand} {geo}".strip(), dom, f"{brand} login"]
     org = {"@type": "FinancialService", "@id": f"https://{dom}/#org", "name": brand,
         "alternateName": [a for a in alt if a],
-        "url": f"https://{dom}/", "logo": f"https://{dom}/favicon.svg", "image": f"https://{dom}/og-image.png",
+        "url": f"https://{dom}/", "logo": f"https://{dom}/favicon.svg", "image": f"https://{dom}/og-image.jpg",
         "description": C["meta"]["description"], "email": contacts["email"],
         "telephone": contacts["telephone"], "areaServed": geo,
         "currenciesAccepted": plan["params"].get("currency", "EUR"),
@@ -1570,7 +1573,13 @@ def build_jsonld(plan, C, body: str = ""):
     website = {"@type": "WebSite", "@id": f"https://{dom}/#site", "url": f"https://{dom}/",
         "name": brand, "inLanguage": plan["params"].get("locale", ""),
         "publisher": {"@id": f"https://{dom}/#org"}}
-    graph = [org, website]
+    webpage = {"@type": "WebPage", "@id": f"https://{dom}/#webpage", "url": f"https://{dom}/",
+               "name": C["meta"].get("title_home", brand).replace("{Brand}", brand),
+               "inLanguage": plan["params"].get("locale", ""),
+               "primaryImageOfPage": {"@type": "ImageObject", "url": f"https://{dom}/og-image.jpg",
+                                      "width": 1200, "height": 630},
+               "publisher": {"@id": f"https://{dom}/#org"}}
+    graph = [org, website, webpage]
     if fq: graph.append({"@type": "FAQPage", "@id": f"https://{dom}/#faq", "mainEntity": json.loads(f"[{faq_entities}]")})
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
 
@@ -1805,6 +1814,8 @@ def build_inner_jsonld(plan, C, which):
         {"@type": "WebPage", "@id": f"https://{dom}/{slug}.php",
          "url": f"https://{dom}/{slug}.php", "name": f"{label} — {brand}",
          "inLanguage": plan["params"].get("locale", ""),
+         "primaryImageOfPage": {"@type": "ImageObject", "url": f"https://{dom}/og-image.jpg",
+                                "width": 1200, "height": 630},
          "publisher": {"@id": f"https://{dom}/#org"}},
         {"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": home, "item": f"https://{dom}/"},

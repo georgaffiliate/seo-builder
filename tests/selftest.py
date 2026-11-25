@@ -196,7 +196,7 @@ _rc = __import__("subprocess").run([sys.executable, str(ROOT / "gen_plan.py"), "
                                    capture_output=True, cwd=ROOT)
 _pd = json.loads(_calc_plan.read_text()) if _calc_plan.exists() else {}
 _lay = _pd.get("layout", {})
-_stray = [k for k in (_lay.get("variants") or {}) if k not in ("logo", "header", "footer", "livebar", "form")
+_stray = [k for k in (_lay.get("variants") or {}) if k not in ("logo", "header", "footer", "livebar", "form", "first_screen")
           and k not in (_lay.get("section_order") or [])]
 chk(_rc.returncode == 0 and _pd and not _stray,
     f"no variant left behind for a dropped screen ({_stray or 'clean'})")

@@ -124,7 +124,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     # b (logo + CTA in the middle of the row) is retired: the CTA landed between
     # the mark and the menu. It still renders for historical plans, never picked.
     "header": ["c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"],
-    "form": ["b", "c", "d"],
+    "form": ["b", "c", "d"], "first_screen": ["b", "c", "d"],
     "footer": ["b", "c", "d", "e", "f"],
 }
 
@@ -614,8 +614,8 @@ def build_plan(rng, args, hist)->dict|None:
 
     # trust/FAQ blocks repeat on every offer: rotate all three layouts explicitly,
     # including the canonical file, and never reuse a neighbour's layout
-    for _slot in ("partners", "faq", "guide", "appshot"):
-        if _slot not in order:
+    for _slot in ("partners", "faq", "guide", "appshot", "first_screen"):
+        if _slot != "first_screen" and _slot not in order:
             continue
         _opts = [""] + list(VARIANTS.get(_slot) or [])
         _used = {(h.get("variants") or {}).get(_slot, "") for h in hist[-3:]}

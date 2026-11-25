@@ -1658,3 +1658,53 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .appshot-banner .appshot-media img{aspect-ratio:4/3;border-radius:18px}
   .appshot-points-row{grid-template-columns:minmax(0,1fr);gap:9px}
 }
+
+/* ---- first-screen composition axis -------------------------------------------------
+   a: split (default), b: centered, c: form-left, d: dark panel.
+   The form contract never changes; only the composition and trust treatment move. */
+.first-screen[data-first="b"]{grid-template-columns:minmax(0,760px);justify-content:center;
+  gap:24px;text-align:center}
+.first-screen[data-first="b"]>.blk-hero{text-align:center!important}
+.first-screen[data-first="b"]>.blk-hero h1{margin-inline:auto!important;max-width:16ch!important}
+.first-screen[data-first="b"]>.blk-hero .blk-hero-lead{margin-inline:auto}
+.first-screen[data-first="b"]>.blk-hero .hero-claims,
+.first-screen[data-first="b"]>.blk-hero .hero-stats,
+.first-screen[data-first="b"]>.blk-hero .trust-line{justify-content:center;text-align:center}
+.first-screen[data-first="b"]>.blk-band>form{max-width:640px}
+.first-screen[data-first="b"]>.blk-band .blk-formcard{border-radius:28px;
+  box-shadow:0 28px 60px -30px color-mix(in srgb,var(--acc-deep) 70%,transparent)}
+.first-screen[data-first="b"] .form-trust{justify-items:center;text-align:center}
+.first-screen[data-first="b"] .trust-logos{justify-content:center}
+
+.first-screen[data-first="c"]{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr)}
+.first-screen[data-first="c"]>.blk-band{order:-1}
+.first-screen[data-first="c"]>.blk-hero{order:1}
+.first-screen[data-first="c"]>.blk-band>form{max-width:560px}
+.first-screen[data-first="c"] .form-trust{order:-1;margin:0 0 12px;padding:0 0 12px;
+  border-top:0;border-bottom:1px solid color-mix(in srgb,var(--btn-ink) 22%,transparent)}
+.first-screen[data-first="c"] .form-trust-label{color:color-mix(in srgb,var(--btn-ink) 72%,transparent)}
+.first-screen[data-first="c"] .trust-logos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px}
+.first-screen[data-first="c"] .trust-logos img{width:100%;max-width:74px;margin-inline:auto}
+
+.first-screen[data-first="d"]{max-width:var(--maxw);background:var(--ink);color:var(--bg);
+  border-radius:28px;margin-top:18px;margin-bottom:18px}
+.first-screen[data-first="d"]>.blk-hero h1{color:var(--bg)}
+.first-screen[data-first="d"]>.blk-hero .blk-hero-lead,
+.first-screen[data-first="d"]>.blk-hero .trust-line{color:color-mix(in srgb,var(--bg) 74%,transparent)}
+.first-screen[data-first="d"]>.blk-hero .hero-claims li{border-color:color-mix(in srgb,var(--bg) 25%,transparent);
+  color:var(--bg)}
+.first-screen[data-first="d"]>.blk-hero .hero-stats b{color:var(--acc-ondark,var(--acc-2))}
+.first-screen[data-first="d"]>.blk-hero .hero-stats span{color:color-mix(in srgb,var(--bg) 68%,transparent)}
+.first-screen[data-first="d"]>.blk-hero .hero-band-note{color:color-mix(in srgb,var(--bg) 74%,transparent)}
+.first-screen[data-first="d"] .form-trust .trust-logos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px}
+.first-screen[data-first="d"] .trust-logos img{background:#fff;border-radius:6px;padding:4px 6px;
+  height:22px;max-width:100%;justify-self:center}
+
+@media(max-width:900px){
+  .first-screen[data-first="b"]>.blk-hero h1{max-width:18ch!important}
+  .first-screen[data-first="c"]>.blk-band{order:-1}
+  .first-screen[data-first="c"]>.blk-hero{order:1}
+  .first-screen[data-first="d"]{border-radius:20px;margin-top:10px;margin-bottom:10px}
+}

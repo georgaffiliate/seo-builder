@@ -8,7 +8,7 @@ Usage:
   python3 tools/brand_icons.py --plan plans/<domain>.json --site sites/<domain>
 """
 from __future__ import annotations
-import argparse, json, pathlib, subprocess, sys, tempfile
+import argparse, base64, json, pathlib, subprocess, sys, tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PALETTES = ROOT / "content" / "palettes-blk.json"
@@ -116,7 +116,42 @@ def main():
         from PIL import Image
         img = Image.open(pathlib.Path(tmp) / "f48.png")
         img.save(site / "favicon.ico", sizes=[(48, 48), (32, 32), (16, 16)])
-    print(f"✓ icons: favicon.svg/.ico/.png + apple-touch-icon + og-image.png ({plan['design']['palette_id']})")
+
+    # Social/Google preview: branded 1200x630 composition with the real app-shot
+    app = site / "img" / "appshot.jpg"
+    try:
+        from PIL import Image
+        if app.exists():
+            b64 = base64.b64encode(app.read_bytes()).decode("ascii")
+            size = 58 if len(brand) <= 16 else 44 if len(brand) <= 23 else 36
+            social = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<rect width="1200" height="630" fill="{bg}"/>
+<image href="data:image/jpeg;base64,{b64}" x="540" y="0" width="660" height="630" preserveAspectRatio="xMidYMid slice"/>
+<rect x="540" y="0" width="90" height="630" fill="{bg}" opacity=".86"/>
+<rect x="54" y="0" width="6" height="630" fill="{acc}" opacity=".8"/>
+<rect x="72" y="72" width="58" height="58" rx="13" fill="{acc}"/>
+<text x="85" y="116" font-family="{esc(head)}, Georgia, serif" font-size="34" font-weight="700" fill="{bg}">{esc(glyph)}</text>
+<text x="72" y="194" font-family="{esc(head)}, Georgia, serif" font-size="{size}" font-weight="700" fill="{ink}" textLength="420" lengthAdjust="spacingAndGlyphs">{esc(brand)}</text>
+<text x="72" y="250" font-family="{esc(head)}, Georgia, serif" font-size="30" fill="{acc}">{esc(dom)}</text>
+<text x="72" y="414" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="{ink}" opacity=".72">MARKET WORKSPACE</text>
+<rect x="72" y="452" width="150" height="4" rx="2" fill="{acc}"/>
+<text x="72" y="506" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="{ink}" opacity=".72">{esc(plan["params"].get("geo_short") or plan["params"]["lang"].upper())} · {esc(plan["design"]["skin"])}</text>
+</svg>
+"""
+            (site / "og-image-social.svg").write_text(social, encoding="utf-8")
+            with tempfile.TemporaryDirectory() as tmp2:
+                png = pathlib.Path(tmp2) / "og.png"
+                rc = subprocess.run(["rsvg-convert", "-w", "1200", "-h", "630",
+                                     str(site / "og-image-social.svg"), "-o", str(png)]).returncode
+                if rc != 0:
+                    die("rsvg-convert failed for social og image")
+                Image.open(png).convert("RGB").save(site / "og-image.jpg", quality=86, optimize=True)
+        else:
+            Image.open(site / "og-image.png").convert("RGB").save(
+                site / "og-image.jpg", quality=86, optimize=True)
+    except Exception as exc:
+        print(f"! social og-image skipped: {exc}")
+    print(f"✓ icons: favicon.svg/.ico/.png + apple-touch-icon + og-image.png/.jpg ({plan['design']['palette_id']})")
 
 
 if __name__ == "__main__":
