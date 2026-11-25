@@ -47,17 +47,31 @@ def _set(pack, path, value):
     parts = path.split(".")
     node = pack
     for part in parts[:-1]:
-        node = node[int(part)] if isinstance(node, list) else node.setdefault(part, {})
+        if isinstance(node, list):
+            if not part.isdigit() or int(part) >= len(node):
+                return False
+            node = node[int(part)]
+        elif isinstance(node, dict):
+            node = node.setdefault(part, {})
+        else:
+            return False
     last = parts[-1]
     if isinstance(node, list):
+        if not last.isdigit() or int(last) >= len(node):
+            return False
         node[int(last)] = value
-    else:
+    elif isinstance(node, dict):
         node[last] = value
+    else:
+        return False
+    return True
 
 
 def suspects(errs: list) -> list:
     """Keys mentioned by the validator messages (empty list = send the whole pack)."""
-    out = []
+    # aggregate findings ("faq answer too short", "inner_product has 250 words") name no
+    # dotted path; repair_targets maps them to the object that actually needs rewriting
+    out = list(llm_content.repair_targets(errs))
     for e in errs:
         for m in PATH_RE.findall(e):
             if m not in out:
@@ -77,8 +91,9 @@ def ask_patch(cfg, key, use_http, lang, pack, errs, keys):
         "You are repairing a landing-page content pack. The validator rejected it. "
         f"Rewrite ONLY what is needed to fix these problems, in the language '{lang}':\n- "
         + "\n- ".join(errs[:20])
-        + "\n\nReturn a JSON object of the form {\"dotted.path\": \"new value\"} with only the "
-          "changed values. Keep numbers, tickers, emails, the brand name and placeholders "
+        + "\n\nReturn a JSON object of the form {\"dotted.path\": <new value>} with only the "
+          "changed values (a string, or the complete array/object when the path points at one). "
+          "Keep numbers, tickers, emails, the brand name and placeholders "
           "like {brand} untouched. Answers that are too short must become two full sentences. "
           "Never return null or an empty string."
     )
@@ -153,12 +168,18 @@ def main():
             continue
         applied = 0
         for path, value in patch.items():
-            if not isinstance(path, str) or not isinstance(value, (str, int, float)):
+            if not isinstance(path, str) or value is None:
                 continue
-            if _get(pack, path) is None and path.split(".")[0] not in pack:
+            old = _get(pack, path)
+            if old is None and path.split(".")[0] not in pack:
                 continue
-            _set(pack, path, str(value))
-            applied += 1
+            # a different shape means the model misunderstood; keep the old value
+            if old is not None and type(old) is not type(value):
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            if _set(pack, path, value):
+                applied += 1
         content_f.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
         errs = assemble.validate_content(pack, plan, strict=True)
         print(f"  · pass {attempt + 1}: applied {applied} value(s), {len(errs)} problem(s) left")

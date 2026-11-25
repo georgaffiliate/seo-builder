@@ -663,6 +663,9 @@ chk(_lz.needs_translation("content.hero.lead", "Keeps listings") and
     "localize: copy is translated, tickers/emails are not")
 chk(not _lz.needs_translation("content.scarcity.units.2", "min"),
     "localize: universal unit 'min' is not sent for translation")
+chk(not _lz.needs_translation("content.office.addr", "Park Avenue 162, 2775 København")
+    and _lz.needs_translation("content.office.hours", "Mon–Fri 09:00–18:00"),
+    "localize: street addresses are kept, opening hours are still translated")
 chk(not _lz.needs_translation("content.meta.keywords", "Bitnova, bitnova login") and
     not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU") and
     _lz.mark_eyebrow("BITNOVA · PT", "Bitnova") and _lz.mark_eyebrow("ALIAS · SI", "Alias Test") and
@@ -883,6 +886,69 @@ chk(not _sa2.audit_countdown_labels('<div class="countdown"><small>dagen</small>
                                     '<small>uur</small><small>min</small><small>sec</small></div>', "nl"),
     "audit passes real countdown captions")
 
+# live failure (dk-spornadike.site): inner_product came back in card shape (no
+# 'paragraphs', 350/450 words). The whole pack was re-sent twice, then thrown away.
+# The validator's inner-page findings now get their own small repair call.
+_ik, _irest = _lc.inner_page_errors(["inner_product has 350 words, needs >= 450",
+                                     "inner_offer.sections.4 needs h2 + paragraph",
+                                     "hub.lead is empty"])
+chk(_ik == ["inner_product", "inner_offer"] and _irest == ["hub.lead is empty"],
+    "inner-page errors are separated from pack-level ones")
+chk(_lc.inner_page_errors(["inner_about.blocks is empty"])[0] == [],
+    "short inner pages are not mistaken for the long editorial pages")
+chk(_lc.wants_inner_repair(["inner_product has 286 words, needs >= 390",
+                            "brand_note.eyebrow empty"], True) == ["inner_product"],
+    "a leftover empty key does not block the targeted long-page repair")
+_hp = {"meta": {"title_home": "A title without the brand " + "and more words " * 4},
+       "hero": {"h1_rest": "theoAcme platform"}}
+_lc.self_heal(_hp, {"params": {"brand": "Acme"}})
+chk(_hp["meta"]["title_home"].startswith("Acme ") and len(_hp["meta"]["title_home"]) <= 70,
+    "self-heal: title_home gains the brand and fits 70 chars without a model call")
+chk(_hp["hero"]["h1_rest"] == "theo Acme platform",
+    "self-heal: a glued brand gets its space back")
+chk(_lc.repair_targets(["faq answer too short (1 chars): ……",
+                        "persona name reused from another offer: Ana K."])
+    == ["faq.items", "reviews.items"],
+    "object repair targets only the objects the validator named")
+chk(_lc.repair_targets(["duplicate headings across sections: come funziona"]) == ["sections"],
+    "cross-section findings fall back to the sections object, not the whole pack")
+_pk_obj = {"faq": {"items": [{"q": "x", "a": "y"}]}, "meta": {"title_home": "Acme x"}}
+_oobj = _lc.http_pack
+_lc.http_pack = lambda cfg, key, messages, *a, **k: (
+    json.dumps({"faq.items": [{"q": "Question here?", "a": "Answer here."}]}), "stop")
+try:
+    _n_obj = _lc.repair_objects(_pk_obj, {"params": {"lang": "it"}}, {},
+                                ["faq answer too short"], ["faq.items"], {"model": "stub"}, "KEY")
+finally:
+    _lc.http_pack = _oobj
+chk(_n_obj == 1 and _pk_obj["faq"]["items"][0]["a"] == "Answer here.",
+    "object repair patches the named array and leaves the rest untouched")
+import repair_content as _rc
+chk(_rc.suspects(["faq answer too short (1 chars)"])[0] == "faq.items",
+    "repair_content turns aggregate findings into an object target")
+_pk_rc = {"faq": {"items": [{"q": "x", "a": "y"}]}}
+_rc._set(_pk_rc, "faq.items", [{"q": "Q", "a": "A"}])
+chk(_pk_rc["faq"]["items"][0]["a"] == "A",
+    "repair_content applies an array patch instead of stringifying it")
+_isk = {"inner_product": {"title": "", "h1": "", "lead": "",
+                          "sections": [{"h2": "", "paragraphs": ["", ""],
+                                        "bullets": ["", "", ""]}],
+                          "faq": [{"q": "", "a": ""}]}}
+_ipack = {}
+_iorig = _lc.http_pack
+_lc.http_pack = lambda cfg, key, messages, *a, **k: (
+    json.dumps({"inner_product": {"title": "T", "sections": [
+        {"h2": "H", "paragraphs": ["p1", "p2"], "bullets": ["a", "b", "c"]}]}}), "stop")
+try:
+    _ifix = _lc.repair_inner_pages(_ipack, {"params": {"lang": "da"}}, {"language": "da"},
+                                   _isk, ["inner_product has 350 words"], ["inner_product"],
+                                   {"model": "stub"}, "KEY")
+finally:
+    _lc.http_pack = _iorig
+chk(list(_ifix) == ["inner_product"] and _ipack["inner_product"]["sections"][0]["h2"] == "H",
+    "long-page repair patches only the rejected page")
+
+
 print("== 12. a cut blog pack is recovered, not replaced by the offline bank")
 # live failure: the provider cut a 4-article Dutch pack at char 18 830 while
 # finish_reason still said "stop" — the build then wrote the offline placeholder pack.
@@ -940,6 +1006,101 @@ try:
 finally:
     _bc.L.http_pack = _orig2
 chk(_hub.get("eyebrow") == "Gidsen", "the hub-only seed call returns the hub labels")
+
+# regression (live: dk-spornadike.site): a 378-word article killed the build after two
+# whole-pack repair passes. Two guards now exist: a 3% word-target floor, and per-article
+# repair that rewrites only the article the gate rejected.
+chk(_ba.body_word_floor("it") == 320 and _ba.body_word_target("it") == 380
+    and _ba.body_word_floor("ja") < _ba.body_word_target("ja"),
+    "blog word target has a ±60-word tolerance floor for every language")
+_by, _pl = _bc.article_error_map(["articles[3] body is 378 words, needs >= 369",
+                                  "hub.lead is empty"])
+chk(_by == {3: ["articles[3] body is 378 words, needs >= 369"]} and _pl == ["hub.lead is empty"],
+    "validator errors split into per-article buckets and pack-level ones")
+
+
+def _shrink(art, target):
+    """Trim paragraphs (never below 11 words) until the article body hits target."""
+    while _bc.article_words(art) > target:
+        changed = False
+        for sec in art.get("sections") or []:
+            for i in range(len(sec.get("p") or [])):
+                toks = str(sec["p"][i]).split()
+                if len(toks) > 10:
+                    sec["p"][i] = " ".join(toks[:-1])
+                    changed = True
+                if _bc.article_words(art) <= target:
+                    return
+        if not changed:
+            return
+
+
+_tol_plan = {"seed": 1, "params": {"brand": "Blogfix", "domain": "blogfix.site", "lang": "nl"},
+             "blog": {"enabled": True, "style": "a",
+                      "topics": [{"id": t, "date": f"2026-0{i + 1}-01"}
+                                 for i, t in enumerate(("a", "b", "c"))]}}
+_tol_pack = _bc.offline_pack(_tol_plan)
+_shrink(_tol_pack["articles"][0], 372)
+chk(_bc.article_words(_tol_pack["articles"][0]) == 372
+    and not _ba.validate_blog(_tol_plan, _tol_pack),
+    "a 372-word article (within the floor) passes the blog gate")
+_shrink(_tol_pack["articles"][0], 300)
+chk(any("body is" in e and "articles[0]" in e
+        for e in _ba.validate_blog(_tol_plan, _tol_pack)),
+    "an article under the floor is still rejected")
+_rep_plan = {"params": {"brand": "Blogfix", "domain": "blogfix.site", "lang": "nl"},
+             "blog": {"enabled": True, "style": "a",
+                      "topics": [{"id": "a", "date": "2026-01-01"},
+                                 {"id": "b", "date": "2026-02-02"}]}}
+_rep_pack = {"hub": {}, "articles": [
+    {"topic": "a", "slug": "a-old", "title": "A", "sections": [], "related": ["b-keep"]},
+    {"topic": "b", "slug": "b-keep", "title": "B",
+     "sections": [{"h2": "Kop van de sectie", "p": ["Een alinea."]}], "related": ["a-old"]}]}
+_orig_ask = _bc.ask_article
+_bc.ask_article = lambda *a, **k: {"topic": "a", "slug": "a-new", "title": "A nieuw",
+                                   "sections": [{"h2": "Nieuwe kop hier",
+                                                 "p": ["Een nieuwe alinea."]}],
+                                   "related": ["b-keep"]}
+try:
+    _fixed_n = _bc.repair_articles(_rep_plan, _rep_pack, {}, {}, "KEY", {0: ["bad"]}, 380)
+finally:
+    _bc.ask_article = _orig_ask
+chk(_fixed_n == 1 and _rep_pack["articles"][0]["slug"] == "a-new"
+    and _rep_pack["articles"][1]["slug"] == "b-keep",
+    "per-article repair rewrites the failing article and keeps the rest untouched")
+chk(_rep_pack["articles"][1]["related"] == ["a-new"],
+    "related slugs follow the rewritten article")
+_reuse_pack = _bc.offline_pack(_tol_plan)
+_reuse_pack["hub"]["title"] = "Gidsen voor de praktijk"
+_tmp_blog = ROOT / "content" / "_selftest-blog-reuse.json"
+_tmp_blog.write_text(json.dumps(_reuse_pack, ensure_ascii=False), encoding="utf-8")
+try:
+    chk(_gp.blog_is_reusable(_tmp_blog, _tol_plan),
+        "an existing valid blog pack is reported reusable (no LLM call on rebuild)")
+    _fb_pack = json.loads(json.dumps(_reuse_pack))
+    _fb_pack["_offline_fallback"] = True
+    _tmp_blog.write_text(json.dumps(_fb_pack, ensure_ascii=False), encoding="utf-8")
+    chk(not _gp.blog_is_reusable(_tmp_blog, _tol_plan),
+        "the offline blog placeholder is never reused on a rebuild")
+    _tmp_blog.write_text(json.dumps(_bc.offline_pack(_tol_plan), ensure_ascii=False),
+                         encoding="utf-8")
+    chk(not _gp.blog_is_reusable(_tmp_blog, _tol_plan),
+        "a legacy placeholder without the marker is still recognised and regenerated")
+finally:
+    _tmp_blog.unlink(missing_ok=True)
+
+chk(_gp.content_is_reusable(plan_f, content_f),
+    "an existing valid content pack is reported reusable (resume after a late failure)")
+_cp_lang = json.loads(content_f.read_text(encoding="utf-8"))
+_cp_lang.setdefault("meta", {})["content_lang"] = "enx"
+_tmp_cp = ROOT / "content" / "_selftest-content-lang.json"
+_tmp_cp.write_text(json.dumps(_cp_lang, ensure_ascii=False), encoding="utf-8")
+try:
+    chk(not _gp.content_is_reusable(plan_f, _tmp_cp),
+        "a content pack written for another language is not reused")
+finally:
+    _tmp_cp.unlink(missing_ok=True)
+
 
 # cleanup
 import shutil

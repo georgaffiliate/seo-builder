@@ -696,6 +696,10 @@ def main():
     if plan["params"]["lang"] not in bank_all:
         print(f"! no {plan['params']['lang']} bank — falling back to en copy")
     content = build(plan, bank_all, fmt_lang=fmt_lang)
+    # provenance for --build resume: a partial/absent bank means the copy is English
+    _lang = plan["params"]["lang"]
+    _coverage = bank_coverage(bank_all, _lang)[0]
+    content.setdefault("meta", {})["content_lang"] = _lang if _coverage >= 100 else "en"
 
     sys.path.insert(0, str(ROOT))
     import assemble

@@ -860,12 +860,271 @@ def normalize_contacts(pack: dict, plan: dict) -> None:
         assemble.office_defaults(pack, plan)
 
 
+def self_heal(pack: dict, plan: dict) -> None:
+    """Deterministic fixes for cosmetic gate failures — no model round-trip needed.
+
+    These are mechanical edits (title budget, a missing space before the brand), not
+    copywriting. Each one used to cost a whole-pack repair pass.
+    """
+    brand = str(plan["params"].get("brand") or "").strip()
+    meta = pack.get("meta")
+    if isinstance(meta, dict):
+        title = str(meta.get("title_home") or "").strip()
+        if title and brand and not title.lower().startswith(brand.lower()):
+            title = f"{brand} — {title}"
+        if len(title) > 70:
+            cut = title[:70]
+            if " " in cut:
+                cut = cut[:cut.rfind(" ")]
+            title = cut.rstrip(" —-:,")
+        if title:
+            meta["title_home"] = title
+    if not brand:
+        return
+    glue = re.compile(rf"(?<=[a-z\u00e0-\u00ff])({re.escape(brand)})", re.I)
+
+    def fix(node):
+        if isinstance(node, str):
+            return glue.sub(r" \1", node)
+        if isinstance(node, dict):
+            return {k: fix(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [fix(v) for v in node]
+        return node
+
+    for key in list(pack):
+        pack[key] = fix(pack[key])
+
+
 def prepare_and_validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
+    self_heal(pack, plan)
     scrubbed = scrub_placeholders(pack)
     if scrubbed:
         print(f"· placeholder fixtures emptied ({len(scrubbed)}): " + ", ".join(scrubbed[:6]))
     normalize_contacts(pack, plan)
     return validate(pack, plan, brief_data)
+
+
+# Long editorial pages are their own answer shape. The model keeps flattening them
+# into cards ("p" arrays, no "paragraphs", 350 of 450 words), and re-sending the
+# whole ~5k-word pack is both slow and useless: it returns the same shape. Repair
+# only these page objects, with the exact template in front of the model.
+INNER_PAGES = ("inner_product", "inner_offer", "inner_faq")
+INNER_MIN_WORDS = {"inner_product": 450, "inner_offer": 450, "inner_faq": 600}
+INNER_MIN_FAQ = {"inner_product": 6, "inner_offer": 6, "inner_faq": 12}
+
+
+def inner_page_errors(errs: list) -> tuple[list, list]:
+    """(pages named by the validator, every other error)."""
+    keys, rest = [], []
+    for e in errs:
+        m = re.match(r"(inner_[a-z]+)", str(e))
+        if m and m.group(1) in INNER_PAGES:
+            if m.group(1) not in keys:
+                keys.append(m.group(1))
+        else:
+            rest.append(str(e))
+    return keys, rest
+
+
+def wants_inner_repair(errs: list, use_http: bool) -> list:
+    """Which long pages the targeted repair should rewrite (empty = none).
+
+    It must fire even when the validator also reports other findings: one empty
+    eyebrow used to send the whole pack back twice while the long pages stayed
+    broken (live: dk-spornadike.online).
+    """
+    keys, _ = inner_page_errors(errs)
+    return keys if use_http and keys else []
+
+
+def repair_inner_pages(pack: dict, plan: dict, data: dict, sk: dict, errs: list,
+                       keys: list, cfg: dict, key: str) -> dict:
+    """Ask for the long pages alone in their exact shape; returns the fixed objects."""
+    shapes = {k: sk.get(k) for k in keys if isinstance(sk.get(k), dict)}
+    if not shapes:
+        return {}
+    lang = plan["params"].get("lang", "en")
+    limits = "; ".join(
+        f"{k}: {INNER_MIN_WORDS.get(k, 450)}+ words of body, "
+        f"{5 if k != 'inner_faq' else 2} sections, {INNER_MIN_FAQ.get(k, 6)} FAQ items"
+        for k in keys if k in shapes)
+    messages = [
+        {"role": "system", "content": "You write long editorial pages for a landing site. "
+                                      "Answer with one JSON object only — no fences, no commentary."},
+        {"role": "user", "content":
+            "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand", "domain",
+                                                             "geo")}, ensure_ascii=False) +
+            "\nLANGUAGE: write in " + str(lang) + ".\n"
+            "Write these page objects: " + ", ".join(shapes) + ".\n"
+            "EXACT SHAPE — keep these keys exactly (sections use 'h2', 'paragraphs' and "
+            "'bullets'; never 'p', 'points' or 'text'):\n" +
+            json.dumps(shapes, ensure_ascii=False) +
+            "\nRequirements: " + limits + ". Every section must carry a real h2 (8..90 chars), "
+            "an array 'paragraphs' of 2..3 strings (each 45..110 words, 2-4 sentences) and an "
+            "array 'bullets' of 3 short strings. FAQ answers are 2-4 full sentences, 180+ "
+            "characters, all different. Write unique editorial copy, not a repeat of the home "
+            "page or of each other.\n"
+            "Problems from the previous attempt (fix all): " + "; ".join(errs[:12]) + "\n"
+            "Current values:\n" + json.dumps({k: pack.get(k) for k in shapes}, ensure_ascii=False) +
+            "\nReturn ONLY the JSON object with these page keys."},
+    ]
+    c2 = dict(cfg)
+    c2["max_tokens"] = min(int(cfg.get("max_tokens") or 16000), 16000)
+    raw, finish = http_pack(c2, key, messages)
+    try:
+        fixed = extract_json(raw)
+    except Exception as e:
+        print(f"! inner-page repair unparsable: {e} (finish={finish}, {len(raw)} chars)")
+        return {}
+    if not isinstance(fixed, dict):
+        return {}
+    out = {}
+    for k in keys:
+        page = fixed.get(k)
+        if isinstance(page, dict) and isinstance(page.get("sections"), list):
+            out[k] = page
+    if out:
+        for k, page in out.items():
+            pack[k] = page
+        print(f"· rewrote long page(s): {', '.join(out)}")
+    return out
+
+
+# ---------------------------------------------------- object-level repair (cheap)
+# Anything the long-page path does not own used to resend the whole ~5k-word pack.
+# Most findings point at one object (faq.items, reviews.items, sections.guide,
+# hero, livebar, meta …): ask for just those and merge them back.
+REPAIR_PATH_RX = re.compile(
+    r"\b(sections\.[a-z][a-z0-9_-]*|faq\.items|reviews\.items|hero\.[a-z_]+|"
+    r"meta\.[a-z_]+|livebar\.[a-z_]+|office\.[a-z_]+|bands\.[a-z_]+|"
+    r"footer\.[a-z_]+|legal\.[a-z_]+|thanks\.[a-z_]+|ui\.[a-z_]+|"
+    r"scarcity\.[a-z_]+|brand_note\.[a-z_]+|page_labels\.[a-z_]+|inner_[a-z]+)\b")
+
+
+def repair_targets(errs: list) -> list:
+    """Dotted paths worth asking the model to rewrite on their own (empty = full pack)."""
+    targets = []
+
+    def add(path):
+        if path not in targets:
+            targets.append(path)
+
+    for e in errs:
+        low = str(e).lower()
+        for m in REPAIR_PATH_RX.finditer(str(e)):
+            path = m.group(1)
+            add(path.split(".")[0] if path.startswith("inner_") else path)
+        if re.search(r"\bfaq\b", low):
+            add("faq.items")
+        if re.search(r"\b(review|persona|quote)\b", low):
+            add("reviews.items")
+        if "guide" in low:
+            add("sections.guide")
+        if re.search(r"\bstats\b", low):
+            add("sections.stats")
+        if re.search(r"\b(heading|sections)\b", low) and not any(
+                t.startswith("sections.") for t in targets):
+            add("sections")
+        if re.search(r"livebar|headline", low):
+            add("livebar")
+        if re.search(r"\boffice\b", low):
+            add("office")
+        if re.search(r"\bscarcity\b", low):
+            add("scarcity")
+        if re.search(r"\bhero\b", low):
+            add("hero")
+        if re.search(r"title_home|meta\.", low):
+            add("meta")
+    if "sections" in targets:
+        targets = [t for t in targets if not t.startswith("sections.")]
+    return targets
+
+
+def _pack_at(pack, path):
+    node = pack
+    for part in path.split("."):
+        if isinstance(node, list):
+            if not part.isdigit() or int(part) >= len(node):
+                return None
+            node = node[int(part)]
+        elif isinstance(node, dict):
+            if part not in node:
+                return None
+            node = node[part]
+        else:
+            return None
+    return node
+
+
+def _pack_set(pack, path, value) -> bool:
+    parts = path.split(".")
+    node = pack
+    for part in parts[:-1]:
+        if isinstance(node, list):
+            if not part.isdigit() or int(part) >= len(node):
+                return False
+            node = node[int(part)]
+        elif isinstance(node, dict):
+            node = node.setdefault(part, {})
+        else:
+            return False
+    last = parts[-1]
+    if isinstance(node, list):
+        if not last.isdigit() or int(last) >= len(node):
+            return False
+        node[int(last)] = value
+    elif isinstance(node, dict):
+        node[last] = value
+    else:
+        return False
+    return True
+
+
+def repair_objects(pack: dict, plan: dict, data: dict, errs: list, targets: list,
+                   cfg: dict, key: str) -> int:
+    """Rewrite only the named objects; returns how many were accepted."""
+    if not targets:
+        return 0
+    current = {t: _pack_at(pack, t) for t in targets}
+    messages = [
+        {"role": "system", "content": "You repair named objects of a landing-page content "
+                                      "pack. Answer with one JSON object only — no fences."},
+        {"role": "user", "content":
+            "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand",
+                                                             "domain", "geo")}, ensure_ascii=False) +
+            "\nLANGUAGE: write in " + str(plan["params"].get("lang", "en")) + ".\n"
+            "Rewrite ONLY these paths, keeping the exact same keys and array lengths:\n"
+            + json.dumps(targets, ensure_ascii=False) +
+            "\nReturn {\"<path>\": <complete corrected value>} for every requested path. "
+            "Arrays must be returned whole (all entries), never truncated.\n"
+            "Problems to fix: " + "; ".join(errs[:12]) + "\n"
+            "Current values:\n" + json.dumps(current, ensure_ascii=False) +
+            "\nReturn ONLY the patch object."},
+    ]
+    c2 = dict(cfg)
+    c2["max_tokens"] = min(int(cfg.get("max_tokens") or 12000), 12000)
+    raw, finish = http_pack(c2, key, messages)
+    try:
+        patch = extract_json(raw)
+    except Exception as e:
+        print(f"! object repair unparsable: {e} (finish={finish}, {len(raw)} chars)")
+        return 0
+    if not isinstance(patch, dict):
+        return 0
+    applied = 0
+    for path in targets:
+        if path not in patch:
+            continue
+        old, new = _pack_at(pack, path), patch[path]
+        # a different shape means the model misunderstood; let the full pack handle it
+        if type(old) is not type(new) or isinstance(new, str) and not new.strip():
+            continue
+        if _pack_set(pack, path, new):
+            applied += 1
+    if applied:
+        print(f"· rewrote object(s): {', '.join(t for t in targets if t in patch)}")
+    return applied
 
 
 def main():
@@ -958,9 +1217,32 @@ def main():
         pass
 
     errs = prepare_and_validate(pack, plan, data)
-    for attempt in (1, 2):
+    full_done = 0
+    for attempt in (1, 2, 3):
         if not errs:
             break
+        inner_keys, _rest = inner_page_errors(errs)
+        if wants_inner_repair(errs, use_http):
+            # long pages came back in the wrong shape / too short: rewrite just them,
+            # not the whole pack (the old full-pack round-trip kept the same defect).
+            # Other findings wait for the next pass: patching these pages never touches
+            # them, and one leftover empty key must not block the targeted fix.
+            print(f"· repair pass {attempt}: rewriting long page(s) "
+                  + ", ".join(inner_keys))
+            if repair_inner_pages(pack, plan, data, sk, errs, inner_keys, cfg, key):
+                out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+                errs = prepare_and_validate(pack, plan, data)
+                continue
+        targets = repair_targets(errs) if use_http else []
+        if targets:
+            print(f"· repair pass {attempt}: rewriting {', '.join(targets)}")
+            if repair_objects(pack, plan, data, errs, targets, cfg, key):
+                out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+                errs = prepare_and_validate(pack, plan, data)
+                continue
+        if full_done:
+            break
+        full_done += 1
         print(f"· repair pass {attempt} ({len(errs)} issues)")
         if use_http:
             messages += [
@@ -998,6 +1280,8 @@ def main():
         die("LLM pack still invalid: " + "; ".join(errs[:8]))
     # contacts are deterministic — persist whatever the normalizer settled on
     normalize_contacts(pack, plan)
+    # provenance for --build resume: never reuse this pack on a page of another language
+    pack.setdefault("meta", {})["content_lang"] = plan["params"].get("lang", "en")
     out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
     items = pack["reviews"]["items"]
     plan["people"] = [it["name"] for it in items]

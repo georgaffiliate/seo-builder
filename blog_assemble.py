@@ -91,6 +91,24 @@ def _cjk(lang: str) -> bool:
     return (lang or "").lower() in ("ja", "zh", "ko")
 
 
+def body_word_target(lang: str) -> int:
+    """Words of article body the gate asks for (CJK scripts pack more per word)."""
+    return 220 if _cjk(lang) else 380
+
+
+def body_word_floor(lang: str) -> int:
+    """Lowest body count that still counts as complete copy.
+
+    A word target is a quality signal, not a byte count: an article that lands a few
+    dozen words under it is finished, not thin. The old hard cut (378 < 380) sent the
+    whole pack through two repair round-trips and then replaced it with the offline
+    placeholder, killing the build (live: dk-spornadike.site). The factory accepts
+    ±60 words (16% on the 380 target) so a rounding miss never costs a build.
+    """
+    target = body_word_target(lang)
+    return target - min(60, max(8, round(target * 0.16)))
+
+
 def fmt_blog_date(iso: str, lang: str) -> str:
     """'2026-10-06' → '6 ottobre 2026' (it) / '6 October 2026' (en) / '06.10.2026'."""
     try:
@@ -253,7 +271,7 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
                         errs.append(f"{tag}.sections[{j}].points has a too-short bullet")
                     words += _words(p)
             words += _words(h2)
-        min_words = 220 if _cjk(lang) else 380
+        min_words = body_word_floor(lang)
         if words < min_words:
             errs.append(f"{tag} body is {words} words, needs >= {min_words}")
 

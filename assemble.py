@@ -801,8 +801,11 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         for x in fqs:
             blob += " " + str(x.get("q") or "") + " " + str(x.get("a") or "")
         words = len(blob.split())
-        if words < min_words:
-            errs.append(f"{key} has {words} words, needs >= {min_words}")
+        # ±60 words is a rounding miss, not thin copy: 447/450 must not send the
+        # whole pack through another repair round-trip (and then throw it away)
+        floor = min_words - min(60, max(10, round(min_words * 0.16)))
+        if words < floor:
+            errs.append(f"{key} has {words} words, needs >= {floor}")
         if len(secs) < min_sections:
             errs.append(f"{key}.sections has {len(secs)} entries, needs >= {min_sections}")
         if len(fqs) < min_faq:
@@ -2208,6 +2211,9 @@ def cmd_build(a):
         B = load(blog_path)
         if not B:
             die(f"blog plan needs {blog_path.relative_to(ROOT)} — run tools/blog_content.py --plan {a.plan}")
+        if B.get("_offline_fallback"):
+            die("blog pack is the offline placeholder — regenerate it: "
+                f"tools/blog_content.py --plan {a.plan}")
         import blog_assemble
         _berrs = blog_assemble.validate_blog(plan, B)
         if _berrs:

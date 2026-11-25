@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import llm_content as L
-from blog_assemble import validate_blog
+from blog_assemble import body_word_target, validate_blog
 
 MAX_TOKENS = 16000
 
@@ -37,6 +37,14 @@ MAX_TOKENS = 16000
 def die(msg: str, code: int = 1):
     print(f"✗ {msg}")
     sys.exit(code)
+
+
+def rel(path: pathlib.Path) -> str:
+    """Path relative to ROOT when possible — --out may live elsewhere."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def brief(plan: dict) -> dict:
@@ -248,11 +256,64 @@ def missing_topics(plan: dict, pack: dict) -> list:
     return [t for t in (plan["blog"].get("topics") or []) if str(t.get("id") or "") not in got]
 
 
+def article_error_map(errs: list) -> tuple[dict, list]:
+    """Split validator errors into per-article buckets and pack-level ones.
+
+    "articles[3] body is 358 words" is a problem of article 3 alone. Re-sending the
+    whole ~5k-word pack for it costs two model round-trips and usually returns the
+    same answer; rewriting just that article does not.
+    """
+    by_idx, pack_level = {}, []
+    for e in errs:
+        m = re.match(r"articles[\[.](\d+)[\].]", str(e))
+        if m:
+            by_idx.setdefault(int(m.group(1)), []).append(str(e))
+        else:
+            pack_level.append(str(e))
+    return by_idx, pack_level
+
+
+def article_words(art: dict) -> int:
+    """Same count the gate uses: headings + paragraphs + bullets."""
+    return sum(len(re.findall(r"\w+", str(x or ""), re.UNICODE))
+               for s in (art.get("sections") or []) if isinstance(s, dict)
+               for x in [s.get("h2"), *(s.get("p") or []), *(s.get("points") or [])])
+
+
+def _repoint_related(pack: dict) -> None:
+    arts = [a for a in (pack.get("articles") or []) if isinstance(a, dict)]
+    slugs = [str(a.get("slug") or "").strip() for a in arts]
+    for a in arts:
+        others = [s for s in slugs if s and s != str(a.get("slug") or "")]
+        rel = [r for r in (a.get("related") or []) if r in others]
+        if len(rel) < min(2, len(others)):
+            rel = (rel + [s for s in others if s not in rel])[:2]
+        a["related"] = rel
+
+
+def replace_article(pack: dict, idx: int, art: dict) -> bool:
+    arts = pack.get("articles") or []
+    if not 0 <= idx < len(arts) or not isinstance(art, dict):
+        return False
+    arts[idx] = art
+    _repoint_related(pack)
+    return True
+
+
 def ask_article(plan: dict, data: dict, topic: dict, known_slugs: list, titles: list,
-                cfg: dict, key: str) -> dict | None:
-    """One article in one small answer — the follow-up for a pack the provider cut."""
+                cfg: dict, key: str, errs: list | None = None,
+                target_words: int = 0) -> dict | None:
+    """One article in one small answer — the follow-up for a pack the provider cut
+    or for an article the gate rejected (the rest of the pack stays untouched)."""
     shape = json.dumps(data["shape"]["articles"][0], ensure_ascii=False)
     rules = " ".join(r for r in data["rules"] if not r.startswith("Exactly one article"))
+    extra = ""
+    if target_words:
+        extra += (f"\nLENGTH: write at least {target_words} words of body copy across 4..6 "
+                  f"sections (h2 + 2..4 paragraphs of 40..90 words each, plus 2..6 bullets "
+                  f"in at least one section).")
+    if errs:
+        extra += "\nFIX THESE PROBLEMS from the previous attempt: " + "; ".join(errs[:10])
     messages = [
         {"role": "system", "content": "You write one article object for a guides section. Answer "
                                       "with that JSON object only — no fences, no commentary."},
@@ -264,7 +325,7 @@ def ask_article(plan: dict, data: dict, topic: dict, known_slugs: list, titles: 
             "\nARTICLE SHAPE (same keys and nesting, one object): " + shape +
             "\nSlugs already used (pick a different one): " + json.dumps(known_slugs, ensure_ascii=False) +
             "\nTitles already used (do not repeat): " + json.dumps(titles, ensure_ascii=False) +
-            "\nRules: " + rules +
+            "\nRules: " + rules + extra +
             "\nReturn ONLY the article object."},
     ]
     c2 = dict(cfg)
@@ -313,14 +374,39 @@ def add_articles(plan: dict, pack: dict, arts: list) -> int:
     cur += [a for a in arts if isinstance(a, dict)]
     cur.sort(key=lambda a: order.get(str(a.get("topic") or ""), 99))
     pack["articles"] = cur
-    slugs = [str(a.get("slug") or "").strip() for a in cur]
-    for a in cur:
-        others = [s for s in slugs if s and s != str(a.get("slug") or "")]
-        rel = [r for r in (a.get("related") or []) if r in others]
-        if len(rel) < min(2, len(others)):
-            rel = (rel + [s for s in others if s not in rel])[:2]
-        a["related"] = rel
+    _repoint_related(pack)
     return len(cur)
+
+
+def repair_articles(plan: dict, pack: dict, data: dict, cfg: dict, where: str,
+                    by_idx: dict, target_words: int) -> int:
+    """Rewrite only the articles the gate rejected, one small answer each.
+
+    The whole-pack repair used to be the only path: ~5k words out, ~5k words back,
+    twice — and on a flash model the short article often came back just as short.
+    """
+    fixed = 0
+    arts = pack.get("articles") or []
+    for idx in sorted(by_idx):
+        if not 0 <= idx < len(arts):
+            continue
+        cur = arts[idx] if isinstance(arts[idx], dict) else {}
+        topic = next((t for t in (plan["blog"].get("topics") or [])
+                      if str((t or {}).get("id") or "") == str(cur.get("topic") or "")), None)
+        if not topic:
+            continue
+        known = [str((a or {}).get("slug") or "").strip() for i, a in enumerate(arts) if i != idx]
+        titles = [str((a or {}).get("title") or "").strip() for i, a in enumerate(arts) if i != idx]
+        art = ask_article(plan, data, topic, [s for s in known if s], [t for t in titles if t],
+                          cfg, where, errs=by_idx[idx], target_words=target_words)
+        if not art:
+            print(f"  ✗ articles[{idx}]: no usable rewrite")
+            continue
+        before = article_words(cur)
+        replace_article(pack, idx, art)
+        fixed += 1
+        print(f"  ↻ articles[{idx}] rewritten ({before} → {article_words(art)} words)")
+    return fixed
 
 
 def pick_transport(cfg: dict, provider: str):
@@ -456,6 +542,8 @@ def main():
                 print("· no usable pack — rebuilding it from the hub and single articles")
                 pack = {"hub": ask_hub(plan, data, cfg, where), "articles": []}
                 messages = messages or []
+            lang = plan["params"].get("lang", "en")
+            target = body_word_target(lang)
             if isinstance(pack, dict) and transport == "http":
                 prune_incomplete(pack)
                 miss = missing_topics(plan, pack)
@@ -468,7 +556,8 @@ def main():
                         titles = [str((a or {}).get("title") or "") for a in (pack.get("articles") or [])]
                         titles += [str(a.get("title") or "") for a in extra]
                         art = ask_article(plan, data, topic, [s for s in known if s],
-                                          [t for t in titles if t], cfg, where)
+                                          [t for t in titles if t], cfg, where,
+                                          target_words=target)
                         if art:
                             extra.append(art)
                             print(f"  ✓ {topic.get('id')}: “{str(art.get('title'))[:54]}”")
@@ -478,11 +567,24 @@ def main():
                 else:
                     add_articles(plan, pack, [])
             if isinstance(pack, dict):
-                for attempt in (1, 2):
+                # Per-article problems are repaired per article: a small focused answer
+                # beats re-sending the whole 5k-word pack (which is what used to happen,
+                # and a short article often came back identical after it).
+                full_done = 0
+                for attempt in (1, 2, 3):
                     errs = validate_blog(plan, pack)
                     if not errs:
                         break
-                    print(f"· repair pass {attempt} ({len(errs)} issues)")
+                    by_idx, pack_level = article_error_map(errs)
+                    if transport == "http" and by_idx:
+                        print(f"· repair pass {attempt}: {len(by_idx)} article(s) failed the gate"
+                              + (f" (+{len(pack_level)} pack issue(s))" if pack_level else ""))
+                        if repair_articles(plan, pack, data, cfg, where, by_idx, target):
+                            continue
+                    if full_done:
+                        break
+                    full_done += 1
+                    print(f"· repair pass {attempt} ({len(errs)} issues, whole pack)")
                     if transport == "http":
                         messages += [
                             {"role": "assistant", "content": json.dumps(pack, ensure_ascii=False)},
@@ -526,6 +628,10 @@ def main():
             print("! falling back to the deterministic offline pack (replace it before shipping)")
             fell_back = True
         pack = offline_pack(plan)
+        if fell_back:
+            # this is a placeholder, not copy: mark it so a later --build never
+            # mistakes it for a valid blog pack and reuses English filler on a local site
+            pack["_offline_fallback"] = True
         errs = validate_blog(plan, pack)
         if errs:
             die("offline blog pack failed its own gate: " + "; ".join(errs[:8]))
@@ -535,10 +641,10 @@ def main():
     if invalid_pack is not None:
         bad = out.with_suffix(".invalid.json")
         bad.write_text(json.dumps(invalid_pack, ensure_ascii=False, indent=1), encoding="utf-8")
-        print(f"· rejected model pack saved for review: {bad.relative_to(ROOT)}")
+        print(f"· rejected model pack saved for review: {rel(bad)}")
     words = sum(len(re.findall(r"\w+", json.dumps(ar, ensure_ascii=False)))
                 for ar in pack["articles"])
-    print(f"BLOG CONTENT OK -> {out.relative_to(ROOT)} "
+    print(f"BLOG CONTENT OK -> {rel(out)} "
           f"({len(pack['articles'])} articles, {words} words, style {plan['blog'].get('style')})")
     if fell_back:
         print("✗ the model did not produce a valid blog pack — the offline placeholder is on disk; "

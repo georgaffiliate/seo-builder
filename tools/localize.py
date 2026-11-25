@@ -88,6 +88,10 @@ def needs_translation(path: str, value) -> bool:
         return False
     if path in WHITELIST_PATHS or path.endswith((".vv", ".photo", ".ic", ".g", ".sym")):
         return False
+    # street addresses keep their street/city names — translating "Park Avenue" is wrong,
+    # and the unchanged value used to fail the translation gate on an otherwise fine pack
+    if path.endswith((".addr", ".address", ".street", ".venue")):
+        return False
     if path.endswith("meta.keywords"):
         return False          # search queries: brand + "login" stay as people type them
     # a bare address or URL is not copy — but a paragraph that merely mentions
@@ -366,6 +370,7 @@ def main():
         elif path.startswith("plan."):
             _set_path(fresh_plan, path[len("plan."):], text)
     if not a.plan_only:
+        fresh_pack.setdefault("meta", {})["content_lang"] = lang
         content_f.write_text(json.dumps(fresh_pack, ensure_ascii=False, indent=1), encoding="utf-8")
     plan_f.write_text(json.dumps(fresh_plan, ensure_ascii=False, indent=1), encoding="utf-8")
 

@@ -1296,6 +1296,73 @@ def content_route(plan_data: dict, offline: bool = False, translate: bool = Fals
     return "localize" if translate else "invent"
 
 
+def content_is_reusable(plan_f: pathlib.Path, content_f: pathlib.Path) -> bool:
+    """True when an existing pack still passes the content gate for this plan.
+
+    A late failure (blog, icons, a gate) used to send the next --build through the
+    whole LLM pack again, even though the copy on disk was already good. That is
+    where most of the wall-clock time went. Reuse it unless --force asks for new copy.
+    """
+    if not content_f.exists():
+        return False
+    try:
+        sys.path.insert(0, str(ROOT))
+        import assemble
+        plan = json.loads(pathlib.Path(plan_f).read_text(encoding="utf-8"))
+        pack = json.loads(content_f.read_text(encoding="utf-8"))
+        # same normalisation cmd_build applies before its gate, so a contact refresh
+        # does not force a pointless regeneration
+        assemble.office_defaults(pack, plan)
+        assemble.ui_defaults(pack, plan)
+        assemble.reconcile_numbers(plan, pack)
+        if assemble.validate_content(pack, plan, strict=True):
+            return False
+        # provenance: a bank/English pack must not be reused on another language
+        _have = str((pack.get("meta") or {}).get("content_lang") or "").strip().lower()
+        _want = str(plan["params"].get("lang") or "en").strip().lower()
+        if _have and _have != _want:
+            print(f"· existing content pack is in '{_have}', plan needs '{_want}'")
+            return False
+        # a pack written for a different plan revision must not ride along: the three
+        # speakers the model wrote have to be the three people the plan carries
+        names = [str((r or {}).get("name") or "")
+                 for r in ((pack.get("reviews") or {}).get("items") or [])]
+        if plan.get("people") and names and names != [str(x) for x in plan["people"]]:
+            print("· existing content pack speakers do not match the plan")
+            return False
+        return True
+    except Exception as e:
+        print(f"· existing content pack is not reusable ({type(e).__name__}: {e})")
+        return False
+
+
+def blog_is_reusable(blog_f: pathlib.Path, plan_data: dict) -> bool:
+    """True when the blog pack on disk still matches the plan (topics, slugs, dates)."""
+    if not blog_f.exists():
+        return False
+    try:
+        sys.path.insert(0, str(ROOT))
+        import blog_assemble
+        pack = json.loads(blog_f.read_text(encoding="utf-8"))
+        if pack.get("_offline_fallback"):
+            print("· existing blog pack is the offline placeholder — regenerating")
+            return False
+        # legacy placeholders were written before the marker existed: the offline pack
+        # is deterministic for a plan, so an exact match is that placeholder
+        try:
+            sys.path.insert(0, str(ROOT / "tools"))
+            import blog_content
+            if pack == blog_content.offline_pack(plan_data):
+                print("· existing blog pack is the offline placeholder — regenerating")
+                return False
+        except Exception:
+            pass
+        return not blog_assemble.validate_blog(plan_data, pack)
+    except Exception as e:
+        print(f"· existing blog pack is not reusable ({type(e).__name__}: {e})")
+        return False
+
+
 def run_build(domain, force, with_llm=False, offline=False, translate=False, ship_anyway=False):
     """content → assemble(+gates) → icons → js syntax → mobile lint → profile. Deploy stays manual."""
     plan = PLANS / f"{domain}.json"
@@ -1307,21 +1374,30 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
     route = content_route(plan_data, offline, translate)
 
     if route == "invent":
-        step("CONTENT PACK (LLM writes the copy)")
-        llm_cmd = [sys.executable, str(ROOT / "tools" / "llm_content.py"),
-                   "--plan", str(plan), "--out", str(content)]
-        if os.environ.get("LLM_MODEL"):
-            llm_cmd += ["--model", os.environ["LLM_MODEL"]]
-        if os.environ.get("LLM_PROVIDER"):
-            llm_cmd += ["--provider", os.environ["LLM_PROVIDER"]]
-        if subprocess.run(llm_cmd).returncode != 0:
-            print("! model pack failed — falling back to master copy + translation")
-            route = "localize"
-        elif lang != "en" and not plan_lang_ready(lang):
-            # menu / top strip / slugs may still be the English fallback
-            step_run(f"LOCALIZE plan strings → {lang}",
-                     [sys.executable, str(ROOT / "tools" / "localize.py"),
-                      "--plan", str(plan), "--content", str(content), "--plan-only"])
+        if not force and content_is_reusable(plan, content):
+            print(f"· content pack already valid — reusing content/{content.name} "
+                  f"(use --force to regenerate)")
+            # the plan's own strings (menu, strip, slugs) may still be English
+            if lang != "en" and not plan_lang_ready(lang):
+                step_run(f"LOCALIZE plan strings → {lang}",
+                         [sys.executable, str(ROOT / "tools" / "localize.py"),
+                          "--plan", str(plan), "--content", str(content), "--plan-only"])
+        else:
+            step("CONTENT PACK (LLM writes the copy)")
+            llm_cmd = [sys.executable, str(ROOT / "tools" / "llm_content.py"),
+                       "--plan", str(plan), "--out", str(content)]
+            if os.environ.get("LLM_MODEL"):
+                llm_cmd += ["--model", os.environ["LLM_MODEL"]]
+            if os.environ.get("LLM_PROVIDER"):
+                llm_cmd += ["--provider", os.environ["LLM_PROVIDER"]]
+            if subprocess.run(llm_cmd).returncode != 0:
+                print("! model pack failed — falling back to master copy + translation")
+                route = "localize"
+            elif lang != "en" and not plan_lang_ready(lang):
+                # menu / top strip / slugs may still be the English fallback
+                step_run(f"LOCALIZE plan strings → {lang}",
+                         [sys.executable, str(ROOT / "tools" / "localize.py"),
+                          "--plan", str(plan), "--content", str(content), "--plan-only"])
 
     if route == "localize":
         step_run("CONTENT PACK (English master)",
@@ -1352,18 +1428,23 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                   "--plan", str(plan), "--content", str(content)])
 
     if (plan_data.get("blog") or {}).get("enabled"):
-        step(f"BLOG CONTENT ({len(plan_data['blog'].get('topics') or [])} articles)")
-        bcmd = [sys.executable, str(ROOT / "tools" / "blog_content.py"), "--plan", str(plan)]
-        if offline:
-            bcmd.append("--offline")
-        if os.environ.get("LLM_MODEL"):
-            bcmd += ["--model", os.environ["LLM_MODEL"]]
-        if os.environ.get("LLM_PROVIDER"):
-            bcmd += ["--provider", os.environ["LLM_PROVIDER"]]
-        rc = subprocess.run(bcmd, cwd=str(ROOT)).returncode
-        if rc != 0:
-            print("✗ blog content failed — build stopped (the classic build is untouched)")
-            sys.exit(rc)
+        blog_f = ROOT / "content" / f"{domain}-blog.json"
+        if not force and not offline and blog_is_reusable(blog_f, plan_data):
+            print(f"· blog pack already valid — reusing content/{blog_f.name} "
+                  f"(use --force to regenerate)")
+        else:
+            step(f"BLOG CONTENT ({len(plan_data['blog'].get('topics') or [])} articles)")
+            bcmd = [sys.executable, str(ROOT / "tools" / "blog_content.py"), "--plan", str(plan)]
+            if offline:
+                bcmd.append("--offline")
+            if os.environ.get("LLM_MODEL"):
+                bcmd += ["--model", os.environ["LLM_MODEL"]]
+            if os.environ.get("LLM_PROVIDER"):
+                bcmd += ["--provider", os.environ["LLM_PROVIDER"]]
+            rc = subprocess.run(bcmd, cwd=str(ROOT)).returncode
+            if rc != 0:
+                print("✗ blog content failed — build stopped (the classic build is untouched)")
+                sys.exit(rc)
 
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
     rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
