@@ -138,8 +138,19 @@ curl -s -X POST "https://florentina-tr.shop/api/v1/stores/<id>/zip" \
   підганяються (orders/s — окрема метрика, не users//4). Гола трикрапка як заголовок/лід/кнопка =
   ERR («…» — це не копірайт); підписи таймера мусять бути РІЗНІ й у мові сторінки (ERR); кирилиця
   на не-кириличній сторінці — ERR, не WARN (живий баг ing-rendement.xyz: таймер з «днів»×4).
-- Калькулятор — це варіант віджета G3 (`calculator`), окремої секції в пулі немає: секція
-  з'являється лише коли G3 випав калькулятор; примус — `--calculator on|off`.
+- Калькулятор — це варіант віджета G3 (`calculator`), окремої секції в пулі немає. Тепер
+  кожен білд гарантовано отримує **один** G3-віджет (none не випадає), і він не додає новий
+  екран: `layout.widget_embed` каже `{slot, kind, variant}`, а `assemble.py` вставляє компактний
+  блок усередину вже наявної секції (`WIDGET_HOSTS` у `gen_plan.py` — features/guide/numbers/
+  markets/…). Так само вбудовуються `calculator` і `pulse-sim`; якщо хоста немає — fallback на
+  стару окрему секцію. G3-варіанти: `demo-line` → `demo:c`, `demo-bars` → `demo:d`,
+  `sentiment-gauge` → `demo:e`, `book-ladder` → `demo:f` (файли `blocks/blk-demo-{c,d,e,f}.html`).
+  `validate()` валить план, якщо host/варіант не збігається з `widgets.G3`. Примус — `--interactive`.
+  G1 так само рендерить живі ринкові віджети: `heatmap` → `markets:d`, `listino-rows` →
+  `markets:e`, `price-board` → `markets:f`, `tile-flip` → `markets:g` (`G1_MARKET_LAYOUTS`,
+  примус — `--market`). Рухомі віджети живуть у `widgets/widgets.css` + `widgets/widgets.js`
+  (копіюються в корінь сайту і підключаються з `?v=`).
+
 - Хедер — вісь (`layout.variants.header`): 12 розкладок (лого зліва/справа/по центру, без лого,
   без CTA, дворівневий, компактний з меню-кнопкою, лого по центру + навігація під ним, лого
   справа, `k` бренд зверху + дії другим рядком, `l` правий кластер меню→лінія→CTA, `m` док-

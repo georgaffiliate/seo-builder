@@ -1,0 +1,52 @@
+<section class="section sec sec-demo sec-demo-live" data-var="d" id="demo">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">{{c:sections.demo.eyebrow}}</div>
+        <h2>{{c:sections.demo.h2}}</h2>
+      </div>
+      <p>{{c:sections.demo.lead}}</p>
+    </div>
+    <div class="dw-shell wk-root" data-widget="demo-bars" data-seed="{{SEED}}">
+      <div class="wk-demo-chart dw-chart">
+        <div class="dw-chart-head">
+          <b>{{c:sections.markets.rows.0.sym}}</b>
+          <span class="dw-live"><i aria-hidden="true"></i>{{W_DEMO}}</span>
+        </div>
+        <svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="{{c:ui.aria_chart}}">
+          <defs><linearGradient id="dw-bars-fill" x2="0" y2="1">
+            <stop stop-color="var(--wk-acc)" stop-opacity=".22"/>
+            <stop offset="1" stop-color="var(--wk-acc)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <g id="demo-bars"></g>
+          <path id="demo-area" fill="url(#dw-bars-fill)"/>
+          <path id="demo-line" fill="none" stroke="var(--wk-acc)" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <div class="dw-chart-foot">
+          <span>{{W_SESSION}}: <b id="demo-runs">0</b></span>
+          <button type="button" id="demo-reset" class="dw-icon-btn" aria-label="{{W_RESET}}">↺</button>
+        </div>
+      </div>
+      <div class="wk-demo-side dw-side">
+        <div class="dw-field">
+          <label for="demo-amount">{{W_AMOUNT}} <output id="demo-amount-out">500</output></label>
+          <input id="demo-amount" type="range" min="50" max="5000" step="50" value="500">
+        </div>
+        <div class="dw-field">
+          <span class="dw-label">{{W_HORIZON}}</span>
+          <div class="wk-seg" role="group" aria-label="{{W_HORIZON}}">
+            <button type="button" class="seg-btn is-on" data-horizon="1">1</button>
+            <button type="button" class="seg-btn" data-horizon="5">5</button>
+            <button type="button" class="seg-btn" data-horizon="15">15</button>
+          </div>
+          <small class="dw-unit">{{W_MIN}}</small>
+        </div>
+        <div class="wk-updown">
+          <button type="button" class="up-btn" data-dir="up" aria-label="{{W_UP}}">▲</button>
+          <button type="button" class="down-btn" data-dir="down" aria-label="{{W_DOWN}}">▼</button>
+        </div>
+      </div>
+    </div>
+    <p class="fine">{{c:sections.demo.disclaimer}}</p>
+  </div>
+</section>

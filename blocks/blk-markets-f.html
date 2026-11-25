@@ -1,0 +1,34 @@
+<section class="section alt sec sec-markets" data-var="f" id="markets">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">{{c:sections.markets.eyebrow}}</div>
+        <h2>{{c:sections.markets.h2}}</h2>
+      </div>
+      <p>{{c:sections.markets.lead}}</p>
+    </div>
+    <div class="wk-board wk-root" data-widget="price-board">
+      <article class="wk-card">
+        <div class="wk-top">{{c:sections.markets.rows.0.sym}}</div>
+        <div class="wk-val" data-price="{{W_M1_P}}" data-prefix="{{c:ui.cur_sym}} " data-dec="{{W_M1_DEC}}">{{c:ui.cur_sym}} {{c:sections.markets.rows.0.v}}</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="{{c:sections.markets.rows.0.sym}}"><polyline points="0,26 20,22 40,24 60,16 80,18 100,10 120,13 140,7 160,9" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">{{c:sections.markets.rows.1.sym}}</div>
+        <div class="wk-val" data-price="{{W_M2_P}}" data-prefix="{{c:ui.cur_sym}} " data-dec="{{W_M2_DEC}}">{{c:ui.cur_sym}} {{c:sections.markets.rows.1.v}}</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="{{c:sections.markets.rows.1.sym}}"><polyline points="0,12 20,16 40,14 60,20 80,17 100,24 120,21 140,27 160,25" fill="none" stroke="var(--wk-down)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">{{c:sections.markets.rows.2.sym}}</div>
+        <div class="wk-val" data-price="{{W_M3_P}}" data-prefix="{{c:ui.cur_sym}} " data-dec="{{W_M3_DEC}}">{{c:ui.cur_sym}} {{c:sections.markets.rows.2.v}}</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="{{c:sections.markets.rows.2.sym}}"><polyline points="0,22 20,18 40,20 60,14 80,16 100,8 120,11 140,5 160,7" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">{{c:sections.markets.rows.3.sym}}</div>
+        <div class="wk-val" data-price="{{W_M4_P}}" data-prefix="{{c:ui.cur_sym}} " data-dec="{{W_M4_DEC}}">{{c:ui.cur_sym}} {{c:sections.markets.rows.3.v}}</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="{{c:sections.markets.rows.3.sym}}"><polyline points="0,20 20,23 40,19 60,21 80,15 100,18 120,12 140,14 160,10" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+    </div>
+    <p class="fine">{{c:sections.markets.disclaimer}}</p>
+  </div>
+</section>

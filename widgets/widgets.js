@@ -19,7 +19,7 @@
     setInterval(function () {
       lat.textContent = (32 + Math.round(Math.random() * 10)) + ' ms';
       ord.textContent = fmt(2900 + Math.round(Math.random() * 380));
-    }, 2600);
+    }, 1700);
   });
 
   /* ---- G1: tape-marquee (seamless tape — content duplicated) -------------- */
@@ -34,13 +34,13 @@
       prices.forEach(function (el) {
         var base = Number(el.dataset.price);
         if (isNaN(base)) return;
-        var v = base * (1 + (Math.random() - 0.5) * 0.01);
+        var v = base * (1 + (Math.random() - 0.5) * 0.024);
         var dec = el.dataset.dec ? Number(el.dataset.dec) : (base < 200 ? 2 : 0);
         el.textContent = (el.dataset.prefix || '') + fmt(v, dec);
       });
     };
     setPrices();
-    if (!reduced) setInterval(setPrices, 3200);
+    if (!reduced) setInterval(setPrices, 1100);
   }
 
   /* ---- G1: heatmap ---------------------------------------------------------- */
@@ -52,24 +52,29 @@
         t.classList.toggle('is-up', c >= 0);
         t.classList.toggle('is-down', c < 0);
         t.style.setProperty('--wk-i', Math.min(45, 14 + Math.abs(c) * 8) + '%');
+        var label = $('small', t);
+        if (label) label.textContent = (c >= 0 ? '+' : '') + fmt(c, 1) + '%';
       });
     };
     paint();
     if (!reduced) setInterval(function () {
-      tiles.forEach(function (t) { t.dataset.chg = ((Number(t.dataset.chg) || 0) + (Math.random() - 0.48) * 1.2).toFixed(1); });
+      tiles.forEach(function (t) {
+        t.dataset.chg = Math.max(-9, Math.min(9,
+          (Number(t.dataset.chg) || 0) + (Math.random() - 0.48) * 2.0)).toFixed(1);
+      });
       paint();
-    }, 4000);
+    }, 1500);
   });
 
   /* ---- G1: tile-flip -------------------------------------------------------- */
   $$('[data-widget="tile-flip"] [data-value]').forEach(function (el) {
     var base = Number(el.dataset.value) || 0;
     var step = function () {
-      var v = base * (1 + (Math.random() - 0.5) * 0.02);
+      var v = base * (1 + (Math.random() - 0.5) * 0.04);
       el.textContent = fmt(v, el.dataset.dec != null ? +el.dataset.dec : (base < 200 ? 2 : 0));
       el.classList.remove('is-flip'); void el.offsetWidth; el.classList.add('is-flip');
     };
-    if (!reduced) setInterval(step, 3000);
+    if (!reduced) setInterval(step, 1400);
   });
 
   /* ---- G1: odometer --------------------------------------------------------- */
@@ -80,7 +85,7 @@
     setInterval(function () {
       value += Math.round(Math.random() * 9) + 1;
       el.textContent = fmt(value);
-    }, 2200);
+    }, 1200);
   });
 
   /* ---- G2: countdown (shared for plates / bar / rings / flip-clock) --------- */
@@ -159,7 +164,7 @@
         bars.innerHTML = '';
         var bw = Math.max(3, (W - 14) / (N + 1) - 5);
         pts.forEach(function (v, i) {
-          var up = i === 0 || v <= pts[i - 1];
+          var up = i === 0 || v >= pts[i - 1];
           var h = Math.max(2, H - y(v));
           var r = document.createElementNS(NS, 'rect');
           r.setAttribute('x', (x(i) - bw / 2).toFixed(1));
@@ -175,7 +180,7 @@
     };
     var nudge = function (up) {
       dir = up ? 1 : -1;
-      pts = pts.map(function (v) { return Math.max(H * 0.1, Math.min(H * 0.94, v + (up ? -12 : 12) + (Math.random() - 0.5) * 8)); });
+      pts = pts.map(function (v) { return Math.max(H * 0.1, Math.min(H * 0.94, v + (up ? -24 : 24) + (Math.random() - 0.5) * 12)); });
       render();
     };
     build();
@@ -193,6 +198,35 @@
     });
     var reset = $('#demo-reset', sec);
     if (reset) reset.addEventListener('click', function () { runs = 0; if (runsOut) runsOut.textContent = '0'; build(); });
+    /* idle drift: the demo keeps breathing without pretending to be a live quote */
+    if (!reduced) setInterval(function () {
+      var last = pts[pts.length - 1];
+      var next = Math.max(H * 0.14, Math.min(H * 0.9,
+        last + (Math.random() - 0.48) * 16 + dir * 0.4));
+      pts.push(next); pts.shift(); render();
+    }, 1000);
+  });
+
+  /* ---- G3: book-ladder (simulated depth, no real quotes) ------------------ */
+  $$('[data-widget="book-ladder"]').forEach(function (box) {
+    var rows = $$('.wk-book-row', box);
+    if (!rows.length) return;
+    var base = Number(box.dataset.base) || 90000;
+    var dec = box.dataset.dec != null ? Number(box.dataset.dec) : (base < 200 ? 4 : 0);
+    var step = Math.max(base * 0.00005, dec ? Math.pow(10, -dec) : 1);
+    var mid = base;
+    var paint = function () {
+      mid = mid * (1 + (Math.random() - 0.5) * 0.0018);
+      rows.forEach(function (row) {
+        var lvl = Number(row.dataset.lvl) || 0;
+        var price = mid + lvl * step * (1 + Math.random() * 0.4);
+        var val = $('b', row), bar = $('i', row);
+        if (val) val.textContent = fmt(price, dec);
+        if (bar) bar.style.setProperty('--w', (26 + Math.random() * 64).toFixed(0) + '%');
+      });
+    };
+    paint();
+    if (!reduced) setInterval(paint, 900);
   });
 
   /* ---- G3: sentiment-gauge -------------------------------------------------- */
@@ -209,10 +243,10 @@
     if (reduced) return;
     setInterval(function () {
       var cur = Number((out && out.dataset.score) || 60);
-      var next = Math.max(15, Math.min(92, cur + Math.round((Math.random() - 0.5) * 10)));
+      var next = Math.max(15, Math.min(92, cur + Math.round((Math.random() - 0.5) * 18)));
       if (out) out.dataset.score = next;
       set(next);
-    }, 3200);
+    }, 1200);
   });
 
   /* ---- G4: faq-split -------------------------------------------------------- */

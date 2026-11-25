@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Widget review — seo-builder</title>
+<link rel="stylesheet" href="../../blocks/blocks.css?v=review2">
+<link rel="stylesheet" href="../../skins/skin-classic-border.css?v=review2">
+<link rel="stylesheet" href="../../widgets/widgets.css?v=review2">
+<style>
+  :root{--font-head:"Helvetica Neue";--font-body:"Helvetica Neue"}
+  html{scroll-behavior:smooth}
+  body[data-theme="light"]{
+    --bg:#f7f9fc;--bg-soft:#edf2f8;--panel:#ffffff;--panel-soft:#f2f6fa;
+    --ink:#0d1b2a;--muted:#5b6b7c;--line:#dbe3ec;
+    --acc:#0d3b66;--acc-deep:#082b4d;--acc-2:#2ec5d3;
+    --up:#0f9d6b;--down:#d64545;--grad:linear-gradient(120deg,#0d3b66,#2ec5d3);
+    --acc-text:#0d3b66;--btn-ink:#ffffff;--up-text:#0f7356;--down-text:#a93b3e;
+    --sec-alt:#edf2f8;--card:#ffffff;--card-ink:#0d1b2a;
+    --muted-text:#425466;--stars:#d99a35;
+  }
+  body[data-theme="dark"]{
+    --bg:#07111f;--bg-soft:#0b1929;--panel:#0f2035;--panel-soft:#0c1a2c;
+    --ink:#eaf2fb;--muted:#93a7bf;--line:rgb(234 242 251/.14);
+    --acc:#2ec5d3;--acc-deep:#0b6f8a;--acc-2:#6ee7f2;
+    --up:#4ecb8f;--down:#ff6b6b;--grad:linear-gradient(120deg,#0b3b5a,#2ec5d3);
+    --acc-text:#7de7f2;--btn-ink:#ffffff;--up-text:#6ee7a8;--down-text:#ff9b9b;
+    --sec-alt:#0b1929;--card:#12263e;--card-ink:#eaf2fb;
+    --muted-text:#a9bbd0;--stars:#e0b264;
+  }
+  .rv-bar{position:sticky;top:0;z-index:80;display:flex;align-items:center;
+    justify-content:space-between;gap:16px;padding:12px 22px;
+    background:var(--panel);border-bottom:1px solid var(--line);color:var(--ink)}
+  .rv-brand{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .rv-brand span{color:var(--muted-text);font-weight:600;letter-spacing:.04em;text-transform:none}
+  .rv-actions{display:flex;gap:6px}
+  .rv-actions button{border:1px solid var(--line);background:transparent;color:var(--muted-text);
+    border-radius:999px;padding:8px 16px;font:700 12px/1 var(--font-body);cursor:pointer}
+  .rv-actions button.is-on{border-color:var(--acc);color:var(--acc-text);background:var(--bg-soft)}
+  .rv-hero{max-width:1180px;margin:0 auto;padding:54px 22px 10px}
+  .rv-hero h1{font-size:clamp(30px,4vw,48px);margin:0 0 12px}
+  .rv-hero p{max-width:760px;margin:0;color:var(--muted-text);font-size:16px}
+  .rv-hero .rv-note{display:inline-flex;gap:8px;align-items:center;margin-top:18px;
+    font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--acc-text)}
+  .rv-cap{max-width:1180px;margin:44px auto 0;padding:18px 22px 0;border-top:1px solid var(--line);
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+  .rv-cap b{font:800 12px/1.4 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+  .rv-cap span{font-size:12px;color:var(--muted-text)}
+  .rv-foot{max-width:1180px;margin:0 auto;padding:34px 22px 80px;color:var(--muted-text);font-size:12px}
+  @media(max-width:700px){
+    .rv-bar{padding:10px 14px}
+    .rv-brand span{display:none}
+    .rv-hero{padding:34px 18px 4px}
+    .rv-cap{margin-top:30px;padding:14px 18px 0}
+    .rv-foot{padding:24px 18px 60px}
+  }
+</style>
+</head>
+<body data-theme="light">
+<div class="rv-bar">
+  <div class="rv-brand">seo-builder <span>· interactive widget review</span></div>
+  <div class="rv-actions" role="group" aria-label="Theme">
+    <button type="button" data-theme-btn="light" class="is-on">Light</button>
+    <button type="button" data-theme-btn="dark">Dark</button>
+  </div>
+</div>
+<header class="rv-hero">
+  <h1>Interactive widget layer</h1>
+  <p>G3 demo widgets and G1 live market boards, rendered from the real <code>blk-*</code> templates.
+     Every number is illustrative; the point of this page is layout, contrast and touch targets.</p>
+  <div class="rv-note">● Live simulations · no real quotes</div>
+</header>
+<main>
+<div class="rv-cap" id="w1"><b>G3 · demo-line</b><span>blocks/blk-demo-c.html — animated line + amount / horizon / up-down</span></div>
+<section class="section alt sec sec-demo sec-demo-live" data-var="c">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">LIVE DEMO</div>
+        <h2>The market, in motion</h2>
+      </div>
+      <p>Illustrative data only. Move the controls and watch the simulation react — no live quotes, no promises.</p>
+    </div>
+    <div class="dw-shell wk-root" data-widget="demo-line" data-seed="20261125">
+      <div class="wk-demo-chart dw-chart">
+        <div class="dw-chart-head">
+          <b>BTC/EUR</b>
+          <span class="dw-live"><i aria-hidden="true"></i>DEMO</span>
+        </div>
+        <svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="Illustrative market simulation chart">
+          <defs><linearGradient id="dw-line-fill" x2="0" y2="1">
+            <stop stop-color="var(--wk-acc)" stop-opacity=".3"/>
+            <stop offset="1" stop-color="var(--wk-acc)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <path id="demo-area" fill="url(#dw-line-fill)"/>
+          <path id="demo-line" fill="none" stroke="var(--wk-acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <div class="dw-chart-foot">
+          <span>This session: <b id="demo-runs">0</b></span>
+          <button type="button" id="demo-reset" class="dw-icon-btn" aria-label="Reset">↺</button>
+        </div>
+      </div>
+      <div class="wk-demo-side dw-side">
+        <div class="dw-field">
+          <label for="demo-amount">Amount <output id="demo-amount-out">500</output></label>
+          <input id="demo-amount" type="range" min="50" max="5000" step="50" value="500">
+        </div>
+        <div class="dw-field">
+          <span class="dw-label">Horizon</span>
+          <div class="wk-seg" role="group" aria-label="Horizon">
+            <button type="button" class="seg-btn is-on" data-horizon="1">1</button>
+            <button type="button" class="seg-btn" data-horizon="5">5</button>
+            <button type="button" class="seg-btn" data-horizon="15">15</button>
+          </div>
+          <small class="dw-unit">min</small>
+        </div>
+        <div class="wk-updown">
+          <button type="button" class="up-btn" data-dir="up" aria-label="Up">▲</button>
+          <button type="button" class="down-btn" data-dir="down" aria-label="Down">▼</button>
+        </div>
+      </div>
+    </div>
+    <p class="fine">Illustrative simulation — not investment advice.</p>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w2"><b>G3 · demo-bars</b><span>blocks/blk-demo-d.html — bar chart + the same controls</span></div>
+<section class="section sec sec-demo sec-demo-live" data-var="d">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">LIVE DEMO</div>
+        <h2>The market, in motion</h2>
+      </div>
+      <p>Illustrative data only. Move the controls and watch the simulation react — no live quotes, no promises.</p>
+    </div>
+    <div class="dw-shell wk-root" data-widget="demo-bars" data-seed="20261125">
+      <div class="wk-demo-chart dw-chart">
+        <div class="dw-chart-head">
+          <b>BTC/EUR</b>
+          <span class="dw-live"><i aria-hidden="true"></i>DEMO</span>
+        </div>
+        <svg id="demo-svg" viewBox="0 0 640 280" role="img" aria-label="Illustrative market simulation chart">
+          <defs><linearGradient id="dw-bars-fill" x2="0" y2="1">
+            <stop stop-color="var(--wk-acc)" stop-opacity=".22"/>
+            <stop offset="1" stop-color="var(--wk-acc)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <g id="demo-bars"></g>
+          <path id="demo-area" fill="url(#dw-bars-fill)"/>
+          <path id="demo-line" fill="none" stroke="var(--wk-acc)" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <div class="dw-chart-foot">
+          <span>This session: <b id="demo-runs">0</b></span>
+          <button type="button" id="demo-reset" class="dw-icon-btn" aria-label="Reset">↺</button>
+        </div>
+      </div>
+      <div class="wk-demo-side dw-side">
+        <div class="dw-field">
+          <label for="demo-amount">Amount <output id="demo-amount-out">500</output></label>
+          <input id="demo-amount" type="range" min="50" max="5000" step="50" value="500">
+        </div>
+        <div class="dw-field">
+          <span class="dw-label">Horizon</span>
+          <div class="wk-seg" role="group" aria-label="Horizon">
+            <button type="button" class="seg-btn is-on" data-horizon="1">1</button>
+            <button type="button" class="seg-btn" data-horizon="5">5</button>
+            <button type="button" class="seg-btn" data-horizon="15">15</button>
+          </div>
+          <small class="dw-unit">min</small>
+        </div>
+        <div class="wk-updown">
+          <button type="button" class="up-btn" data-dir="up" aria-label="Up">▲</button>
+          <button type="button" class="down-btn" data-dir="down" aria-label="Down">▼</button>
+        </div>
+      </div>
+    </div>
+    <p class="fine">Illustrative simulation — not investment advice.</p>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w3"><b>G3 · sentiment-gauge</b><span>blocks/blk-demo-e.html — animated 0–100 sentiment needle</span></div>
+<section class="section sec sec-demo sec-demo-gauge" data-var="e">
+  <div class="wrap dw-split">
+    <div class="dw-copy">
+      <div class="eyebrow">LIVE DEMO</div>
+      <h2>The market, in motion</h2>
+      <p>Illustrative data only. Move the controls and watch the simulation react — no live quotes, no promises.</p>
+      <p class="fine">Illustrative simulation — not investment advice.</p>
+    </div>
+    <div class="dw-card wk-root dw-gauge-card">
+      <span class="dw-card-tag">LIVE DEMO</span>
+      <div class="wk-gauge" data-widget="sentiment-gauge" role="img" aria-label="The market, in motion">
+        <svg viewBox="0 0 220 120" aria-hidden="true">
+          <path class="wk-arc" d="M20 100 A90 90 0 0 1 200 100"/>
+          <path class="wk-arc-fill" d="M20 100 A90 90 0 0 1 200 100" stroke-dasharray="172 999"/>
+          <line class="wk-needle" x1="110" y1="100" x2="110" y2="30"/>
+          <circle cx="110" cy="100" r="5" fill="var(--wk-ink)"/>
+        </svg>
+        <b><span data-score data-score="44">44</span></b>
+      </div>
+      <div class="dw-scale" aria-hidden="true"><span>0</span><span>50</span><span>100</span></div>
+    </div>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w4"><b>G3 · book-ladder</b><span>blocks/blk-demo-f.html — simulated bid/ask depth</span></div>
+<section class="section alt sec sec-demo sec-demo-book" data-var="f">
+  <div class="wrap dw-split">
+    <div class="dw-copy">
+      <div class="eyebrow">LIVE DEMO</div>
+      <h2>The market, in motion</h2>
+      <p>Illustrative data only. Move the controls and watch the simulation react — no live quotes, no promises.</p>
+      <p class="fine">Illustrative simulation — not investment advice.</p>
+    </div>
+    <div class="dw-card wk-root dw-book-card">
+      <div class="dw-book-head">
+        <b>BTC/EUR</b>
+        <span class="dw-live"><i aria-hidden="true"></i>DEMO</span>
+      </div>
+      <div class="wk-book" data-widget="book-ladder" data-base="87450" data-dec="0" role="img" aria-label="The market, in motion">
+        <div class="wk-book-row bid" data-lvl="-3"><span>BID</span><b>—</b><i></i></div>
+        <div class="wk-book-row bid" data-lvl="-2"><span>BID</span><b>—</b><i></i></div>
+        <div class="wk-book-row bid" data-lvl="-1"><span>BID</span><b>—</b><i></i></div>
+        <div class="wk-book-row ask" data-lvl="1"><span>ASK</span><b>—</b><i></i></div>
+        <div class="wk-book-row ask" data-lvl="2"><span>ASK</span><b>—</b><i></i></div>
+        <div class="wk-book-row ask" data-lvl="3"><span>ASK</span><b>—</b><i></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w5"><b>G1 · heatmap</b><span>blocks/blk-markets-d.html — live market heat map</span></div>
+<section class="section alt sec sec-markets" data-var="d">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">MARKET BOARD</div>
+        <h2>Live market widgets</h2>
+      </div>
+      <p>Indicative values refreshed in the interface. Nothing here is a real quote or an execution price.</p>
+    </div>
+    <div class="wk-heatmap wk-root" data-widget="heatmap" role="img" aria-label="Live market widgets">
+      <span data-chg="+2.4">BTC/EUR<small>+2.4%</small></span>
+      <span data-chg="-0.8">ETH/EUR<small>-0.8%</small></span>
+      <span data-chg="+0.6">INDEX EU<small>+0.6%</small></span>
+      <span data-chg="+0.3">GOLD/EUR<small>+0.3%</small></span>
+    </div>
+    <p class="fine">Illustrative values only — no promise of execution at these levels.</p>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w6"><b>G1 · listino-rows</b><span>blocks/blk-markets-e.html — live price list</span></div>
+<section class="section sec sec-markets" data-var="e">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">MARKET BOARD</div>
+        <h2>Live market widgets</h2>
+      </div>
+      <p>Indicative values refreshed in the interface. Nothing here is a real quote or an execution price.</p>
+    </div>
+    <div class="wk-listino wk-root" data-widget="listino-rows">
+      <article class="wk-row">
+        <div class="wk-top"><b>BTC/EUR</b></div>
+        <div class="wk-val" data-price="87450" data-dec="0">87,450</div>
+        <div class="wk-chg wk-up">+2.4%</div>
+      </article>
+      <article class="wk-row">
+        <div class="wk-top"><b>ETH/EUR</b></div>
+        <div class="wk-val" data-price="3120" data-dec="0">3,120</div>
+        <div class="wk-chg wk-down">-0.8%</div>
+      </article>
+      <article class="wk-row">
+        <div class="wk-top"><b>INDEX EU</b></div>
+        <div class="wk-val" data-price="4986" data-dec="0">4,986</div>
+        <div class="wk-chg wk-up">+0.6%</div>
+      </article>
+      <article class="wk-row">
+        <div class="wk-top"><b>GOLD/EUR</b></div>
+        <div class="wk-val" data-price="2284" data-dec="0">2,284</div>
+        <div class="wk-chg wk-up">+0.3%</div>
+      </article>
+    </div>
+    <p class="fine">Illustrative values only — no promise of execution at these levels.</p>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w7"><b>G1 · price-board</b><span>blocks/blk-markets-f.html — sparkline cards</span></div>
+<section class="section alt sec sec-markets" data-var="f">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">MARKET BOARD</div>
+        <h2>Live market widgets</h2>
+      </div>
+      <p>Indicative values refreshed in the interface. Nothing here is a real quote or an execution price.</p>
+    </div>
+    <div class="wk-board wk-root" data-widget="price-board">
+      <article class="wk-card">
+        <div class="wk-top">BTC/EUR</div>
+        <div class="wk-val" data-price="87450" data-prefix="€ " data-dec="0">€ 87,450</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="BTC/EUR"><polyline points="0,26 20,22 40,24 60,16 80,18 100,10 120,13 140,7 160,9" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">ETH/EUR</div>
+        <div class="wk-val" data-price="3120" data-prefix="€ " data-dec="0">€ 3,120</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="ETH/EUR"><polyline points="0,12 20,16 40,14 60,20 80,17 100,24 120,21 140,27 160,25" fill="none" stroke="var(--wk-down)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">INDEX EU</div>
+        <div class="wk-val" data-price="4986" data-prefix="€ " data-dec="0">€ 4,986</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="INDEX EU"><polyline points="0,22 20,18 40,20 60,14 80,16 100,8 120,11 140,5 160,7" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+      <article class="wk-card">
+        <div class="wk-top">GOLD/EUR</div>
+        <div class="wk-val" data-price="2284" data-prefix="€ " data-dec="0">€ 2,284</div>
+        <svg viewBox="0 0 160 34" role="img" aria-label="GOLD/EUR"><polyline points="0,20 20,23 40,19 60,21 80,15 100,18 120,12 140,14 160,10" fill="none" stroke="var(--wk-up)" stroke-width="2"/></svg>
+      </article>
+    </div>
+    <p class="fine">Illustrative values only — no promise of execution at these levels.</p>
+  </div>
+</section>
+
+
+<div class="rv-cap" id="w8"><b>G1 · tile-flip</b><span>blocks/blk-markets-g.html — flipping value tiles</span></div>
+<section class="section sec sec-markets" data-var="g">
+  <div class="wrap">
+    <div class="dw-head">
+      <div>
+        <div class="eyebrow">MARKET BOARD</div>
+        <h2>Live market widgets</h2>
+      </div>
+      <p>Indicative values refreshed in the interface. Nothing here is a real quote or an execution price.</p>
+    </div>
+    <div class="wk-tiles wk-root" data-widget="tile-flip">
+      <div class="wk-tile">
+        <article>
+          <small>BTC/EUR</small>
+          <b data-value="87450" data-dec="0">87,450</b>
+          <em class="wk-up">+2.4%</em>
+        </article>
+      </div>
+      <div class="wk-tile">
+        <article>
+          <small>ETH/EUR</small>
+          <b data-value="3120" data-dec="0">3,120</b>
+          <em class="wk-down">-0.8%</em>
+        </article>
+      </div>
+      <div class="wk-tile">
+        <article>
+          <small>INDEX EU</small>
+          <b data-value="4986" data-dec="0">4,986</b>
+          <em class="wk-up">+0.6%</em>
+        </article>
+      </div>
+      <div class="wk-tile">
+        <article>
+          <small>GOLD/EUR</small>
+          <b data-value="2284" data-dec="0">2,284</b>
+          <em class="wk-up">+0.3%</em>
+        </article>
+      </div>
+    </div>
+    <p class="fine">Illustrative values only — no promise of execution at these levels.</p>
+  </div>
+</section>
+
+
+</main>
+<footer class="rv-foot">Static review page · no PHP, no build step, no deployment. Toggle Light / Dark in the top bar.</footer>
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var initial = q.get('theme') === 'dark' ? 'dark' : 'light';
+    document.body.dataset.theme = initial;
+    document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+      b.classList.toggle('is-on', b.dataset.themeBtn === initial);
+    });
+    document.querySelectorAll('[data-theme-btn]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.body.dataset.theme = btn.dataset.themeBtn;
+        document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+          b.classList.toggle('is-on', b === btn);
+        });
+      });
+    });
+  })();
+</script>
+<script src="../../widgets/widgets.js?v=review2"></script>
+</body>
+</html>

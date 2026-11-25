@@ -237,6 +237,75 @@ UI_L10N = {
     "nb": ("Hovednavigasjon", "Meny", "Gjenstående tid", "Simuleringens graf"),
     "en": ("Main navigation", "Menu", "Time left to claim", "Simulation chart"),
 }
+# Short control words for the interactive demo widgets (G3). Tuple order:
+# amount · horizon · minute unit · up · down · session · reset · bid · ask · demo.
+WIDGET_L10N = {
+    "it": ("Importo", "Orizzonte", "min", "Su", "Giù", "Questa sessione", "Azzera", "BID", "ASK", "DEMO"),
+    "cs": ("Částka", "Horizont", "min", "Nahoru", "Dolů", "Tato relace", "Vynulovat", "BID", "ASK", "DEMO"),
+    "sk": ("Suma", "Horizont", "min", "Nahor", "Nadol", "Táto relácia", "Vynulovať", "BID", "ASK", "DEMO"),
+    "pl": ("Kwota", "Horyzont", "min", "W górę", "W dół", "Ta sesja", "Resetuj", "BID", "ASK", "DEMO"),
+    "de": ("Betrag", "Horizont", "Min.", "Aufwärts", "Abwärts", "Diese Sitzung", "Zurücksetzen", "BID", "ASK", "DEMO"),
+    "fr": ("Montant", "Horizon", "min", "Hausse", "Baisse", "Cette session", "Réinitialiser", "ACHAT", "VENTE", "DÉMO"),
+    "es": ("Importe", "Horizonte", "min", "Sube", "Baja", "Esta sesión", "Reiniciar", "COMPRA", "VENTA", "DEMO"),
+    "pt": ("Valor", "Horizonte", "min", "Alta", "Baixa", "Esta sessão", "Reiniciar", "COMPRA", "VENDA", "DEMO"),
+    "nl": ("Bedrag", "Horizon", "min", "Omhoog", "Omlaag", "Deze sessie", "Resetten", "BOD", "ASK", "DEMO"),
+    "hu": ("Összeg", "Időtáv", "perc", "Fel", "Le", "Ez a munkamenet", "Visszaállítás", "VÉTEL", "ELADÁS", "DEMO"),
+    "ro": ("Sumă", "Orizont", "min", "Sus", "Jos", "Această sesiune", "Resetare", "CUMPĂRARE", "VÂNZARE", "DEMO"),
+    "bg": ("Сума", "Хоризонт", "мин", "Нагоре", "Надолу", "Тази сесия", "Нулиране", "КУПУВАНЕ", "ПРОДАЖБА", "ДЕМО"),
+    "el": ("Ποσό", "Ορίζοντας", "λεπ.", "Πάνω", "Κάτω", "Αυτή η συνεδρία", "Επαναφορά", "ΑΓΟΡΑ", "ΠΩΛΗΣΗ", "DEMO"),
+    "hr": ("Iznos", "Horizont", "min", "Gore", "Dolje", "Ova sesija", "Poništi", "KUPNJA", "PRODAJA", "DEMO"),
+    "sl": ("Znesek", "Obzorje", "min", "Gor", "Dol", "Ta seja", "Ponastavi", "NAKUP", "PRODAJA", "DEMO"),
+    "lt": ("Suma", "Horizontas", "min.", "Aukštyn", "Žemyn", "Ši sesija", "Atstatyti", "PIRKTI", "PARDUOTI", "DEMO"),
+    "lv": ("Summa", "Horizonts", "min.", "Uz augšu", "Uz leju", "Šī sesija", "Atiestatīt", "PIRKT", "PĀRDOT", "DEMO"),
+    "et": ("Summa", "Horisont", "min", "Üles", "Alla", "See seanss", "Lähtesta", "OSTU", "MÜÜK", "DEMO"),
+    "fi": ("Summa", "Aikaväli", "min", "Ylös", "Alas", "Tämä istunto", "Nollaa", "OSTA", "MYY", "DEMO"),
+    "sv": ("Belopp", "Horisont", "min", "Upp", "Ner", "Denna session", "Återställ", "KÖP", "SÄLJ", "DEMO"),
+    "da": ("Beløb", "Horisont", "min", "Op", "Ned", "Denne session", "Nulstil", "KØB", "SALG", "DEMO"),
+    "nb": ("Beløp", "Horisont", "min", "Opp", "Ned", "Denne økten", "Tilbakestill", "KJØP", "SALG", "DEMO"),
+    "en": ("Amount", "Horizon", "min", "Up", "Down", "This session", "Reset", "BID", "ASK", "DEMO"),
+}
+
+def widget_subs(plan, C) -> dict:
+    """Token subs for the interactive demo/market widgets (controls + seeded values).
+
+    Visible headings stay in the content pack (sections.demo / sections.markets);
+    only short control words live here, so every language gets readable buttons.
+    """
+    lang = plan["params"].get("lang", "en")
+    amount, horizon, minute, up, down, session, reset, bid, ask, demo = \
+        WIDGET_L10N.get(lang) or WIDGET_L10N["en"]
+    seed = int(plan.get("seed") or 0)
+    rows = ((C.get("sections") or {}).get("markets") or {}).get("rows") or []
+    base = _num((rows[0] or {}).get("v")) if rows else None
+    if not base or base <= 0:
+        base = 87450
+    dec = 0 if base >= 1000 else (2 if base >= 100 else 4)
+    out = {
+        "{{W_AMOUNT}}": amount, "{{W_HORIZON}}": horizon, "{{W_MIN}}": minute,
+        "{{W_UP}}": up, "{{W_DOWN}}": down, "{{W_SESSION}}": session,
+        "{{W_RESET}}": reset, "{{W_BID}}": bid, "{{W_ASK}}": ask, "{{W_DEMO}}": demo,
+        "{{W_SCORE}}": str(42 + (seed * 37) % 31),
+        "{{W_BOOK_BASE}}": f"{base:.{dec}f}", "{{W_BOOK_DEC}}": str(dec),
+    }
+    # market rows for the live boards: data-* values must stay dot-formatted so JS
+    # parseFloat/Number can read them; visible copy still comes from the content pack.
+    fallback = ((87450, 2.4), (3120, -0.8), (4986, 0.6), (2284, 0.3))
+    for i in range(4):
+        row = rows[i] if i < len(rows) else {}
+        val = _num(row.get("v")) if row else None
+        chg = _num(row.get("chg")) if row else None
+        if val is None or val <= 0:
+            val = fallback[i][0]
+        if chg is None:
+            chg = fallback[i][1]
+        vdec = 0 if val >= 1000 else (2 if val >= 100 else 4)
+        n = i + 1
+        out[f"{{{{W_M{n}_P}}}}"] = f"{val:.{vdec}f}"
+        out[f"{{{{W_M{n}_DEC}}}}"] = str(vdec)
+        out[f"{{{{W_M{n}_CHG}}}}"] = f"{chg:+.1f}"
+        out[f"{{{{W_M{n}_DIR}}}}"] = "up" if chg >= 0 else "down"
+    return out
+
 # thanks.php eyebrow fallback (the pack usually supplies it; the default used to be
 # the English word "DONE" on every locale)
 THANKS_EYEBROW = {"it": "CONFERMATO", "cs": "POTVRZENO", "sk": "POTVRDENÉ", "pl": "POTWIERDZONE",
@@ -474,19 +543,33 @@ def ui_defaults(C: dict, plan) -> None:
             ui[key] = val
 
 def _num(v):
-    """'31.500' / '2.930,80' / '41 ms' → float (locale-agnostic)."""
-    m = re.search(r"\d[\d\s.,]*", str(v or ""))
+    """'31.500' / '2.930,80' / '-0,8 %' / '1.0842' → float (locale-agnostic)."""
+    m = re.search(r"[−-]?\d[\d\s.,]*", str(v or ""))
     if not m:
         return None
     t = m.group(0).replace(" ", "")
+    neg = t[0] in "-−"
+    if neg:
+        t = t[1:]
     if "," in t and "." in t:
-        t = t.replace(".", "").replace(",", ".")
-    elif t.count(",") == 1 and len(t.split(",")[-1]) <= 2:
-        t = t.replace(",", ".")
-    else:
-        t = t.replace(",", "").replace(".", "")
+        # the LAST separator is the decimal one, the other groups thousands
+        if t.rfind(",") > t.rfind("."):
+            t = t.replace(".", "").replace(",", ".")
+        else:
+            t = t.replace(",", "")
+    elif t.count(",") == 1:
+        head, tail = t.split(",")
+        # 3-digit tail = thousands group ("87,450"); 1/2/4 = decimal ("2,4")
+        t = t.replace(",", ".") if len(tail) in (1, 2, 4) else t.replace(",", "")
+    elif t.count(".") == 1:
+        head, tail = t.split(".")
+        # "87.450" is a thousands group; "2.4" and "1.0842" are decimals
+        if not (len(tail) in (1, 2, 4) or len(head) > 3):
+            t = t.replace(".", "")
+    elif "." in t:
+        t = t.replace(".", "")
     try:
-        return float(t)
+        return float(t) * (-1 if neg else 1)
     except ValueError:
         return None
 
@@ -644,6 +727,17 @@ def validate_plan(plan: dict) -> None:
            and not (BLOCKS / f"blk-{slot}-{var}.html").exists() \
            and not (BLOCKS / f"{canon}-{var}.html").exists():
             die(f"variant fragment missing: {canon}-{var}.html")
+    _we = (plan["layout"].get("widget_embed") or {})
+    if _we and _we.get("slot") not in order:
+        die(f"widget_embed host not in section_order: {_we.get('slot')!r}")
+    if _we and _we.get("kind") not in ("calculator", "pulse-sim", "demo-line", "demo-bars",
+                                       "sentiment-gauge", "book-ladder"):
+        die(f"widget_embed kind unknown: {_we.get('kind')!r}")
+    _me = (plan["layout"].get("market_embed") or {})
+    if _me and _me.get("slot") not in order:
+        die(f"market_embed host not in section_order: {_me.get('slot')!r}")
+    if _me and _me.get("kind") not in ("heatmap", "listino-rows", "price-board", "tile-flip"):
+        die(f"market_embed kind unknown: {_me.get('kind')!r}")
     if not (10 <= len(order) <= 18): die(f"section_order len {len(order)} out of range 10..18")
     if not ({"faq", "people", "facts", "security", "compare"} & set(order)):
         die("section_order needs a trust screen (faq/people/facts/security/compare)")
@@ -1134,6 +1228,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <meta name="twitter:image:alt" content="{esc(title)}">
 <link rel="stylesheet" href="blocks/blocks.css?v={BUILD_V}">
 <link rel="stylesheet" href="skin.css?v={BUILD_V}">
+<link rel="stylesheet" href="widgets.css?v={BUILD_V}">
 {blog_css}<style>@import url('{fonts_import}');</style>
 {dom_css}
 {INC_HEAD}
@@ -1142,6 +1237,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <body>
 {body}
 {INC_FOOT}
+<script src="widgets.js?v={BUILD_V}"></script>
 <script src="app.js?v={BUILD_V}"></script>
 <script src="calculator.js?v={BUILD_V}"></script>
 <script src="pulse-sim.js?v={BUILD_V}"></script>
@@ -1204,6 +1300,7 @@ def R(name: str, plan, C, **kw) -> str:
         "{{TRUST_LOGOS}}": trust_logos_html(plan),
         "{{PARTNER_GRID}}": partner_grid_html(plan),
     }
+    subs.update(widget_subs(plan, C))
     if name == "pulse-sim":
         for k, v in ((plan.get("pulse_sim") or {}).get("subs") or {}).items():
             subs["{{" + k + "}}"] = v
@@ -1251,6 +1348,110 @@ def R(name: str, plan, C, **kw) -> str:
         r"<(p|h2|h3|li)((?:(?!role=|data-|id=|aria-)[^>])*)>\s*(?:<br\s*/?>\s*)*</\1>",
         "", out)
     return out
+
+def _extract_div(html: str, token: str) -> str:
+    """Return the outer <div class="…token…">…</div> with balanced nesting."""
+    m = re.search(
+        rf'<div\b[^>]*class="[^"]*(?<![\w-]){re.escape(token)}(?![\w-])[^"]*"[^>]*>',
+        html)
+    if not m:
+        return ""
+    depth, pos, start = 1, m.end(), m.start()
+    for tag in re.finditer(r'<div\b[^>]*>|</div\s*>', html[pos:], re.I):
+        if tag.group(0).lower().startswith("</div"):
+            depth -= 1
+            if depth == 0:
+                return html[start:pos + tag.end()]
+        else:
+            depth += 1
+    return ""
+
+
+def _embed_head(label: str, note: str) -> str:
+    label, note = esc(str(label or "")), esc(str(note or ""))
+    if not label and not note:
+        return ""
+    bits = []
+    if label:
+        bits.append(f'<span class="eyebrow">{label}</span>')
+    if note:
+        bits.append(f'<span class="widget-embed-note">{note}</span>')
+    return '<div class="widget-embed-head">' + "".join(bits) + "</div>"
+
+
+def widget_embed_html(plan, C, we: dict) -> str:
+    """Compact widget block injected into an existing section (never a new screen)."""
+    kind = (we or {}).get("kind") or ""
+    if kind in ("heatmap", "listino-rows", "price-board", "tile-flip"):
+        variant = we.get("variant") or {"heatmap": "d", "listino-rows": "e",
+                                        "price-board": "f", "tile-flip": "g"}[kind]
+        token = {"d": "wk-heatmap", "e": "wk-listino", "f": "wk-board", "g": "wk-tiles"}[variant]
+        variants = plan["layout"].setdefault("variants", {})
+        had = "markets" in variants
+        old = variants.get("markets")
+        variants["markets"] = variant
+        try:
+            full = R("markets", plan, C)
+        finally:
+            if had:
+                variants["markets"] = old
+            else:
+                variants.pop("markets", None)
+        body = _extract_div(full, token)
+        if not body:
+            die(f"widget embed: markets-{variant} body not found")
+        mk = ((C.get("sections") or {}).get("markets") or {})
+        return (f'<div class="wrap widget-embed market-embed wk-root" id="markets">\n'
+                f'{_embed_head(mk.get("eyebrow", ""), mk.get("disclaimer", ""))}\n'
+                f'{body}\n</div>')
+    if kind == "calculator":
+        full = R("calculator", plan, C)
+        sm = re.search(r"<section\b([^>]*)>", full)
+        data = " ".join(re.findall(r'data-[\w-]+="[^"]*"', sm.group(1))) if sm else ""
+        body = _extract_div(full, "calculator")
+        if not body:
+            die("widget embed: calculator body not found")
+        return (f'<div class="wrap widget-embed calculator-embed" id="calculator"'
+                f'{(" " + data) if data else ""}>\n'
+                f'{_embed_head((C.get("ui") or {}).get("calc_eyebrow", ""), "")}\n'
+                f'{body}\n</div>')
+    if kind == "pulse-sim":
+        full = R("pulse-sim", plan, C)
+        body = _extract_div(full, "ps-panel")
+        if not body:
+            die("widget embed: pulse-sim panel not found")
+        ps = ((plan.get("pulse_sim") or {}).get("subs") or {})
+        return (f'<div class="wrap widget-embed pulse-embed sec-pulse-sim" id="pulse-sim">\n'
+                f'{_embed_head(ps.get("PS_EYEBROW", ""), ps.get("PS_NOTE", ""))}\n'
+                f'{body}\n</div>')
+    # demo-line / demo-bars / sentiment-gauge / book-ladder
+    variant = we.get("variant") or "c"
+    variants = plan["layout"].setdefault("variants", {})
+    had_demo = "demo" in variants
+    old_demo = variants.get("demo")
+    variants["demo"] = variant
+    try:
+        full = R("demo", plan, C)
+    finally:
+        if had_demo:
+            variants["demo"] = old_demo
+        else:
+            variants.pop("demo", None)
+    body = _extract_div(full, "dw-shell") or _extract_div(full, "dw-card")
+    if not body:
+        die(f"widget embed: demo-{variant} body not found")
+    demo = ((C.get("sections") or {}).get("demo") or {})
+    return (f'<div class="wrap widget-embed demo-embed wk-root" id="demo">\n'
+            f'{_embed_head(demo.get("eyebrow", ""), demo.get("disclaimer", ""))}\n'
+            f'{body}\n</div>')
+
+
+def inject_widget_embed(html: str, block: str) -> str:
+    if not block:
+        return html
+    i = html.rfind("</section>")
+    return html if i < 0 else html[:i] + block + "\n" + html[i:]
+
 
 def logo_html(plan) -> str:
     """Brand mark: the word stays lowercase (CLAUDE rule), the treatment varies per plan."""
@@ -1509,6 +1710,10 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     SLOT_REMAP = {  # sections sharing schema intro key -> distinct content paths
         "stats-intro": "sections.stats.", "intro-center": "sections.ladder.",
     }
+    embeds = {}
+    for _we in (plan["layout"].get("widget_embed"), plan["layout"].get("market_embed")):
+        if _we and _we.get("slot"):
+            embeds.setdefault(_we["slot"], []).append(_we)
     i = 0
     while i < len(order):
         slot = order[i]
@@ -1529,6 +1734,8 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
         html = R(slot, plan, C)
         if slot in SLOT_REMAP:
             html = html.replace("c:sections.intro.", SLOT_REMAP[slot])
+        for _we in embeds.get(slot, ()):
+            html = inject_widget_embed(html, widget_embed_html(plan, C, _we))
         body_parts.append(html)
         i += 1
     if B and (plan.get("blog") or {}).get("enabled"):
@@ -2070,12 +2277,17 @@ def write_assets(out: pathlib.Path, plan):
     lf = BLOCKS / "lead-form.js"
     cf = BLOCKS / "calculator.js"
     ps = BLOCKS / "pulse-sim.js"
+    wc = ROOT / "widgets" / "widgets.css"
+    wj = ROOT / "widgets" / "widgets.js"
     if not lf.exists(): die("blocks/lead-form.js missing (canonical lead form logic)")
     if not cf.exists(): die("blocks/calculator.js missing (canonical calculator engine)")
     if not ps.exists(): die("blocks/pulse-sim.js missing (canonical pulse-sim engine)")
+    if not wc.exists() or not wj.exists(): die("widgets/widgets.{css,js} missing")
     (out / "app.js").write_text(ASSETS_JS_APP, encoding="utf-8")
     (out / "calculator.js").write_text(cf.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "pulse-sim.js").write_text(ps.read_text(encoding="utf-8"), encoding="utf-8")
+    (out / "widgets.css").write_text(wc.read_text(encoding="utf-8"), encoding="utf-8")
+    (out / "widgets.js").write_text(wj.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "lead-form.js").write_text(lf.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css") if (out / "blocks").exists() else \
         ((out / "blocks").mkdir(parents=True, exist_ok=True), shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css"))
@@ -2245,7 +2457,9 @@ def cmd_build(a):
                            (SKINS / f"skin-{plan['design'].get('skin')}.css").read_bytes() +
                            (BLOCKS / "lead-form.js").read_bytes() +
                            (BLOCKS / "calculator.js").read_bytes() +
-                           (BLOCKS / "pulse-sim.js").read_bytes()).hexdigest()[:8]
+                           (BLOCKS / "pulse-sim.js").read_bytes() +
+                           (ROOT / "widgets" / "widgets.css").read_bytes() +
+                           (ROOT / "widgets" / "widgets.js").read_bytes()).hexdigest()[:8]
     # blog_assemble imports this file as `assemble` while the CLI runs it as `__main__`;
     # keep both module instances on the same cache-busting hash (otherwise blog pages
     # shipped ?v=0 and cached the old CSS for 30 days).

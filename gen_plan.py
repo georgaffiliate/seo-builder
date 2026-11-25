@@ -76,6 +76,55 @@ WIDGET_GROUPS = {
     "G4": ["faq-accordion", "faq-list", "faq-grid", "faq-split"],
     "G5": ["stats-band", "quick-answer", "rating-summary", "rating-band"],
 }
+# G3 values that render as real interactive sections (the same rotation axis as
+# calculator / pulse-sim). Slot name -> variant fragment (blocks/blk-demo-<v>.html).
+G3_DEMO_LAYOUTS = {"demo-line": "c", "demo-bars": "d",
+                    "sentiment-gauge": "e", "book-ladder": "f"}
+# G1 market-widget draws map onto real markets layouts (live boards, not labels).
+G1_MARKET_LAYOUTS = {"heatmap": "d", "listino-rows": "e",
+                     "price-board": "f", "tile-flip": "g"}
+# Where a G3 widget is embedded: one of these content sections already on the page.
+# The widget is appended inside the host section, never added as its own screen.
+WIDGET_HOSTS = {
+    "demo-line": ("features", "guide", "numbers", "security", "streams", "notes", "facts", "timeline"),
+    "demo-bars": ("features", "guide", "numbers", "security", "streams", "notes", "facts", "timeline"),
+    "sentiment-gauge": ("numbers", "stats-intro", "features", "guide", "security", "notes", "facts"),
+    "book-ladder": ("markets", "ladder", "features", "guide", "numbers", "streams", "notes"),
+    "calculator": ("features", "guide", "numbers", "security", "streams", "notes", "facts", "timeline"),
+    "pulse-sim": ("markets", "features", "numbers", "guide", "streams", "notes", "facts"),
+}
+
+def choose_widget_host(order, kind: str, g1: str | None = None) -> str | None:
+    """Pick an existing section that can carry the widget without becoming a screen."""
+    prefs = list(WIDGET_HOSTS.get(kind, ()))
+    # a market host already carrying a G1 board must not get a second market widget
+    if kind in ("book-ladder", "pulse-sim") and g1 in G1_MARKET_LAYOUTS:
+        prefs = [s for s in prefs if s != "markets"]
+    for slot in prefs:
+        if slot in order:
+            return slot
+    skip = {"hero", "access-band", "claim-band", "enroll-band", "cta-band", "trust-band",
+            "faq", "mini-faq", "compare", "partners", "people", "office",
+            "calculator", "pulse-sim", "demo"}
+    for slot in order:
+        if slot not in skip and slot in SECTION_POOL:
+            return slot
+    return None
+
+MARKET_HOSTS = ("numbers", "features", "guide", "streams", "ticker", "ladder",
+                "notes", "facts", "timeline", "security", "glance", "portal")
+
+def choose_market_host(order, avoid: str | None = None) -> str | None:
+    for slot in MARKET_HOSTS:
+        if slot in order and slot != avoid:
+            return slot
+    skip = {"hero", "access-band", "claim-band", "enroll-band", "cta-band", "trust-band",
+            "faq", "mini-faq", "compare", "partners", "people", "office",
+            "calculator", "pulse-sim", "demo", "markets"}
+    for slot in order:
+        if slot not in skip and slot != avoid and slot in SECTION_POOL:
+            return slot
+    return None
 SKINS = ["rounded-air", "sharp-flat", "brutalist-block", "glass-soft",
           "classic-border", "dense-terminal"]
 # Default visual family for new offers: the navy/teal/blue "partner" layout.
@@ -496,6 +545,13 @@ def build_plan(rng, args, hist)->dict|None:
         widgets["G3"] = "demo-line"
     elif getattr(args, "pulse", "auto") == "off" and widgets["G3"] == "pulse-sim":
         widgets["G3"] = "demo-line"
+    # explicit interactive draw for testing / manual builds: any G3 value now renders
+    _interactive = getattr(args, "interactive", "auto")
+    if _interactive != "auto":
+        widgets["G3"] = _interactive
+    _market = getattr(args, "market", "auto")
+    if _market != "auto":
+        widgets["G1"] = _market
 
     # section order: prefer slot TYPES unused by neighbours and same-brand siblings,
     # hard structural caps. hero + form band are the only fixed screens; everything
@@ -521,9 +577,6 @@ def build_plan(rng, args, hist)->dict|None:
         fillers=novel + (stale if relax else [])
         form_band=rng.choice(FORM_BANDS)
         od=["hero", form_band]
-        # calculator / pulse-sim are G3 widgets: present only when G3 drew them
-        if widgets["G3"] == "calculator": od.append("calculator")
-        elif widgets["G3"] == "pulse-sim": od.append("pulse-sim")
         want=rng.randint(5,8)
         fresh_n=min(len(novel),max(novel_need(hist),rng.randint(3,5)))
         picked=novel[:fresh_n]+rng.sample(stale,k=min(len(stale),want-fresh_n)) if relax \
@@ -533,7 +586,7 @@ def build_plan(rng, args, hist)->dict|None:
         extras=[rng.choice(pool_types[t]) for t in picked]
         for s in extras:
             if s not in od: od.append(s)
-        if widgets["G1"] in {"markets-strip","price-board","listino-rows","heatmap","tile-flip"} \
+        if widgets["G1"] == "markets-strip" \
            and not ({"markets","ticker","ladder"} & {TYPE_OF.get(x,x) for x in od}):
             cand=[s for t in ("markets","ticker","ladder") for s in pool_types.get(t,[])
                   if relax or t not in banned]
@@ -621,6 +674,13 @@ def build_plan(rng, args, hist)->dict|None:
         _used = {(h.get("variants") or {}).get(_slot, "") for h in hist[-3:]}
         _pool = [v for v in _opts if v not in _used] or _opts
         variants[_slot] = rng.choice(_pool)
+
+    # G3 interactive draw decides the demo layout — the plan label and the rendered
+    # fragment can never drift apart (same rule as hero/calculator/pulse-sim)
+    if widgets["G3"] in G3_DEMO_LAYOUTS and "demo" in order:
+        variants["demo"] = G3_DEMO_LAYOUTS[widgets["G3"]]
+    if widgets["G1"] in G1_MARKET_LAYOUTS and "markets" in order:
+        variants["markets"] = G1_MARKET_LAYOUTS[widgets["G1"]]
 
     # livebar strip: a second structural axis (not a page section, always present)
     variants["livebar"]=pick_variant(rng, "livebar", VARIANTS["livebar"], hist, 2)
@@ -804,6 +864,49 @@ def build_plan(rng, args, hist)->dict|None:
     partner_badges = [k for k in ("binance", "coinbase")
                       if any(b.get("key") == k for b in TRUST_BANK)] + partner_pool[:6]
 
+    # 1) every build carries exactly one G3 interactive widget (calculator included);
+    # 2) it is embedded into an existing content section, not added as another screen.
+    if not widgets.get("G3") or widgets["G3"] == "none":
+        widgets["G3"] = rng.choice([o for o in WIDGET_GROUPS["G3"] if o != "none"])
+
+    _widget_embed = None
+    _host = choose_widget_host(order, widgets["G3"], widgets.get("G1"))
+    if _host:
+        # a random `demo` slot from the filler pool would duplicate the embed
+        if "demo" in order:
+            order.remove("demo")
+            variants.pop("demo", None)
+        _widget_embed = {"slot": _host, "kind": widgets["G3"]}
+        if widgets["G3"] in G3_DEMO_LAYOUTS:
+            _widget_embed["variant"] = G3_DEMO_LAYOUTS[widgets["G3"]]
+    else:
+        # no suitable host on this page: keep the old dedicated section as a fallback
+        if widgets["G3"] == "calculator":
+            if "calculator" not in order: order.insert(2, "calculator")
+            for extra in ("intro-center", "intro", "stats-intro"):
+                if extra in order:
+                    order.remove(extra); variants.pop(extra, None)
+        elif widgets["G3"] == "pulse-sim":
+            if "pulse-sim" not in order: order.insert(2, "pulse-sim")
+        else:
+            if "demo" not in order: order.insert(2, "demo")
+            variants["demo"] = G3_DEMO_LAYOUTS[widgets["G3"]]
+
+    # G1 market boards follow the same rule: reuse an existing markets section, or
+    # embed the board into a content section — never add another full screen.
+    _market_embed = None
+    if widgets["G1"] in G1_MARKET_LAYOUTS:
+        if "markets" in order:
+            variants["markets"] = G1_MARKET_LAYOUTS[widgets["G1"]]
+        else:
+            _mhost = choose_market_host(order, avoid=_host)
+            if _mhost:
+                _market_embed = {"slot": _mhost, "kind": widgets["G1"],
+                                 "variant": G1_MARKET_LAYOUTS[widgets["G1"]]}
+            else:
+                order.append("markets")
+                variants["markets"] = G1_MARKET_LAYOUTS[widgets["G1"]]
+
     plan = {
         "seed":args.seed, "product":"static-create-sites",
         "params":{"brand":args.brand,"geo":args.geo,"geo_short":(args.cc or LANG2CC.get(args.lang,"")).upper(),
@@ -814,7 +917,8 @@ def build_plan(rng, args, hist)->dict|None:
         "regulator":regulator(args.lang, args.cc or ""),
         "design":{"palette_id":pal["id"],"theme":pal["theme"],"skin":skin,
                    "font_pair":pal["font_pair"],"fonts":{"head":pal["font_head"],"body":pal["font_body"]}},
-        "layout":{"hero":hero,"section_order":order,"variants":variants,"menu":menu,"slugs":slugs},
+        "layout":{"hero":hero,"section_order":order,"variants":variants,"menu":menu,"slugs":slugs,
+                  "widget_embed":_widget_embed, "market_embed":_market_embed},
         "structure":{"order_hash":hashlib.sha1(("|".join(order)).encode()).hexdigest()[:10],
                       "variant_hash":hashlib.sha1(("|".join(f"{k}:{v}" for k,v in sorted(variants.items()))).encode()).hexdigest()[:10],
                       "novel_slots":sorted(set(order)-{t for h in hist[-1:] for t in h["order"]})},
@@ -1165,6 +1269,44 @@ def build_pulse_sim(rng, lang: str) -> dict:
 # ---------------------------------------------------------------- validate ---
 def validate(plan,hist)->list[str]:
     errs=[]; last2=hist[-2:]
+    # a G3 widget must exist and be embedded into a real section (or, as a fallback,
+    # render as its own section) — the plan label and the rendered block cannot drift
+    _g3 = (plan.get("widgets") or {}).get("G3")
+    if not _g3 or _g3 == "none":
+        errs.append("widgets.G3 is empty/none — every build must carry one widget")
+    _we = (plan.get("layout") or {}).get("widget_embed") or {}
+    if _we:
+        if _we.get("slot") not in plan["layout"]["section_order"]:
+            errs.append(f"widget_embed host {_we.get('slot')!r} is not on the page")
+        if _we.get("kind") != _g3:
+            errs.append(f"widget_embed kind {_we.get('kind')!r} != widgets.G3 {_g3!r}")
+        if _g3 in G3_DEMO_LAYOUTS and _we.get("variant") != G3_DEMO_LAYOUTS[_g3]:
+            errs.append(f"widget_embed variant does not match widgets.G3={_g3}")
+    else:
+        if _g3 == "calculator" and "calculator" not in plan["layout"]["section_order"]:
+            errs.append("G3=calculator has neither an embed host nor a calculator section")
+        if _g3 == "pulse-sim" and "pulse-sim" not in plan["layout"]["section_order"]:
+            errs.append("G3=pulse-sim has neither an embed host nor a pulse-sim section")
+        if _g3 in G3_DEMO_LAYOUTS:
+            if "demo" not in plan["layout"]["section_order"]:
+                errs.append(f"widgets.G3={_g3} has neither an embed host nor a demo section")
+            elif (plan["layout"].get("variants") or {}).get("demo") != G3_DEMO_LAYOUTS[_g3]:
+                errs.append(f"demo variant does not match widgets.G3={_g3}")
+    _g1 = (plan.get("widgets") or {}).get("G1")
+    if _g1 in G1_MARKET_LAYOUTS:
+        _me = (plan.get("layout") or {}).get("market_embed") or {}
+        if "markets" in plan["layout"]["section_order"]:
+            if (plan["layout"].get("variants") or {}).get("markets") != G1_MARKET_LAYOUTS[_g1]:
+                errs.append(f"markets variant does not match widgets.G1={_g1}")
+        elif _me:
+            if _me.get("slot") not in plan["layout"]["section_order"]:
+                errs.append(f"market_embed host {_me.get('slot')!r} is not on the page")
+            if _me.get("kind") != _g1:
+                errs.append(f"market_embed kind {_me.get('kind')!r} != widgets.G1 {_g1!r}")
+            if _me.get("variant") != G1_MARKET_LAYOUTS[_g1]:
+                errs.append(f"market_embed variant does not match widgets.G1={_g1}")
+        else:
+            errs.append(f"widgets.G1={_g1} has neither a markets section nor an embed host")
     ws=frozenset(plan["widgets"].values())
     for h in hist:
         if h["widgets"] and ws==frozenset(h["widgets"]):
@@ -1491,6 +1633,12 @@ def main():
                     help="calculator (G3 widget): on/off forces it, auto follows the G3 draw")
     ap.add_argument("--pulse",choices=("auto","on","off"),default="auto",
                     help="pulse-sim (G3 market simulator): on/off forces it, auto follows the G3 draw")
+    ap.add_argument("--interactive",choices=("auto",)+tuple(o for o in WIDGET_GROUPS["G3"] if o != "none"),default="auto",
+                    help="force the G3 interactive draw (calculator, pulse-sim, demo-line, "
+                         "demo-bars, sentiment-gauge, book-ladder); auto follows the rotation")
+    ap.add_argument("--market",choices=("auto",)+tuple(G1_MARKET_LAYOUTS),default="auto",
+                    help="force the G1 live market widget (heatmap, listino-rows, price-board, "
+                         "tile-flip); auto follows the rotation")
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--offline",action="store_true",
                     help="build copy from the language bank only (tests / no API key)")
@@ -1555,6 +1703,12 @@ def main():
     print(f"  hero     : {d['layout']['hero']}")
     print(f"  order    : {' -> '.join(d['layout']['section_order'])}")
     print(f"  widgets  : "+" ".join(f"{g}:{w}" for g,w in sorted(d['widgets'].items())))
+    _we = d['layout'].get('widget_embed') or {}
+    if _we:
+        print(f"  widget   : {_we.get('kind')} embedded in {_we.get('slot')}")
+    _me = d['layout'].get('market_embed') or {}
+    if _me:
+        print(f"  market   : {_me.get('kind')} embedded in {_me.get('slot')}")
     print(f"  numbers  : rating {d['numbers']['rating']} · reviews {d['numbers']['reviews']} · users {d['numbers']['users']} · {d['numbers']['latency_ms']} ms")
     print(f"  people   : {', '.join(d['people'])}" + (f"  · photos: {', '.join(d['photos'])}" if d['photos'] else ""))
     if d.get("regulator"): print(f"  regulator: {d['regulator']['name']} ({d['regulator']['country']})")

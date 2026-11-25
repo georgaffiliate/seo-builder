@@ -325,6 +325,9 @@ def audit_market_prices(html):
         if not num:
             continue
         token = num.group(1)
+        # "BTC/EUR +2,4 %" is a change, not a second price for the pair
+        if re.match(r"\s*%", text[m.end() + num.end():m.end() + num.end() + 4]):
+            continue
         # a bare integer ("500 miliardi", "3 giorni") is not a quote: prices in these
         # templates always carry a decimal or a thousands separator
         if "." not in token and "," not in token and len(token) < 4:

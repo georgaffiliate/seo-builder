@@ -19,7 +19,9 @@ chk(len(blks) >= 20, f"canonical blk-fragments present ({len(blks)})")
 chk((ROOT / "blocks" / "blocks.css").exists(), "blocks.css present")
 need_frag = {"blk-hero", "blk-band-access", "blk-faq", "blk-reviews", "blk-scarcity",
               "blk-cta", "blk-office", "blk-brandnote", "blk-calculator", "blk-livebar",
-              "blk-pulse-sim", "blk-guide", "blk-appshot", "blk-partners"}
+              "blk-pulse-sim", "blk-guide", "blk-appshot", "blk-partners",
+              "blk-demo-c", "blk-demo-d", "blk-demo-e", "blk-demo-f",
+              "blk-markets-d", "blk-markets-e", "blk-markets-f", "blk-markets-g"}
 names = {b.stem for b in blks}
 chk(need_frag <= names, f"critical fragments: {sorted(need_frag - names) or 'all present'}")
 # form contract inside fragments (hidden identity fields live server-side in api.php)
@@ -111,8 +113,14 @@ chk(_healed.count("The same long paragraph") == 2 and 'aria-hidden="true"' in _h
     "page self-heal: duplicate paragraph dropped, brand spacing fixed")
 chk(_sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>87.450</td>") == {}
     and _sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> <td>BTC/EUR</td><td>5.320,50</td>") != {}
-    and _sa2.audit_market_prices("EUR/USD 500 miliardi e EUR/USD 1,0842") == {},
-    "price gate: same symbol twice is caught, prose numbers are not a quote")
+    and _sa2.audit_market_prices("EUR/USD 500 miliardi e EUR/USD 1,0842") == {}
+    and _sa2.audit_market_prices("<td>BTC/EUR</td><td>87.450</td> "
+                                 "<span>BTC/EUR<small>+2,4 %</small></span>") == {},
+    "price gate: same symbol twice is caught, prose/percent numbers are not a quote")
+chk(_asm3._num("+2.4%") == 2.4 and _asm3._num("-0,8 %") == -0.8
+    and _asm3._num("87.450") == 87450 and _asm3._num("1.0842") == 1.0842
+    and _asm3._num("2.930,80") == 2930.8,
+    "number parser: decimals and thousands both resolved")
 import content_gen as _cg
 chk({k: v.strip() for k, v in _cg.PHONE_CC.items()} == _asm3.PHONE_CC,
     "phone prefixes: assemble mirrors content_gen (non-EU countries included)")
@@ -392,6 +400,28 @@ for slot, vs in pairs:
                 ROOT / "blocks" / f"blk-{CANON_HINT.get(slot, slot)}-{v}.html"]
         chk(any(c.exists() for c in cand), f"{slot}-{v}: fragment exists")
 chk(CANON_HINT.keys() <= {s for s, _ in pairs} | set(CANON_HINT), "canon fallbacks declared")
+
+print("== 1d. interactive widget layer")
+import gen_plan as _gpw
+_wdir = ROOT / "widgets"
+_wcss = _wdir / "widgets.css"; _wjs = _wdir / "widgets.js"
+chk(_wcss.exists() and _wjs.exists(), "widget library css/js present")
+_wt = _wcss.read_text()
+chk(_wt.count("{") == _wt.count("}"), "widgets.css braces balanced")
+_wj = _wjs.read_text()
+for _wid in ("demo-line", "demo-bars", "sentiment-gauge", "book-ladder"):
+    chk(f'data-widget="{_wid}"' in _wj, f"widgets.js mounts {_wid}")
+_rendered = set(_gpw.G3_DEMO_LAYOUTS) | {"calculator", "pulse-sim"}
+chk(set(_gpw.WIDGET_GROUPS["G3"]) - {"none"} <= _rendered,
+    "every G3 draw has a real section renderer")
+for _g3, _var in _gpw.G3_DEMO_LAYOUTS.items():
+    chk(_g3 in _gpw.WIDGET_GROUPS["G3"], f"G3 registry keeps {_g3}")
+    chk((ROOT / "blocks" / f"blk-demo-{_var}.html").exists(),
+        f"{_g3}: block blk-demo-{_var} exists")
+for _g1, _mvar in _gpw.G1_MARKET_LAYOUTS.items():
+    chk(_g1 in _gpw.WIDGET_GROUPS["G1"], f"G1 registry keeps {_g1}")
+    chk((ROOT / "blocks" / f"blk-markets-{_mvar}.html").exists(),
+        f"{_g1}: block blk-markets-{_mvar} exists")
 
 print("== 1c. widget repeat breaker")
 import random as _rnd, gen_plan as _gp
@@ -765,10 +795,12 @@ for mode, want, dom in (("off", False, "selftest-nocalc.site"), ("on", True, "se
                           "--lang", "it", "--domain", dom, "--calculator", mode],
                          capture_output=True, text=True, cwd=ROOT)
     _pl = json.loads(pf.read_text()) if pf.exists() else {}
-    has = "calculator" in _pl.get("layout", {}).get("section_order", [])
+    _order = _pl.get("layout", {}).get("section_order", [])
+    _we = _pl.get("layout", {}).get("widget_embed") or {}
+    has = ("calculator" in _order) or (_we.get("kind") == "calculator")
     g3 = _pl.get("widgets", {}).get("G3")
     chk(rr.returncode == 0 and has is want and (g3 == "calculator") is want,
-        f"--calculator {mode}: section {'present' if want else 'absent'}, G3={g3}")
+        f"--calculator {mode}: calculator {'present' if want else 'absent'}, G3={g3}")
     if pf.exists(): pf.unlink()
 
 print("== 7c. pulse-sim is switchable")
@@ -778,12 +810,47 @@ for mode, want, dom in (("off", False, "selftest-nopulse.site"), ("on", True, "s
                           "--lang", "it", "--domain", dom, "--pulse", mode],
                          capture_output=True, text=True, cwd=ROOT)
     _pl = json.loads(pf.read_text()) if pf.exists() else {}
-    has = "pulse-sim" in _pl.get("layout", {}).get("section_order", [])
+    _order = _pl.get("layout", {}).get("section_order", [])
+    _we = _pl.get("layout", {}).get("widget_embed") or {}
+    has = ("pulse-sim" in _order) or (_we.get("kind") == "pulse-sim")
     g3 = _pl.get("widgets", {}).get("G3")
     subs = ((_pl.get("pulse_sim") or {}).get("subs") or {})
     ok_subs = all(("{{" not in str(v)) and str(v).strip() for v in subs.values()) if want else True
     chk(rr.returncode == 0 and has is want and (g3 == "pulse-sim") is want and ok_subs,
-        f"--pulse {mode}: section {'present' if want else 'absent'}, G3={g3}, subs clean")
+        f"--pulse {mode}: pulse-sim {'present' if want else 'absent'}, G3={g3}, subs clean")
+    if pf.exists(): pf.unlink()
+
+print("== 7d. G3 widget is embedded, not a separate screen")
+for _g3, _var in _gp.G3_DEMO_LAYOUTS.items():
+    dom = f"selftest-g3-{_var}.site"
+    pf = ROOT / "plans" / f"{dom}.json"
+    rr = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "G3Draw",
+                          "--lang", "it", "--domain", dom, "--interactive", _g3],
+                         capture_output=True, text=True, cwd=ROOT)
+    _pl = json.loads(pf.read_text()) if pf.exists() else {}
+    _order = _pl.get("layout", {}).get("section_order", [])
+    _we = _pl.get("layout", {}).get("widget_embed") or {}
+    chk(rr.returncode == 0 and _pl.get("widgets", {}).get("G3") == _g3
+        and _we.get("kind") == _g3 and _we.get("slot") in _order
+        and _we.get("variant") == _var and "demo" not in _order,
+        f"--interactive {_g3}: embedded in {_we.get('slot')} (variant {_var}), no demo screen")
+    if pf.exists(): pf.unlink()
+
+print("== 7e. G1 live market draws render their own layout")
+for _g1, _mvar in _gp.G1_MARKET_LAYOUTS.items():
+    dom = f"selftest-g1-{_mvar}.site"
+    pf = ROOT / "plans" / f"{dom}.json"
+    rr = subprocess.run([sys.executable, str(ROOT / "gen_plan.py"), "--brand", "G1Draw",
+                          "--lang", "it", "--domain", dom, "--market", _g1],
+                         capture_output=True, text=True, cwd=ROOT)
+    _pl = json.loads(pf.read_text()) if pf.exists() else {}
+    _order = _pl.get("layout", {}).get("section_order", [])
+    _v = (_pl.get("layout", {}).get("variants") or {}).get("markets")
+    _me = _pl.get("layout", {}).get("market_embed") or {}
+    ok = (("markets" in _order and _v == _mvar)
+          or (_me.get("kind") == _g1 and _me.get("slot") in _order and _me.get("variant") == _mvar))
+    chk(rr.returncode == 0 and _pl.get("widgets", {}).get("G1") == _g1 and ok,
+        f"--market {_g1}: markets section or embedded board (variant {_mvar})")
     if pf.exists(): pf.unlink()
 
 print("== 8. anti-twin gate really fires")
