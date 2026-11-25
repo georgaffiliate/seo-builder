@@ -121,6 +121,14 @@ chk(_asm3._num("+2.4%") == 2.4 and _asm3._num("-0,8 %") == -0.8
     and _asm3._num("87.450") == 87450 and _asm3._num("1.0842") == 1.0842
     and _asm3._num("2.930,80") == 2930.8,
     "number parser: decimals and thousands both resolved")
+chk(_sa2.audit_stats_captions(
+        '<section><div class="wrap stats-band"><div><strong>9.4k</strong>'
+        '<span>reviews</span></div></div>'
+        '<div class="wrap widget-embed"><div class="dw-scale">'
+        '<span>0</span><span>50</span><span>100</span></div></div></section>') == []
+    and _sa2.audit_stats_captions(
+        '<div class="wrap stats-band"><div><span>1234</span></div></div>') == ["1234"],
+    "stats captions stop at the band, not at an embedded gauge scale")
 import content_gen as _cg
 chk({k: v.strip() for k, v in _cg.PHONE_CC.items()} == _asm3.PHONE_CC,
     "phone prefixes: assemble mirrors content_gen (non-EU countries included)")

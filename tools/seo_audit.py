@@ -297,10 +297,32 @@ def audit_plain_emails(html):
     return sorted(hits)
 
 
+def _balanced_div(html, start):
+    """Outer <div> at `start`, with nested divs counted (no regex swallowing siblings)."""
+    depth = 1
+    pos = html.find(">", start)
+    if pos < 0:
+        return ""
+    pos += 1
+    for m in re.finditer(r"<div\b[^>]*>|</div\s*>", html[pos:], re.I):
+        if m.group(0).lower().startswith("</div"):
+            depth -= 1
+            if depth == 0:
+                return html[start:pos + m.end()]
+        else:
+            depth += 1
+    return ""
+
+
 def audit_stats_captions(html):
-    """Numbers band: the caption must be a word, not the figure repeated."""
+    """Numbers band: the caption must be a word, not the figure repeated.
+
+    Read only the stats-band block: an embedded widget after it (e.g. the gauge
+    scale 0/50/100) is not a stat caption.
+    """
     bad = []
-    for chunk in re.findall(r'<div class="wrap stats-band">(.*?)</div>\s*</section>', html, re.S):
+    for m in re.finditer(r'<div\b[^>]*class="[^"]*\bstats-band\b[^"]*"[^>]*>', html):
+        chunk = _balanced_div(html, m.start())
         for cap in re.findall(r"<span>([^<]*)</span>", chunk):
             if re.search(r"\d", cap):
                 bad.append(cap.strip())
