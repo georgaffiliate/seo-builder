@@ -69,7 +69,7 @@ HUMAN TONE
 OUTPUT JSON (no markdown fences, no commentary):
 {{
   "slug": "lowercase-latin-hyphen-slug",
-  "title": "50-65 chars, no brand, plain query",
+  "title": "{tmin}-{tmax} chars, no brand, plain query",
   "h1": "headline, 12-90 chars, brand only if it reads naturally",
   "excerpt": "140-160 chars summary for cards and meta description",
   "read_min": 6,
@@ -97,6 +97,28 @@ def _existing(req: dict) -> list[dict]:
     return out[:40]
 
 
+def title_limit(req: dict) -> int:
+    """Скільки знаків лишає панель на title без бренду (`title_max` у запиті).
+
+    Панель дописує `Brand — ` у <title>, тому бюджет залежить від довжини бренду.
+    Старий запит без поля — 65, як було в промпті.
+    """
+    try:
+        return max(30, min(72, int(req.get("title_max") or 65)))
+    except (TypeError, ValueError):
+        return 65
+
+
+def _fit(text: str, limit: int) -> str:
+    """Обрізає по межі слова, не лишаючи висячих коми/тире. Коротше за 18 не робить."""
+    text = _text(text)
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rstrip(" ,.;:—–-")
+    head = cut.rsplit(" ", 1)[0].rstrip(" ,.;:—–-") if " " in cut else ""
+    return head if len(head) >= 18 else cut
+
+
 def build_messages(req: dict) -> list[dict]:
     lang = str(req.get("lang") or "en")[:12]
     brand = str(req.get("brand") or "")[:80]
@@ -111,7 +133,10 @@ def build_messages(req: dict) -> list[dict]:
     known = "\n".join(f'- {a["slug"]} — {a["title"]}' for a in existing) or "- (none yet)"
     user = (f"{topic_line}\n\nExisting articles (do not repeat them):\n{known}\n\n"
             "Write the article now. JSON only.")
-    return [{"role": "system", "content": SYSTEM.format(lang=lang, brand=brand)},
+    tmax = title_limit(req)
+    tmin = max(18, min(50, tmax - 15))
+    return [{"role": "system", "content": SYSTEM.format(lang=lang, brand=brand,
+                                                        tmin=tmin, tmax=tmax)},
             {"role": "user", "content": user}]
 
 
@@ -119,7 +144,8 @@ def _text(x) -> str:
     return str(x or "").strip()
 
 
-def validate(payload: dict, lang: str = "en", existing_slugs: set[str] | None = None) -> list[str]:
+def validate(payload: dict, lang: str = "en", existing_slugs: set[str] | None = None,
+             title_max: int = 72) -> list[str]:
     """Hard gate before the panel renders anything. Mirrors the blog gates of the factory."""
     errs: list[str] = []
     if not isinstance(payload, dict):
@@ -131,8 +157,8 @@ def validate(payload: dict, lang: str = "en", existing_slugs: set[str] | None = 
         errs.append(f"slug already exists: {slug}")
     title, h1 = _text(payload.get("title")), _text(payload.get("h1"))
     excerpt = _text(payload.get("excerpt"))
-    if not 18 <= len(title) <= 72:
-        errs.append(f"title length {len(title)} (18..72)")
+    if not 18 <= len(title) <= title_max:
+        errs.append(f"title length {len(title)} (18..{title_max})")
     if not 12 <= len(h1) <= 90:
         errs.append(f"h1 length {len(h1)} (12..90)")
     if not 60 <= len(excerpt) <= 190:
@@ -242,7 +268,11 @@ def generate(req: dict) -> dict:
         payload = L.extract_json(raw)
     except (ValueError, json.JSONDecodeError) as e:
         raise ArticleError(f"model did not return JSON: {e}") from e
-    errs = validate(payload, str(req.get("lang") or "en"))
+    tmax = title_limit(req)
+    if isinstance(payload, dict):
+        # перебір на кілька знаків — не привід палити запуск: підрізаємо по межі слова
+        payload["title"] = _fit(_text(payload.get("title")), tmax)
+    errs = validate(payload, str(req.get("lang") or "en"), title_max=tmax)
     if errs:
         raise ArticleError("article rejected: " + "; ".join(errs[:6]))
     payload["slug"] = _text(payload["slug"]).lower()
