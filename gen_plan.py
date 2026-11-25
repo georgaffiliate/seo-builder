@@ -212,7 +212,13 @@ def palettes()->list[dict]:
 def regulator(lang:str, cc:str="")->dict|None:
     regs=(load(REG_F,{}) .get("regulators") or {})
     code=(cc or LANG2CC.get(lang,"")).upper()
-    return {"country":code,**regs[code]} if code and code in regs else None
+    if not (code and code in regs): return None
+    reg=dict(regs[code])
+    # a native-script authority name (FSA (金融庁)) must not leak onto a page written
+    # in another script — seo_audit flags CJK on a non-CJK page as a hard error
+    if reg.get("name_latin") and lang.split("-")[0] != reg.get("lang"):
+        reg["name"]=reg["name_latin"]
+    return {"country":code,**reg}
 
 def load_history()->list[dict]:
     """Past plans in THIS product: plans/*.json, normalized."""

@@ -34,8 +34,9 @@ TICKER_RE = re.compile(r"[A-Z0-9/.\-]{3,12}")
 
 
 def _is_ticker(text: str) -> bool:
-    """MIX-GL / BND-EU / BTC/EUR / 24/7 — codes and ratios, never prose."""
-    return bool(TICKER_RE.fullmatch(text)) and bool(re.search(r"[\d/\-]", text))
+    """MIX-GL / BND-EU / BTC/EUR / EUR / USD / 24/7 — codes and ratios, never prose."""
+    flat = re.sub(r"\s+", "", text)
+    return bool(TICKER_RE.fullmatch(flat)) and bool(re.search(r"[\d/\-]", flat))
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PH_RE = re.compile(r"\{(\w+)\}")
 TAG_RE = re.compile(r"</?([a-zA-Z][\w-]*)[^>]*>")
