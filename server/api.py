@@ -446,6 +446,11 @@ def _validate_article_req(req: dict) -> str | None:
         return "existing must be an array"
     if isinstance(existing, list) and len(existing) > 60:
         return "existing has too many entries"
+    links = req.get("links")
+    if links is not None and not isinstance(links, list):
+        return "links must be an array"
+    if isinstance(links, list) and len(links) > 3:
+        return "links has too many entries (max 3)"
     topic = req.get("topic")
     if topic is not None and not isinstance(topic, dict):
         return "topic must be an object or null"

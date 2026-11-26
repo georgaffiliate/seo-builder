@@ -73,6 +73,7 @@ OUTPUT JSON (no markdown fences, no commentary):
   "h1": "headline, 12-90 chars, brand only if it reads naturally",
   "excerpt": "140-160 chars summary for cards and meta description",
   "read_min": 6,
+  "link_label": "short heading for a useful-links block, in {lang}",
   "takeaways": ["...", "...", "..."],
   "sections": [
     {{"h2": "...", "p": ["...", "..."], "points": ["optional", "optional"]}}
@@ -119,6 +120,32 @@ def _fit(text: str, limit: int) -> str:
     return head if len(head) >= 18 else cut
 
 
+def requested_links(req: dict) -> list[str]:
+    """Беклінки від панелі: список http(s)-URL, без дублів, максимум 3."""
+    out: list[str] = []
+    for item in req.get("links") or []:
+        url = str((item.get("url") if isinstance(item, dict) else item) or "").strip()[:300]
+        if url.startswith(("http://", "https://")) and url not in out:
+            out.append(url)
+    return out[:3]
+
+
+def links_brief(urls: list[str], lang: str) -> str:
+    """Інструкція моделі про беклінки. Порожній рядок — запит без посилань, промпт не змінюється."""
+    if not urls:
+        return ""
+    items = "\n".join(f"- {u}" for u in urls)
+    return (
+        "LINKS (mandatory, each URL exactly once):\n"
+        f"{items}\n"
+        "Put each URL inside a normal body paragraph as [anchor](URL). Anchor: 2-6 words in "
+        f"{lang}, describes what is behind the link; never \"read more\", \"click here\" or the "
+        "brand of this site. One link per sentence, not in the first paragraph. Never invent "
+        "URLs and never add links outside this list. link_label: a short heading for a links "
+        f"block, in {lang}."
+    )
+
+
 def build_messages(req: dict) -> list[dict]:
     lang = str(req.get("lang") or "en")[:12]
     brand = str(req.get("brand") or "")[:80]
@@ -135,8 +162,11 @@ def build_messages(req: dict) -> list[dict]:
             "Write the article now. JSON only.")
     tmax = title_limit(req)
     tmin = max(18, min(50, tmax - 15))
-    return [{"role": "system", "content": SYSTEM.format(lang=lang, brand=brand,
-                                                        tmin=tmin, tmax=tmax)},
+    system = SYSTEM.format(lang=lang, brand=brand, tmin=tmin, tmax=tmax)
+    brief = links_brief(requested_links(req), lang)
+    if brief:
+        system += "\n\n" + brief
+    return [{"role": "system", "content": system},
             {"role": "user", "content": user}]
 
 
