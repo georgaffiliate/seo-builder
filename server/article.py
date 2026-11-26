@@ -7,6 +7,7 @@ PHP file. Kept in its own module so /build stays untouched.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import sys
 from pathlib import Path
@@ -14,6 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "tools") not in sys.path:
     sys.path.insert(0, str(ROOT / "tools"))
+
+log = logging.getLogger("article")
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", re.I)
@@ -279,6 +282,60 @@ def _strings(node, path=""):
             yield from _strings(v, f"{path}[{i}]")
 
 
+def _texts(value) -> list[str]:
+    """Список непорожніх рядків: рядок → [рядок], None → []."""
+    if value is None:
+        return []
+    items = value if isinstance(value, (list, tuple)) else [value]
+    return [x.strip() for x in items if isinstance(x, str) and x.strip()]
+
+
+def _coerce(payload: dict) -> dict:
+    """Лагодить типові форматні відхилення моделі, які не варті цілої повторної генерації.
+
+    Найчастіше: `p` прийшов рядком замість масиву, порожні/зайві пункти, faq одним
+    об'єктом, read_min рядком. Зміст не переписуємо — лише приводимо форму.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    sections = payload.get("sections")
+    if sections is not None and not isinstance(sections, list):
+        payload["sections"] = [sections]
+    for sec in payload.get("sections") or []:
+        if not isinstance(sec, dict):
+            continue
+        sec["p"] = _texts(sec.get("p"))[:5]
+        if sec.get("points") is not None:
+            sec["points"] = _texts(sec.get("points"))[:6]
+    if payload.get("takeaways") is not None:
+        payload["takeaways"] = _texts(payload.get("takeaways"))
+    if isinstance(payload.get("faq"), dict):
+        payload["faq"] = [payload["faq"]]
+    for item in payload.get("faq") or []:
+        if isinstance(item, dict):
+            item["q"] = str(item.get("q") or "").strip()
+            item["a"] = str(item.get("a") or "").strip()
+    if isinstance(payload.get("cta"), str):
+        payload["cta"] = {"title": payload["cta"]}
+    if isinstance(payload.get("related"), str):
+        payload["related"] = [payload["related"]]
+    try:
+        payload["read_min"] = int(payload.get("read_min") or 0)
+    except (TypeError, ValueError):
+        payload["read_min"] = 0
+    return payload
+
+
+def _repair_messages(messages: list[dict], raw: str, errs: list[str]) -> list[dict]:
+    """Один повторний запит: віддаємо моделі її ж JSON і список претензій."""
+    return messages + [
+        {"role": "assistant", "content": raw[:14000]},
+        {"role": "user", "content": "That JSON failed validation:\n- " + "\n- ".join(errs[:6]) +
+                                     "\nReturn the FULL corrected JSON object only: same topic, same "
+                                     "language, same links. No commentary, no fences."},
+    ]
+
+
 def generate(req: dict) -> dict:
     """Ask the provider for the content JSON. Raises ArticleError with a readable reason."""
     import llm_content as L  # noqa: E402  (tools/llm_content.py, same repo)
@@ -299,10 +356,28 @@ def generate(req: dict) -> dict:
     except (ValueError, json.JSONDecodeError) as e:
         raise ArticleError(f"model did not return JSON: {e}") from e
     tmax = title_limit(req)
-    if isinstance(payload, dict):
-        # перебір на кілька знаків — не привід палити запуск: підрізаємо по межі слова
-        payload["title"] = _fit(_text(payload.get("title")), tmax)
-    errs = validate(payload, str(req.get("lang") or "en"), title_max=tmax)
+    lang = str(req.get("lang") or "en")
+
+    def clean(p: dict) -> dict:
+        if isinstance(p, dict):
+            p = _coerce(p)
+            # перебір на кілька знаків — не привід палити запуск: підрізаємо по межі слова
+            p["title"] = _fit(_text(p.get("title")), tmax)
+        return p
+
+    payload = clean(payload)
+    errs = validate(payload, lang, title_max=tmax)
+    if errs:
+        # форматні відхилення (p рядком, faq об'єктом) лікує _coerce; змістові — один repair
+        log.warning("article: rejected (%s) — one repair pass", "; ".join(errs[:3]))
+        try:
+            fixed_raw, _finish = L.http_chat(cfg, key, _repair_messages(messages, raw, errs))
+            payload = clean(L.extract_json(fixed_raw))
+            errs = validate(payload, lang, title_max=tmax)
+        except (ValueError, json.JSONDecodeError) as e:
+            log.warning("article: repair returned non-JSON: %s", e)
+        except Exception as e:  # noqa: BLE001 — repair не має ховати початкову причину
+            log.warning("article: repair pass failed: %s", e)
     if errs:
         raise ArticleError("article rejected: " + "; ".join(errs[:6]))
     payload["slug"] = _text(payload["slug"]).lower()
