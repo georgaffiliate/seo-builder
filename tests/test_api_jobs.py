@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import queue
 import sys
 import threading
 import time
@@ -71,6 +72,77 @@ def test_dedupe_queue_and_cancel():
         srv.shutdown()
 
 
+def _drain_queue():
+    while True:
+        try:
+            api._queue.get_nowait()
+        except queue.Empty:
+            return
+
+
+def _cleanup_job(jid: str):
+    _drain_queue()
+    api._jobs.pop(jid, None)
+    with api._lock:
+        api._queued_order[:] = [x for x in api._queued_order if x != jid]
+
+
+def test_retry_budget():
+    """A failed build goes to the END of the queue and gives up after 3 attempts."""
+    _drain_queue()
+    jid = uuid.uuid4().hex
+    job = {"job_id": jid, "status": "running", "domain": "retry-test.site",
+           "request": {"brand": "Retry", "lang": "en", "domain": "retry-test.site"},
+           "log": [], "created_at": time.time(), "attempt": 1}
+    api._jobs[jid] = job
+    try:
+        assert api._retry_or_fail(job, "boom 1") is True
+        assert job["status"] == "queued" and job["attempt"] == 2, job
+        assert api._queued_order[-1] == jid
+        job["status"] = "running"
+        assert api._retry_or_fail(job, "boom 2") is True
+        assert job["attempt"] == 3 and job["status"] == "queued"
+        job["status"] = "running"
+        assert api._retry_or_fail(job, "boom 3") is False
+        assert job["status"] == "failed" and "after 3 attempt" in job["error"], job
+        assert job["retryable"] is False and job["failure_kind"] == "build", job
+        deploy_job = {"job_id": uuid.uuid4().hex, "status": "running", "log": [],
+                      "attempt": 3}
+        assert api._retry_or_fail(deploy_job, "panel down", retryable=True,
+                                  kind="deploy") is False
+        assert deploy_job["retryable"] is True and deploy_job["failure_kind"] == "deploy"
+        cancelled = {"job_id": uuid.uuid4().hex, "status": "running", "log": [],
+                     "attempt": 1, "cancelled": True}
+        assert api._retry_or_fail(cancelled, "cancelled by operator") is False
+        assert cancelled["status"] == "failed" and cancelled["retryable"] is False
+    finally:
+        _cleanup_job(jid)
+
+
+def test_execute_requeues_on_build_failure():
+    _drain_queue()
+    orig = api._run
+    api._run = lambda *a, **k: (1, "", "boom")
+    jid = uuid.uuid4().hex
+    job = {"job_id": jid, "status": "queued", "domain": "retry-exec.site",
+           "request": {"brand": "Retry", "lang": "en", "domain": "retry-exec.site"},
+           "log": [], "created_at": time.time(), "attempt": 1}
+    api._jobs[jid] = job
+    try:
+        api._execute(job)
+        assert job["status"] == "queued" and job["attempt"] == 2, job
+        api._execute(job)
+        assert job["status"] == "queued" and job["attempt"] == 3, job
+        api._execute(job)
+        assert job["status"] == "failed" and "after 3 attempt" in job["error"], job
+        assert job["retryable"] is False and job["failure_kind"] == "build", job
+    finally:
+        api._run = orig
+        _cleanup_job(jid)
+
+
 if __name__ == "__main__":
     test_dedupe_queue_and_cancel()
-    print("OK: dedupe / queue_pos / cancel / healthz")
+    test_retry_budget()
+    test_execute_requeues_on_build_failure()
+    print("OK: dedupe / queue_pos / cancel / healthz / retry budget")

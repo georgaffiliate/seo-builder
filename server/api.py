@@ -14,6 +14,10 @@ Endpoints:
   GET  /jobs/<id>   job status / result
   GET  /healthz     liveness
 
+A failed build is not final on the first error: the same job goes to the end of the
+queue for another attempt (BUILD_MAX_ATTEMPTS, default 3). An operator cancel is
+never retried. Retries reuse any content/blog pack that already passes its gate.
+
 Stdlib only - no extra dependencies.
 """
 from __future__ import annotations
@@ -36,6 +40,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 API_TOKEN = os.environ.get("API_TOKEN", "").strip()
 BUILD_TIMEOUT = int(os.environ.get("BUILD_TIMEOUT", "3600"))
 DEPLOY_TIMEOUT = int(os.environ.get("DEPLOY_TIMEOUT", "600"))
+# Скільки разів один job може пройти цикл build(+deploy). Після невдачі job не падає
+# одразу, а стає в кінець черги (той самий job_id, той самий домен у dedupe).
+MAX_ATTEMPTS = max(1, int(os.environ.get("BUILD_MAX_ATTEMPTS", "3")))
 LOG_TAIL = 4000
 
 DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
@@ -60,6 +67,45 @@ def _log(job: dict, line: str) -> None:
 
 def _tail(text: str, limit: int = LOG_TAIL) -> str:
     return text[-limit:] if len(text) > limit else text
+
+
+def _retry_or_fail(job: dict, error: str, *, retryable: bool = False,
+                   kind: str = "build") -> bool:
+    """Put a failed build back at the END of the queue, up to MAX_ATTEMPTS runs.
+
+    Same job_id: the panel keeps polling one job, dedupe keeps the domain busy, and
+    the next attempt reuses any content/blog pack that is already valid on disk.
+    ``retryable`` tells the orchestrator whether another attempt is worth it after
+    the builder's own budget is spent (deploy/network yes, a content gate no).
+    Returns True when the job was requeued, False when the budget is spent.
+    """
+    attempt = int(job.get("attempt") or 1)
+    if (job.get("cancelled") or attempt >= MAX_ATTEMPTS
+            or job.get("status") in ("done", "cancelled")):
+        job["status"] = "failed"
+        job["error"] = (error if attempt <= 1
+                        else f"{error} (after {attempt} attempt"
+                             f"{'s' if attempt != 1 else ''})")
+        job["last_error"] = error
+        job["retryable"] = bool(retryable) and not job.get("cancelled")
+        job["failure_kind"] = "cancelled" if job.get("cancelled") else kind
+        _log(job, f"!! giving up after {attempt} attempt(s): {error}")
+        return False
+    job["attempt"] = attempt + 1
+    job["last_error"] = error
+    job["error"] = None
+    job["retryable"] = None
+    job["failure_kind"] = None
+    job["status"] = "queued"
+    job["stage"] = f"retry {attempt + 1}/{MAX_ATTEMPTS}"
+    job["started_at"] = None
+    job.pop("finished_at", None)
+    _log(job, f"== attempt {attempt}/{MAX_ATTEMPTS} failed: {error}")
+    _log(job, f"== requeued at the end of the queue: attempt {attempt + 1}/{MAX_ATTEMPTS}")
+    with _lock:
+        _queued_order.append(job["job_id"])
+    _queue.put(job["job_id"])
+    return True
 
 
 ACTIVE_STATES = ("queued", "running", "deploying")
@@ -96,6 +142,11 @@ def _job_summary(job: dict, order: list[str] | None = None) -> dict:
         # скільки вже збирається/збирався
         "run_sec": int((finished if finished else now) - started) if started else None,
         "error": job.get("error"),
+        "last_error": job.get("last_error"),
+        "retryable": job.get("retryable"),
+        "failure_kind": job.get("failure_kind"),
+        "attempt": job.get("attempt", 1),
+        "max_attempts": MAX_ATTEMPTS,
         "pages": job.get("pages"),
         "active": job["status"] in ACTIVE_STATES,
     }
@@ -155,14 +206,16 @@ def _worker() -> None:
         try:
             _execute(job)
         except Exception as exc:  # noqa: BLE001 - worker must never die
-            job["status"] = "failed"
-            job["error"] = f"internal error: {exc}"
-            _log(job, f"!! internal error: {exc}")
+            _retry_or_fail(job, f"internal error: {exc}", retryable=True, kind="internal")
         finally:
-            job["finished_at"] = time.time()
-            if job["status"] in ("done", "failed"):
-                job["stage"] = job["status"]
-            _log(job, f"== job {jid} finished: {job['status']}")
+            if job["status"] == "queued" and not job.get("cancelled"):
+                # requeued by _retry_or_fail: no finish time, the same job runs again
+                _log(job, f"== job {jid} waiting for retry")
+            else:
+                job["finished_at"] = time.time()
+                if job["status"] in ("done", "failed"):
+                    job["stage"] = job["status"]
+                _log(job, f"== job {jid} finished: {job['status']}")
 
 
 def _execute(job: dict) -> None:
@@ -171,7 +224,10 @@ def _execute(job: dict) -> None:
 
     job["status"] = "running"
     job["stage"] = "build"
-    _log(job, "== building: gen_plan.py --build")
+    job["error"] = None
+    job.pop("retryable", None)
+    job.pop("failure_kind", None)
+    _log(job, f"== building: gen_plan.py --build (attempt {job.get('attempt', 1)}/{MAX_ATTEMPTS})")
     cmd = [sys.executable, str(ROOT / "gen_plan.py"),
            "--brand", req["brand"], "--lang", req["lang"], "--domain", domain]
     for flag, key in (("--geo", "geo"), ("--cc", "cc"), ("--currency", "currency")):
@@ -183,8 +239,12 @@ def _execute(job: dict) -> None:
         cmd += ["--seed", str(req["seed"])]
     if req.get("calculator") in ("on", "off"):
         cmd += ["--calculator", req["calculator"]]
-    if req.get("force"):
+    # force is for the first attempt: a retry should reuse whatever content/blog
+    # pack is already valid on disk instead of paying for a full regeneration again
+    if req.get("force") and int(job.get("attempt") or 1) == 1:
         cmd += ["--force"]
+    elif req.get("force"):
+        _log(job, "== retry: --force not repeated (reuse valid packs on disk)")
     if req.get("llm_model"):
         cmd += ["--llm-model", req["llm_model"]]
     if req.get("llm_provider"):
@@ -199,8 +259,8 @@ def _execute(job: dict) -> None:
     try:
         code, out, err = _run(cmd, BUILD_TIMEOUT, job)
     except subprocess.TimeoutExpired:
-        job["status"] = "failed"
-        job["error"] = f"build timed out after {BUILD_TIMEOUT}s"
+        _retry_or_fail(job, f"build timed out after {BUILD_TIMEOUT}s",
+                       retryable=True, kind="timeout")
         return
 
     job["build_log"] = _tail(out + ("\n[stderr]\n" + err if err.strip() else ""))
@@ -210,8 +270,8 @@ def _execute(job: dict) -> None:
     _log(job, f"== gen_plan exit {code}")
 
     if code != 0:
-        job["status"] = "failed"
-        job["error"] = "build failed (see build_log); nothing deployed"
+        _retry_or_fail(job, "build failed (see build_log); nothing deployed",
+                       retryable=False, kind="build")
         return
 
     site = ROOT / "sites" / domain
@@ -227,9 +287,9 @@ def _execute(job: dict) -> None:
         try:
             dcode, dout, derr = _run(dcmd, DEPLOY_TIMEOUT, job)
         except subprocess.TimeoutExpired:
-            job["status"] = "failed"
-            job["error"] = "site built, but deploy timed out"
             job["deploy"] = {"ok": False, "error": "deploy timed out"}
+            _retry_or_fail(job, "site built, but deploy timed out",
+                           retryable=True, kind="deploy")
             return
         job["deploy_log"] = _tail(derr)
         dep = None
@@ -246,8 +306,8 @@ def _execute(job: dict) -> None:
         job["deploy"] = dep
         _log(job, f"== deploy exit {dcode}")
         if dcode != 0 or not dep.get("ok"):
-            job["status"] = "failed"
-            job["error"] = "site built, but deploy failed (see deploy)"
+            _retry_or_fail(job, "site built, but deploy failed (see deploy)",
+                           retryable=True, kind="deploy")
             return
 
     job["status"] = "done"
@@ -344,6 +404,7 @@ class Handler(BaseHTTPRequestHandler):
             if proc is not None and proc.poll() is None:
                 _kill_tree(proc)
             if job["status"] not in ("done", "failed"):
+                job["cancelled"] = True
                 job["status"] = "failed"
                 job["error"] = "cancelled by operator"
                 job["finished_at"] = time.time()
@@ -404,7 +465,8 @@ class Handler(BaseHTTPRequestHandler):
 
         jid = uuid.uuid4().hex
         job = {"job_id": jid, "status": "queued", "domain": domain, "stage": "queued",
-               "request": req, "log": [], "created_at": time.time()}
+               "request": req, "log": [], "created_at": time.time(),
+               "attempt": 1, "max_attempts": MAX_ATTEMPTS}
         deduped = False
         with _lock:
             again = next((j for j in _jobs.values()
@@ -422,7 +484,7 @@ class Handler(BaseHTTPRequestHandler):
 
         wait = self.path.split("?", 1)[-1] if "?" in self.path else ""
         if "wait=1" in wait or req.get("wait"):
-            deadline = time.time() + BUILD_TIMEOUT + DEPLOY_TIMEOUT + 30
+            deadline = time.time() + (BUILD_TIMEOUT + DEPLOY_TIMEOUT + 30) * MAX_ATTEMPTS
             while time.time() < deadline and job["status"] in ("queued", "running", "deploying"):
                 time.sleep(1.0)
             code = 200 if job["status"] in ("done", "failed") else 202
