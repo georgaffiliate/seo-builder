@@ -1217,6 +1217,73 @@ finally:
     _tmp_cp.unlink(missing_ok=True)
 
 
+print("\n== meta titles (brand-first + hook)")
+sys.path.insert(0, str(ROOT / "tools"))
+import meta_titles as _mt
+_BRAND = "Aurevia Capital"
+_got = _mt.variants(
+    _BRAND, "en",
+    facts=["Free demo first", "No hidden fees", "3 steps"],
+    sentences=["Aurevia Capital puts market data, tools and a personal area in one place. "
+               "Registration follows a clear route."],
+    cta="Start now", n=6)
+chk(bool(_got), "meta: variants generated without a model")
+chk(all(v.title.lower().startswith(_BRAND.lower()) for v in _got),
+    "meta: every title starts with the funnel name")
+chk(all(len(v.title) <= _mt.TITLE_HARD for v in _got), "meta: title within the hard limit")
+chk(any("AI investment platform" in v.title for v in _got),
+    "meta: category phrase right after the name")
+chk(all(_mt.DESC_MIN - 20 <= len(v.description) <= _mt.DESC_MAX + 10 for v in _got),
+    "meta: description inside the length window")
+chk(any(re.search(r"\d", v.title) for v in _got), "meta: at least one numbered hook")
+_dirty = _mt.variants(_BRAND, "en", facts=["guaranteed profit", "risk-free returns"],
+                      sentences=["Short."], cta="")
+chk(all("guaranteed" not in v.title.lower() and "risk-free" not in v.title.lower()
+        for v in _dirty), "meta: compliance words never reach a title")
+_kind = _mt.lint("Best platform", "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do.",
+                 _BRAND)
+chk(any(lvl == "ERR" for lvl, _m in _kind), "meta: lint blocks a placeholder / non-brand title")
+_pack = json.loads(content_f.read_text(encoding="utf-8"))
+_pp = json.loads(plan_f.read_text(encoding="utf-8"))["params"]
+_pv = _mt.pack_variants(_pack, _pp["brand"], _pp.get("lang", "en"), n=3)
+chk(bool(_pv) and all(v.description for v in _pv),
+    "meta: a real content pack yields complete title+description pairs")
+_ja = _mt.variants("Supertrader", "ja", categories=["投資プラットフォーム"],
+                   facts=["無料デモ"],
+                   sentences=["Supertraderは市場データと個人エリアを一画面にまとめています。"],
+                   cta="始める", n=3)
+chk(bool(_ja) and all(_mt._width(v.title) <= _mt.TITLE_HARD for v in _ja),
+    "meta: CJK titles are measured by SERP width, not character count")
+chk(any("投資プラットフォーム" in v.title for v in _ja),
+    "meta: a category written by the model in any language is used as-is")
+chk(not _mt._ok_category("Best platform", _BRAND)
+    and not _mt._ok_category("SuperTrader app", "SuperTrader")
+    and _mt._ok_category("investing platform", _BRAND),
+    "meta: slogan or brand inside the category is rejected")
+chk(_mt.pack_category({"meta": {"category": "investing platform"}}, _BRAND)
+    == "investing platform", "meta: meta.category from the pack wins over the bank")
+_desc150 = ("Quotes, alerts and a free demo before any deposit. Three steps to request access, "
+            "no monthly account fee, and the delay is printed next to every price.")
+_fake = json.dumps({"variants": [{
+    "title": _BRAND + " — AI investment platform, 3 steps", "description": _desc150,
+    "h1_rest": "See price, spread and fee", "h1_accent": "before you click buy"}]})
+_pk2 = json.loads(json.dumps(_pack))
+_pv2 = _mt.with_llm(lambda _m: _fake, _BRAND, "en", categories=["AI investment platform"],
+                    facts=["3 steps"], sentences=[_desc150], cta="Start now", n=3)
+chk(bool(_pv2) and bool(_pv2[0].h1_rest),
+    "meta: a model-written H1 is kept and ranked above a template title")
+_mt.apply_to_pack(_pk2, _pv2[0])
+chk(_pk2["hero"].get("h1_rest") == _pv2[0].h1_rest
+    and _pk2["meta"]["title_home"] == _pv2[0].title,
+    "meta: applying a variant writes hero.h1_rest and meta.title_home")
+chk(_mt.lint_h1(_BRAND + " wins", "every day", _BRAND)[0][0] == "ERR",
+    "meta: an H1 that repeats the brand is rejected")
+_on = _mt.score_h1("See price, spread and fee", "before you click buy",
+                   _BRAND, "AI investment platform")[0]
+_off = _mt.score_h1("Start building wealth", "right now",
+                    _BRAND, "AI investment platform")[0]
+chk(_on > _off, "meta: an H1 with a market word outranks a pure-emotion H1")
+
 # cleanup
 import shutil
 out = ROOT / "sites" / "selftest-e2e.site"

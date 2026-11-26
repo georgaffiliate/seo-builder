@@ -49,6 +49,19 @@ python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltrek
 #             (можна покласти свій/LLM-пак і він піде в збірку)
 #   далі    → sites/<domain>/ (9 сторінок, інтеграція, sitemap/robots/htaccess) + gates
 #             tools/seo_audit.py (0 err) + tools/twin_check.py (унікальність)
+#   мета    → tools/meta_titles.py: title = назва воронки → ОДНА категорія-ключ → гачок
+#             (цифра / знятий страх); description 120–155. Лінт — у tools/seo_audit.py.
+#             Крок іде автоматично перед assemble; META_TITLES=off його вимикає.
+#             Категорія: meta.category із паку (модель пише її мовою сайту — працює для всіх
+#             37 мов); якщо паку немає — перша в CATEGORY_BANK (13 мов). Перебити:
+#             --category "investing platform" (зберігається в плані як meta_category).
+#             Довжини рахуються в SERP-одиницях: CJK-гліф = 2, тому японський title
+#             обрізається на ~30 символах, а не на 60.
+#             H1, title і description пише модель (--llm додається сам, коли є ключ);
+#             генератор їх оцінює, відсіює кліше/комплаєнс і лишається фолбеком.
+#             H1 мусить зберегти тематичне слово (price/fee/spread/order/chart/account):
+#             без нього −10 і WARN — «гучний» заголовок не має втрачати релевантність.
+#             META_LLM=off — крок без моделі (шаблони з паку).
 #   іконки  → favicon.svg/.ico/.png + apple-touch-icon.png + og-image.png з палітри бренду
 #   гейти   → node --check усіх JS + tools/mobile_lint.py (viewport/tbl-scroll/inline grid)
 #   профіль → profiles/<domain>.json (+ взаємні siblings)
@@ -73,6 +86,9 @@ python3 gen_plan.py --brand "Pheira Voltreksc" --lang it --domain pheira-voltrek
 Окремі кроки (коли треба руками):
 ```bash
 python3 tools/content_gen.py --plan plans/<domain>.json --force      # перегенерувати контент
+python3 tools/meta_titles.py --plan plans/<domain>.json --content content/<domain>-content.json   # варіанти title/description
+python3 tools/meta_titles.py --content content/<domain>-content.json --apply 2                     # записати обраний
+python3 tools/meta_titles.py --content content/<domain>-content.json --check                       # лише лінт (exit 1 на ERR)
 python3 assemble.py --plan plans/<domain>.json                        # тільки збірка + гейти
 python3 tools/brand_icons.py --plan plans/<domain>.json --site sites/<domain>
 python3 tools/mobile_lint.py sites/<domain>

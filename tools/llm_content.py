@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import gen_plan  # NAME_BANK / FEMALE_FIRST
 import assemble   # validate_content
 import content_gen  # merged_bank / topup_new_keys (migration of older packs)
+import meta_titles  # category/title/length rules shared with the SEO gate
 
 CFG_F = ROOT / "resources" / "llm.json"
 SCHEMA_F = ROOT / "content" / "content-pack.schema.json"
@@ -272,11 +273,27 @@ def brief(plan: dict) -> dict:
         "section_order": slots,
         "rules": [
             "Cover EVERY content_keys path listed per slot, plus meta/hero/bands/ui/reviews/scarcity/faq/office/brand_note/inner_*/legal/footer/thanks.",
-            "Brand-first title_home <= 70 chars; unique titles/descriptions per page; description <= 155 chars.",
+            "meta.title_home: the brand comes FIRST, then ONE category phrase (e.g. "
+            "'AI investment platform', 'investing platform', 'trading platform'), then a concrete "
+            "hook — a number, a removed fear or a practical benefit. <= 60 chars visible, hard stop 70. "
+            "No clichés ('best', 'seamless', 'world-class', 'revolutionary').",
+            "meta.description: 120-155 chars, first sentence states a fact (not a repeat of the title), "
+            "one number, one transparency phrase ('no hidden fees', 'no monthly fee', 'free request'), "
+            "one call to action. Unique per page; no deposit amount.",
+            "meta.category: ONE search phrase in the plan language naming what the site is "
+            "(2-4 words, no brand, no digits, no slogan). The title is assembled as "
+            "'<brand> — <category>, <hook>', so this is the phrase people would type.",
             "hero.proof is the evidence shown in the hero: 3 claims (2-5 words, NO digits, no deposit), "
             "1 first-person quote under 240 characters with quote_by as 'Name I. · City' (invented, not a copy "
             "of reviews.items), and 3 onboarding steps {t: 1-4 words, d: one line under 130 characters}.",
-            "hero.h1_rest continues the sentence after the brand; hero.h1_accent is the closing accent (2-4 words). NEVER repeat the brand in either line: the h1 already prints it in .brand-line.",
+            "hero.h1_rest continues the sentence after the brand: 3-7 words, a claim with a verb "
+            "(see, open, compare, keep) and, when true, a number; never abstractions (access, "
+            "platform, solution, method, tools, noise). hero.h1_accent: a 2-4 word concrete "
+            "closing (a place, a time, a condition). Shapes: '<verb> <object> <condition>', "
+            "'<number> <noun> <benefit>'. NEVER repeat the brand in either line: the h1 prints "
+            "it in .brand-line. Weak: 'The market without the noise'. Strong: 'See price, spread "
+            "and fee' / 'before you click buy'. Keep at least one concrete market word (price, "
+            "fee, spread, order, chart, account): pure emotion loses the page's relevance.",
             "No deposit amount in meta, hero, or any h2. Deposit only in bands.form_consent inside <small>.",
             "reviews.items: exactly 3 entries, photos kept as pre-filled, names/cities/roles/tenures invented per persona_policy, each item carries g (f|m) matching its photo.",
             "Numbers: rating exactly as given; reviews/users/latency inside their bins; hero.stats uses rating, users, latency.",
@@ -586,10 +603,14 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
     if "<small>" not in consent:
         errs.append("bands.form_consent without <small> deposit")
     title = (pack.get("meta") or {}).get("title_home", "")
-    if len(title) > 70:
-        errs.append(f"title_home longer than 70 chars ({len(title)})")
+    if meta_titles._width(title) > 70:
+        errs.append(f"title_home longer than 70 units ({meta_titles._width(title)})")
     if not title.lower().startswith(plan["params"]["brand"].lower()):
         errs.append("meta.title_home must start with the brand")
+    _cat = str((pack.get("meta") or {}).get("category") or "").strip()
+    if _cat and not meta_titles._ok_category(_cat, plan["params"]["brand"]):
+        errs.append("meta.category must be ONE search phrase (1-4 words, no brand, "
+                    "no digits, no cliché) in the plan language")
     _brand = plan["params"]["brand"].lower()
     _hero = pack.get("hero") or {}
     for _f in ("h1_rest", "h1_accent"):
@@ -860,6 +881,47 @@ def normalize_contacts(pack: dict, plan: dict) -> None:
         assemble.office_defaults(pack, plan)
 
 
+def _normalize_inner_page(page):
+    """Accept the aliases models use for long-page sections ('p', 'points', 'text').
+
+    The validator (and the renderer) need 'paragraphs' and 'bullets'. Normalising
+    here turns a card-shaped answer into a valid long page without another LLM call.
+    """
+    if not isinstance(page, dict):
+        return page
+    secs = page.get("sections")
+    if isinstance(secs, dict):
+        keys = sorted(secs, key=lambda k: int(k) if str(k).isdigit() else 999)
+        secs = [secs[k] for k in keys]
+        page["sections"] = secs
+    if isinstance(secs, list):
+        for sec in secs:
+            if not isinstance(sec, dict):
+                continue
+            paras = sec.get("paragraphs")
+            if isinstance(paras, str):
+                paras = [paras]
+            if not paras:
+                for alt in ("p", "text", "paragraph", "body"):
+                    v = sec.get(alt)
+                    if isinstance(v, str) and v.strip():
+                        paras = [v]
+                        break
+                    if isinstance(v, list) and any(str(x or "").strip() for x in v):
+                        paras = [str(x) for x in v]
+                        break
+                if paras:
+                    sec["paragraphs"] = paras
+            bullets = sec.get("bullets")
+            if isinstance(bullets, str):
+                bullets = [bullets]
+            if not bullets:
+                v = sec.get("points") or sec.get("list")
+                if isinstance(v, list) and any(str(x or "").strip() for x in v):
+                    sec["bullets"] = [str(x) for x in v]
+    return page
+
+
 def _heal_stats(pack: dict, plan: dict) -> None:
     """Numeric/repeated stats captions fall back to the language bank (words, not figures)."""
     stats = (pack.get("sections") or {}).get("stats")
@@ -911,14 +973,25 @@ def self_heal(pack: dict, plan: dict) -> None:
         title = str(meta.get("title_home") or "").strip()
         if title and brand and not title.lower().startswith(brand.lower()):
             title = f"{brand} — {title}"
-        if len(title) > 70:
-            cut = title[:70]
+        if meta_titles._width(title) > 70:
+            cut = title
+            while cut and meta_titles._width(cut) > 70:
+                cut = cut[:-1]
             if " " in cut:
                 cut = cut[:cut.rfind(" ")]
             title = cut.rstrip(" —-:,")
         if title:
             meta["title_home"] = title
+        # one category phrase in the site language — the only slot a 37-language
+        # factory cannot hardcode, so the model names it and the bank is the fallback
+        if not meta_titles._ok_category(str(meta.get("category") or ""), brand):
+            pick = (meta_titles.category_bank(plan["params"].get("lang", "en")) or [""])[0] \
+                or meta_titles.detect_category(title, brand)
+            if pick:
+                meta["category"] = pick
     _heal_stats(pack, plan)
+    for _key in [k for k in pack if str(k).startswith("inner_")]:
+        pack[_key] = _normalize_inner_page(pack[_key])
     _heal_inner_titles(pack)
     if not brand:
         return
@@ -1079,6 +1152,12 @@ def repair_targets(errs: list) -> list:
             add("meta")
     if "sections" in targets:
         targets = [t for t in targets if not t.startswith("sections.")]
+    # long pages are owned by repair_inner_pages; letting object repair rewrite them
+    # again clobbered the good fix (live: apex-ai-it.online)
+    targets = [t for t in targets if not str(t).startswith("inner_")]
+    # keep the shortest path when both a parent and its child were named
+    targets = [t for t in targets
+               if not any(t != p and str(t).startswith(str(p) + ".") for p in targets)]
     return targets
 
 
@@ -1124,48 +1203,76 @@ def _pack_set(pack, path, value) -> bool:
 
 def repair_objects(pack: dict, plan: dict, data: dict, errs: list, targets: list,
                    cfg: dict, key: str) -> int:
-    """Rewrite only the named objects; returns how many were accepted."""
+    """Rewrite only the named objects; returns how many were accepted.
+
+    Targets are asked for in small batches: one answer carrying every object was
+    34 KB and died on a stray delimiter (live: apex-ai-it.online). Heavy objects
+    (sections, hero, faq.items, reviews.items) travel alone.
+    """
     if not targets:
         return 0
-    current = {t: _pack_at(pack, t) for t in targets}
-    messages = [
-        {"role": "system", "content": "You repair named objects of a landing-page content "
-                                      "pack. Answer with one JSON object only — no fences."},
-        {"role": "user", "content":
-            "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand",
-                                                             "domain", "geo")}, ensure_ascii=False) +
-            "\nLANGUAGE: write in " + str(plan["params"].get("lang", "en")) + ".\n"
-            "Rewrite ONLY these paths, keeping the exact same keys and array lengths:\n"
-            + json.dumps(targets, ensure_ascii=False) +
-            "\nReturn {\"<path>\": <complete corrected value>} for every requested path. "
-            "Arrays must be returned whole (all entries), never truncated.\n"
-            "Problems to fix: " + "; ".join(errs[:12]) + "\n"
-            "Current values:\n" + json.dumps(current, ensure_ascii=False) +
-            "\nReturn ONLY the patch object."},
-    ]
-    c2 = dict(cfg)
-    c2["max_tokens"] = min(int(cfg.get("max_tokens") or 12000), 12000)
-    raw, finish = http_pack(c2, key, messages)
-    try:
-        patch = extract_json(raw)
-    except Exception as e:
-        print(f"! object repair unparsable: {e} (finish={finish}, {len(raw)} chars)")
-        return 0
-    if not isinstance(patch, dict):
-        return 0
-    applied = 0
-    for path in targets:
-        if path not in patch:
+    heavy = {"sections", "hero", "faq.items", "reviews.items"}
+    batches, cur = [], []
+    for t in targets:
+        if t in heavy and cur:
+            batches.append(cur)
+            cur = []
+        cur.append(t)
+        if t in heavy or len(cur) >= 3:
+            batches.append(cur)
+            cur = []
+    if cur:
+        batches.append(cur)
+    applied_paths = []
+    for batch in batches:
+        current = {t: _pack_at(pack, t) for t in batch}
+        messages = [
+            {"role": "system", "content": "You repair named objects of a landing-page content "
+                                          "pack. Answer with one JSON object only — no fences."},
+            {"role": "user", "content":
+                "SITE: " + json.dumps({k: data.get(k) for k in ("language", "locale", "brand",
+                                                                 "domain", "geo")}, ensure_ascii=False) +
+                "\nLANGUAGE: write in " + str(plan["params"].get("lang", "en")) + ".\n"
+                "Rewrite ONLY these paths, keeping the exact same keys and array lengths:\n"
+                + json.dumps(batch, ensure_ascii=False) +
+                "\nReturn {\"<path>\": <complete corrected value>} for every requested path. "
+                "Arrays must be returned whole (all entries), never truncated.\n"
+                "Problems to fix: " + "; ".join(errs[:12]) + "\n"
+                "Current values:\n" + json.dumps(current, ensure_ascii=False) +
+                "\nReturn ONLY the patch object."},
+        ]
+        c2 = dict(cfg)
+        c2["max_tokens"] = min(int(cfg.get("max_tokens") or 12000), 12000)
+        raw, finish = http_pack(c2, key, messages)
+        try:
+            patch = extract_json(raw)
+        except Exception as e:
+            print(f"! object repair unparsable: {e} (finish={finish}, {len(raw)} chars)")
+            try:                      # one compact retry for a malformed/truncated answer
+                raw2, _ = http_pack(c2, key, messages + [
+                    {"role": "assistant", "content": raw},
+                    {"role": "user", "content": "That answer was not valid JSON. Return the SAME "
+                                                "patch object again as compact JSON: no line breaks "
+                                                "inside strings, every brace closed. Only the JSON."},
+                ])
+                patch = extract_json(raw2)
+            except Exception as e2:
+                print(f"! object repair retry failed: {e2}")
+                continue
+        if not isinstance(patch, dict):
             continue
-        old, new = _pack_at(pack, path), patch[path]
-        # a different shape means the model misunderstood; let the full pack handle it
-        if type(old) is not type(new) or isinstance(new, str) and not new.strip():
-            continue
-        if _pack_set(pack, path, new):
-            applied += 1
-    if applied:
-        print(f"· rewrote object(s): {', '.join(t for t in targets if t in patch)}")
-    return applied
+        for path in batch:
+            if path not in patch:
+                continue
+            old, new = _pack_at(pack, path), patch[path]
+            # a different shape means the model misunderstood; let the full pack handle it
+            if type(old) is not type(new) or isinstance(new, str) and not new.strip():
+                continue
+            if _pack_set(pack, path, new):
+                applied_paths.append(path)
+    if applied_paths:
+        print(f"· rewrote object(s): {', '.join(applied_paths)}")
+    return len(applied_paths)
 
 
 def main():

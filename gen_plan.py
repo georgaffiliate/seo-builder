@@ -1588,6 +1588,23 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                 print("✗ blog content failed — build stopped (the classic build is untouched)")
                 sys.exit(rc)
 
+    # title/description last mile: funnel name first (search) + a hook in the tail (click).
+    # Deterministic and offline-safe; META_TITLES=off keeps whatever the pack came with.
+    if content.exists() and os.environ.get("META_TITLES", "on").lower() not in ("0", "off", "no"):
+        step("META TITLES (brand-first + hook)")
+        meta_cmd = [sys.executable, str(ROOT / "tools" / "meta_titles.py"),
+                    "--plan", str(plan), "--content", str(content),
+                    "--apply", "1", "--quiet"]
+        if plan_data.get("meta_category"):
+            meta_cmd += ["--category", str(plan_data["meta_category"])]
+        # модель пише H1/title/description, генератор лишається нижньою межею
+        _has_key = bool(os.environ.get("VENICE_API_KEY", "").strip()) or (ROOT / ".llm_env").is_file()
+        if _has_key and os.environ.get("META_LLM", "on").lower() not in ("0", "off", "no"):
+            meta_cmd.append("--llm")
+        rc_meta = subprocess.run(meta_cmd, cwd=str(ROOT)).returncode
+        if rc_meta != 0:
+            print("! meta step skipped — keeping the pack's own title/description")
+
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
     rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
     if rc != 0 and ship_anyway:
@@ -1651,6 +1668,10 @@ def main():
     ap.add_argument("--with-llm",action="store_true",
                     help="kept for compatibility: the model writing the pack is the default; "
                          "implies --build")
+    ap.add_argument("--category",default=os.environ.get("META_CATEGORY",""),
+                    help="категорія-ключ для title (типово — перша в CATEGORY_BANK, "
+                         "напр. 'investing platform' замість 'AI investment platform'); "
+                         "те саме через env META_CATEGORY")
     ap.add_argument("--blog",action="store_true",
                     help="add the optional guides layer: 3-5 articles from the topic bank + a "
                          "teaser section on the home page (classic build is unchanged without it)")
@@ -1695,6 +1716,13 @@ def main():
         if sync: chosen["_synced"] = sync
     PLANS.mkdir(exist_ok=True)
     out=PLANS/f"{a.domain}.json"
+    # категорія-ключ для title переживає перегенерацію плану
+    _prev={}
+    if out.exists():
+        try: _prev=json.loads(out.read_text(encoding="utf-8"))
+        except Exception: _prev={}
+    _cat=(a.category or "").strip() or str(_prev.get("meta_category") or "")
+    if _cat: chosen["meta_category"]=_cat
     out.write_text(json.dumps(chosen,ensure_ascii=False,indent=1),encoding="utf-8")
     d=chosen
     print(f"PLAN OK -> {out.relative_to(ROOT)}  (seed {d['seed']})")
@@ -1714,6 +1742,7 @@ def main():
     if d.get("regulator"): print(f"  regulator: {d['regulator']['name']} ({d['regulator']['country']})")
     print(f"  variants : {' '.join(f'{k}:{v}' for k,v in sorted(d['layout'].get('variants',{}).items())) or '—'}")
     print(f"  novel    : {', '.join(d['structure']['novel_slots']) or '—'}")
+    if d.get("meta_category"): print(f"  meta cat : {d['meta_category']}")
     print(f"  slugs    : {d['layout']['slugs']}")
     if d.get("blog"):
         bl = d["blog"]
