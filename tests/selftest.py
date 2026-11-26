@@ -710,6 +710,10 @@ chk(not _lz.needs_translation("content.scarcity.units.2", "min"),
 chk(not _lz.needs_translation("content.office.addr", "Park Avenue 162, 2775 København")
     and _lz.needs_translation("content.office.hours", "Mon–Fri 09:00–18:00"),
     "localize: street addresses are kept, opening hours are still translated")
+chk(not _lz.needs_translation("content.hero.device_bal", "23.898,23 CHF")
+    and not _lz.needs_translation("content.hero.device_rows.0.v", "66 ms")
+    and _lz.needs_translation("content.bands.mid_lead", "Buy 100 CHF today"),
+    "localize: money/metric values are not translated, real sentences still are")
 chk(not _lz.needs_translation("content.meta.keywords", "Bitnova, bitnova login") and
     not _lz.needs_translation("content.sections.markets.rows.2.sym", "INDEX EU") and
     _lz.mark_eyebrow("BITNOVA · PT", "Bitnova") and _lz.mark_eyebrow("ALIAS · SI", "Alias Test") and
@@ -1063,6 +1067,59 @@ finally:
     _lc.http_pack = _iorig
 chk(list(_ifix) == ["inner_product"] and _ipack["inner_product"]["sections"][0]["h2"] == "H",
     "long-page repair patches only the rejected page")
+_norm = _lc._normalize_inner_page({"sections": [{"h2": "Kop", "p": ["Een", "Twee"],
+                                                 "points": ["a", "b"]}]})
+chk(_norm["sections"][0]["paragraphs"] == ["Een", "Twee"]
+    and _norm["sections"][0]["bullets"] == ["a", "b"],
+    "long-page repair maps p/points aliases to paragraphs/bullets")
+_ipack2 = {"inner_product": {"title": "Keep", "sections": [{"h2": "H", "paragraphs": ["p"]}]}}
+_lc.http_pack = lambda cfg, key, messages, *a, **k: (
+    json.dumps({"inner_product": {"title": "Empty", "sections": []}}), "stop")
+try:
+    _iempty = _lc.repair_inner_pages(_ipack2, {"params": {"lang": "da"}}, {"language": "da"},
+                                     _isk, ["inner_product has 0 words"], ["inner_product"],
+                                     {"model": "stub"}, "KEY")
+finally:
+    _lc.http_pack = _iorig
+chk(_iempty == {} and _ipack2["inner_product"]["title"] == "Keep",
+    "an empty long-page answer never replaces the page already in the pack")
+_rp_lead = ("Questa sezione spiega in modo concreto il punto, con esempi pratici su "
+            "costi, rischi e passaggi successivi che una persona deve conoscere.")
+_rp_pack = {
+    "meta": {"title_home": "X — Y"},
+    "sections": {
+        "guide": {"h2": "Guida", "eyebrow": "GUIDA", "lead": _rp_lead,
+                  "items": [{"t": f"Tema {i}", "d": _rp_lead + " Numero %d." % i}
+                            for i in range(6)]},
+        "risk": {"h2": "Rischio", "eyebrow": "RISCHI", "lead": _rp_lead,
+                 "rows": [{"t": "Rischio uno", "d": _rp_lead}]},
+        "portal": {"h2": "Portale", "eyebrow": "AREA", "lead": _rp_lead,
+                   "cards": [{"k": "Card", "t": "Titolo card", "d": _rp_lead}]},
+        "notes": {"h2": "Note", "eyebrow": "NOTE", "lead": _rp_lead},
+        "timeline": {"h2": "Timeline", "eyebrow": "PERCORSO", "lead": _rp_lead},
+        "scarcity": {"h2": "Scarsità", "eyebrow": "ACCESSO", "lead": _rp_lead},
+    },
+    "faq": {"h2": "Domande",
+            "items": [{"q": f"Domanda numero {i}?",
+                       "a": "Risposta lunga numero %d che spiega il punto in due frasi "
+                            "complete e concrete: cosa controllare, quanto costa davvero e "
+                            "quali dettagli vengono spesso dimenticati." % i}
+                      for i in range(12)]},
+    "inner_tech": {"title": "Tecnologia", "h1": "Tecnologia", "lead": _rp_lead,
+                   "blocks": [{"t": f"Blocco {i}", "d": _rp_lead} for i in range(3)]},
+}
+_rp = _lc.rescue_inner_pages(_rp_pack)
+_rp_ok = (all(_lc._inner_words(_rp[k]) >= floor for k, floor in
+              (("inner_product", 390), ("inner_offer", 390), ("inner_faq", 540)))
+          and all(len(_rp[k].get("sections") or []) >= n for k, n in
+                  (("inner_product", 5), ("inner_offer", 5), ("inner_faq", 2)))
+          and all(len(_rp[k].get("faq") or []) >= n for k, n in
+                  (("inner_product", 6), ("inner_offer", 6), ("inner_faq", 12))))
+chk(_rp_ok, "rescue builder meets the long-page floors from the pack's own copy")
+_home_heads = _lc._pack_headings(_rp_pack)
+chk(not any(s["h2"].casefold() in _home_heads for p in _rp.values()
+            for s in (p.get("sections") or [])),
+    "rescue builder never repeats a heading already on the site")
 
 
 print("== 12. a cut blog pack is recovered, not replaced by the offline bank")

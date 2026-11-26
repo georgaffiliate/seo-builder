@@ -30,6 +30,8 @@ WHITELIST_PATHS = {
     "ui.cur_code", "ui.cur_sym", "ui.min_init",
 }
 WHITELIST_WORDS = {"api", "sepa", "visa", "mastercard", "eur", "ms", "swift", "min"}
+UNIT_WORDS = WHITELIST_WORDS | {"s", "h", "gb", "mb", "kb", "tb", "kg", "g",
+                                "mm", "cm", "km", "kw", "hz"}
 # "min" — універсальне скорочення хвилини: es/it/cs/pt пишуть його так само, тому
 # переклад давав хибне «not translated ('min')» і валив усю збірку.
 TICKER_RE = re.compile(r"[A-Z0-9/.\-]{3,12}")
@@ -86,6 +88,13 @@ def needs_translation(path: str, value) -> bool:
     text = value.strip()
     if not text or not re.search(r"[^\W\d_]", text, re.UNICODE):
         return False
+    # money/metric strings ("23.898,23 CHF", "66 ms", "1.250 €") are locale-formatted
+    # numbers, not copy. The translator correctly leaves them alone, and the old gate
+    # then failed the whole pass with "not translated" (live: quvanel.cfd).
+    if re.search(r"\d", text):
+        words = re.findall(r"[A-Za-z]+", text)
+        if all((len(w) <= 4 and w.isupper()) or w.lower() in UNIT_WORDS for w in words):
+            return False
     if path in WHITELIST_PATHS or path.endswith((".vv", ".photo", ".ic", ".g", ".sym")):
         return False
     # street addresses keep their street/city names — translating "Park Avenue" is wrong,

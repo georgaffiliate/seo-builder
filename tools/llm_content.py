@@ -922,6 +922,212 @@ def _normalize_inner_page(page):
     return page
 
 
+def _inner_pool(pack: dict) -> list:
+    """Unique section candidates for the local long-page fallback."""
+    pool, seen = [], set()
+
+    def add(h2, paras, bullets=()):
+        h2 = " ".join(str(h2 or "").split())
+        ps = [" ".join(str(p or "").split()) for p in paras if str(p or "").strip()]
+        ps = [p for p in ps if len(p) >= 40]      # a bare value is not a paragraph
+        if not h2 or not ps or h2.casefold() in seen:
+            return
+        seen.add(h2.casefold())
+        pool.append({"h2": h2, "paragraphs": ps,
+                     "bullets": [" ".join(str(b).split()) for b in bullets if str(b or "").strip()]})
+
+    for key in ("inner_tech", "inner_about", "inner_who"):
+        for b in (pack.get(key) or {}).get("blocks") or []:
+            if isinstance(b, dict):
+                add(b.get("t"), [b.get("d")])
+    # card/row/item pairs from every section: their own titles are unique and do not
+    # repeat the section h2, so a rescued page can use them as fresh headings
+    for slot in (pack.get("sections") or {}).values():
+        if not isinstance(slot, dict):
+            continue
+        eb, lead = slot.get("eyebrow"), slot.get("lead")
+        if eb and lead:
+            add(eb, [lead])
+        for arrkey in ("cards", "steps", "rows", "items"):
+            for item in slot.get(arrkey) or []:
+                if not isinstance(item, dict):
+                    continue
+                title = item.get("t") or item.get("k") or item.get("title")
+                body = item.get("d") or item.get("v") or item.get("n")
+                if title and body:
+                    add(title, [body])
+    for item in ((pack.get("sections") or {}).get("guide") or {}).get("items") or []:
+        if isinstance(item, dict):
+            add(item.get("t"), [item.get("d")])
+    for item in ((pack.get("sections") or {}).get("facts") or {}).get("points") or []:
+        add(str(item)[:70], [item])
+    # FAQ answers stay in the FAQ arrays: using one as a section paragraph as well
+    # would print the same text twice on that page (the audit flags duplicated copy)
+    return pool
+
+
+def _inner_words(page: dict) -> int:
+    blob = " ".join(str(page.get("lead") or "").split())
+    for sec in page.get("sections") or []:
+        if not isinstance(sec, dict):
+            continue
+        blob += " " + " ".join(str(sec.get("h2") or "").split())
+        blob += " " + " ".join(str(x) for x in (sec.get("paragraphs") or []))
+        blob += " " + " ".join(str(x) for x in (sec.get("bullets") or []))
+    for f in page.get("faq") or []:
+        if isinstance(f, dict):
+            blob += " " + str(f.get("q") or "") + " " + str(f.get("a") or "")
+    return len(blob.split())
+
+
+def _pack_headings(pack: dict) -> set:
+    """Every h1/h2 already on the site, so a rescued page never repeats a heading."""
+    skip = {"meta", "ui", "bands", "legal", "footer", "thanks", "livebar"}
+    heads = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k in ("h1", "h2") and isinstance(v, str) and v.strip():
+                    heads.add(" ".join(v.split()).casefold())
+                else:
+                    walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk({k: v for k, v in pack.items()
+          if k not in skip and not str(k).startswith("inner_")})
+    return heads
+
+
+def rescue_inner_pages(pack: dict) -> dict:
+    """Deterministic long pages from the pack's own copy, for a model that refuses the shape.
+
+    `content_gen.long_inner_pages` needs rich features/security/steps sections; plans
+    without them produced empty shells (live: quvanel.cfd: inner_product 0 words).
+    This fills every page from the guide/FAQ/tech copy that any plan has, up to the
+    gate's section/word floors, so the model pack is never thrown away.
+    """
+    pages = content_gen.long_inner_pages(pack)
+    # keep whatever the model did write correctly: fill() only tops it up, so the
+    # page keeps as much unique copy as possible instead of being replaced wholesale
+    for key in ("inner_product", "inner_offer", "inner_faq"):
+        cur = pack.get(key)
+        if isinstance(cur, dict) and any(
+                isinstance(s, dict) and str(s.get("h2") or "").strip()
+                and any(str(p or "").strip() for p in (s.get("paragraphs") or []))
+                for s in (cur.get("sections") or [])):
+            pages[key] = cur
+    pool = _inner_pool(pack)
+    used_h2 = _pack_headings(pack)
+    home_faq = [f for f in (pack.get("faq") or {}).get("items") or []
+                if isinstance(f, dict) and str(f.get("q") or "").strip()
+                and str(f.get("a") or "").strip()]
+    all_pool = [dict(c) for c in pool]
+    keys = ("inner_faq", "inner_product", "inner_offer")
+    need = {"inner_faq": 2, "inner_product": 5, "inner_offer": 5}
+
+    # 1. what each page already has from the model / long_inner builder
+    own = {}
+    for key in keys:
+        secs = []
+        for sec in pages[key].get("sections") or []:
+            if not isinstance(sec, dict):
+                continue
+            h2 = " ".join(str(sec.get("h2") or "").split())
+            paras = [str(p).strip() for p in (sec.get("paragraphs") or []) if str(p or "").strip()]
+            if not h2 or not paras or h2.casefold() in used_h2:
+                continue
+            used_h2.add(h2.casefold())
+            secs.append({"h2": h2, "paragraphs": paras,
+                         "bullets": [str(b).strip() for b in (sec.get("bullets") or []) if str(b).strip()]})
+        own[key] = secs
+
+    # 2. reserve the minimum sections for each page BEFORE anyone pads with extras
+    #    (inner_faq first: it has the highest word floor and no FAQ-section fallback)
+    assigned = {k: [] for k in keys}
+    for key in keys:
+        while len(own[key]) + len(assigned[key]) < need[key]:
+            cand = next((c for c in pool if c["h2"].casefold() not in used_h2), None)
+            if cand is None:
+                break
+            pool.remove(cand)
+            used_h2.add(cand["h2"].casefold())
+            assigned[key].append(cand)
+    leftover = pool
+
+    def fill(key: str, min_words: int, cap: int, faq_pref: list) -> dict:
+        page = pages[key]
+        good = own[key] + assigned[key]
+        while len(good) < need[key] and leftover:
+            cand = leftover.pop(0)
+            if cand["h2"].casefold() in used_h2:
+                continue
+            used_h2.add(cand["h2"].casefold())
+            good.append(cand)
+        page["sections"] = good
+        # FAQ carries the densest copy already in the page's language. Product and
+        # offer split the pool (0..5 / 6..11); the FAQ page owns all twelve.
+        fqs, seen_q = [], set()
+
+        def add_faq(f) -> bool:
+            q = str((f or {}).get("q") or "").strip()
+            a = str((f or {}).get("a") or "").strip()
+            if not q or not a or q.casefold() in seen_q or len(fqs) >= 12:
+                return False
+            seen_q.add(q.casefold())
+            fqs.append({"q": q, "a": a})
+            return True
+
+        for f in (page.get("faq") or []) + faq_pref:
+            add_faq(f)
+        page["faq"] = fqs
+        while _inner_words(page) < min_words and len(fqs) < 12:
+            if not any(add_faq(f) for f in home_faq):
+                break
+        page["faq"] = fqs
+        while leftover and len(page["sections"]) < cap and _inner_words(page) < min_words:
+            cand = leftover.pop(0)
+            if cand["h2"].casefold() in used_h2:
+                continue
+            used_h2.add(cand["h2"].casefold())
+            page["sections"].append(cand)
+        # pool exhausted but still short: append unused paragraphs to existing
+        # sections (cross-page reuse is fine; no duplicate h2, no duplicate paragraph)
+        if _inner_words(page) < min_words and page["sections"]:
+            present = {" ".join(str(p).split()) for s in page["sections"]
+                       for p in (s.get("paragraphs") or [])}
+            for cand in all_pool:
+                if _inner_words(page) >= min_words:
+                    break
+                for para in cand["paragraphs"]:
+                    if _inner_words(page) >= min_words:
+                        break
+                    norm = " ".join(para.split())
+                    if not norm or norm in present:
+                        continue
+                    target = min(page["sections"], key=lambda s: len(s.get("paragraphs") or []))
+                    target.setdefault("paragraphs", []).append(norm)
+                    present.add(norm)
+        if not str(page.get("title") or "").strip():
+            page["title"] = good[0]["h2"] if good else str((pack.get("meta") or {}).get("title_home") or "")
+        if not str(page.get("h1") or "").strip():
+            page["h1"] = page["title"]
+        if not str(page.get("lead") or "").strip():
+            page["lead"] = (page["sections"][0]["paragraphs"][0]
+                            if page.get("sections") and page["sections"][0].get("paragraphs") else "")
+        return page
+
+    result = {}
+    # inner_faq claims extras first (highest word floor)
+    for key, words, cap, pref in (("inner_faq", 560, 8, home_faq),
+                                  ("inner_product", 400, 7, home_faq[:6]),
+                                  ("inner_offer", 400, 7, home_faq[6:12])):
+        result[key] = fill(key, words, cap, pref)
+    return result
+
+
 def _heal_stats(pack: dict, plan: dict) -> None:
     """Numeric/repeated stats captions fall back to the language bank (words, not figures)."""
     stats = (pack.get("sections") or {}).get("stats")
@@ -1093,15 +1299,27 @@ def repair_inner_pages(pack: dict, plan: dict, data: dict, sk: dict, errs: list,
         return {}
     if not isinstance(fixed, dict):
         return {}
+    if isinstance(fixed.get("pages"), dict):
+        for _k in keys:
+            fixed.setdefault(_k, fixed["pages"].get(_k))
     out = {}
     for k in keys:
-        page = fixed.get(k)
-        if isinstance(page, dict) and isinstance(page.get("sections"), list):
-            out[k] = page
-    if out:
-        for k, page in out.items():
-            pack[k] = page
-        print(f"· rewrote long page(s): {', '.join(out)}")
+        page = _normalize_inner_page(fixed.get(k))
+        if not isinstance(page, dict):
+            continue
+        secs = [s for s in (page.get("sections") or []) if isinstance(s, dict)]
+        has_paras = any(str(p or "").strip()
+                        for s in secs for p in (s.get("paragraphs") or []))
+        # an empty/card-shaped page must never replace the one already in the pack
+        if not secs or not has_paras:
+            continue
+        out[k] = page
+    if not out:
+        print(f"! long-page repair returned no usable pages (finish={finish}, {len(raw)} chars)")
+        return {}
+    for k, page in out.items():
+        pack[k] = page
+    print(f"· rewrote long page(s): {', '.join(out)}")
     return out
 
 
@@ -1427,6 +1645,26 @@ def main():
             print("· ledger rows rebalanced against the headline (model arithmetic slip)")
             out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
             errs = prepare_and_validate(pack, plan, data)
+    if errs and any(str(e).startswith(("inner_product", "inner_offer", "inner_faq"))
+                    for e in errs):
+        # last resort for the three editorial pages: derive them from the pack's own
+        # copy (the same builder bank builds use). A model that refuses the long shape
+        # must not throw away the whole pack and trigger a full translation pass
+        # (live: apex-ai-it.online, quvanel.cfd).
+        try:
+            fixed = rescue_inner_pages(pack)
+            replaced = []
+            for key, page in fixed.items():
+                if any(str(e).startswith(key) for e in errs):
+                    pack[key] = page
+                    replaced.append(key)
+            if replaced:
+                out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+                errs = prepare_and_validate(pack, plan, data)
+                print("WARN: long page(s) rebuilt from existing pack copy (model refused the "
+                      "shape): " + ", ".join(replaced) + " — spot-check before shipping")
+        except Exception as e:
+            print(f"! local long-page fallback failed: {e}")
     if errs:
         die("LLM pack still invalid: " + "; ".join(errs[:8]))
     # contacts are deterministic — persist whatever the normalizer settled on
