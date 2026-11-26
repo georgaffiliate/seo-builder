@@ -276,6 +276,20 @@ def chunk(payload: dict, limit: int = 14000) -> list[dict]:
     return chunks
 
 
+def _failed_paths(errs: list[str], part: dict) -> list[str]:
+    """Paths that really need another answer (aggregate messages name no path)."""
+    out: list[str] = []
+    for e in errs:
+        head, _, tail = e.partition(":")
+        head = head.strip()
+        if head in part:
+            out.append(head)
+        elif head.startswith("missing "):
+            # "missing 3 strings: a, b, c"
+            out.extend(x.strip() for x in tail.split(",") if x.strip() in part)
+    return list(dict.fromkeys(out))
+
+
 def translate(cfg, key, use_http, lang, payload: dict, passes: int = 2,
               brand: str = "", domain: str = "") -> tuple[dict, list[str]]:
     out: dict = {}
@@ -283,11 +297,19 @@ def translate(cfg, key, use_http, lang, payload: dict, passes: int = 2,
         got: dict = {}
         errs: list[str] = []
         for attempt in range(passes + 1):
+            # Перша відповідь — на весь шматок. Далі питаємо ЛИШЕ рядки, що не пройшли:
+            # повторний повний шматок перекладає ~30 нормальних рядків, щоб виправити два,
+            # і саме на цих повторах 538-рядковий пак з'їдав більшу частину збірки.
+            ask_part = part if attempt == 0 or not got \
+                else {k: part[k] for k in _failed_paths(errs, part)}
+            if not ask_part:
+                break
             try:
-                got = ask(cfg, key, use_http, lang, part, errs or None, brand)
+                patch = ask(cfg, key, use_http, lang, ask_part, errs or None, brand)
             except Exception as e:
                 print(f"  · translation attempt {attempt + 1} failed: {e}")
                 continue
+            got.update({k: v for k, v in patch.items() if k in ask_part and isinstance(v, str)})
             errs = validate(part, got, lang, brand, domain)
             if not errs:
                 break

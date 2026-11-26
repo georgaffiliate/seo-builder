@@ -18,7 +18,7 @@ With --build the chain continues: content pack, assemble+gates, brand icons, JS 
 static mobile lint and profiles/<domain>.json registration (deploy stays manual).
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys
+import argparse, datetime, hashlib, itertools, json, os, pathlib, random, re, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent          # static-create-sites/
 # Country codes people type instead of the language code. Without this every
@@ -1396,13 +1396,29 @@ def sync_plan_from_content(plan: dict, content_f: pathlib.Path) -> list[str]:
 
 
 # ---------------------------------------------------------------- main -------
+_BUILD_T0 = time.time()
+
+
 def step(title):
-    print(f"\n--- {title} ---")
+    print(f"\n--- {title} ---  [t+{time.time() - _BUILD_T0:.0f}s]")
+
+
+def _run_timed(cmd, title, cwd=None):
+    """Run a build step and print its wall-clock cost.
+
+    The log is the only place where the real price of a build shows up: one full
+    translation pass (538 strings) used to eat 15+ minutes while looking like a
+    single line in the log.
+    """
+    t0 = time.time()
+    rc = subprocess.run(cmd, cwd=str(cwd or ROOT)).returncode
+    print(f"· {title}: {time.time() - t0:.0f}s (exit {rc})")
+    return rc
 
 
 def step_run(title, cmd, cwd=None):
     step(title)
-    rc = subprocess.run(cmd, cwd=str(cwd or ROOT)).returncode
+    rc = _run_timed(cmd, title, cwd)
     if rc != 0:
         print(f"✗ {title} failed (exit {rc})")
         sys.exit(rc)
@@ -1507,6 +1523,8 @@ def blog_is_reusable(blog_f: pathlib.Path, plan_data: dict) -> bool:
 
 def run_build(domain, force, with_llm=False, offline=False, translate=False, ship_anyway=False):
     """content → assemble(+gates) → icons → js syntax → mobile lint → profile. Deploy stays manual."""
+    global _BUILD_T0
+    _BUILD_T0 = time.time()
     plan = PLANS / f"{domain}.json"
     content = ROOT / "content" / f"{domain}-content.json"
     site = ROOT / "sites" / domain
@@ -1532,8 +1550,9 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                 llm_cmd += ["--model", os.environ["LLM_MODEL"]]
             if os.environ.get("LLM_PROVIDER"):
                 llm_cmd += ["--provider", os.environ["LLM_PROVIDER"]]
-            if subprocess.run(llm_cmd).returncode != 0:
-                print("! model pack failed — falling back to master copy + translation")
+            if _run_timed(llm_cmd, "CONTENT PACK (LLM)"):
+                print("! model pack failed — falling back to master copy + translation "
+                      "(this is the slow path: a full localize pass)")
                 route = "localize"
             elif lang != "en" and not plan_lang_ready(lang):
                 # menu / top strip / slugs may still be the English fallback
@@ -1547,9 +1566,9 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                   "--plan", str(plan), "--out", str(content), "--force",
                   "--source-lang", "en"])
         step("LOCALIZE → " + lang)
-        rc = subprocess.run([sys.executable, str(ROOT / "tools" / "localize.py"),
-                             "--plan", str(plan), "--content", str(content),
-                             "--lang", lang], cwd=str(ROOT)).returncode
+        rc = _run_timed([sys.executable, str(ROOT / "tools" / "localize.py"),
+                         "--plan", str(plan), "--content", str(content),
+                         "--lang", lang], "LOCALIZE → " + lang, cwd=str(ROOT))
         if rc != 0:
             if not ship_anyway:
                 print(f"✗ translation to {lang} failed — fix the pack or rerun with --ship-anyway")
@@ -1583,7 +1602,7 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                 bcmd += ["--model", os.environ["LLM_MODEL"]]
             if os.environ.get("LLM_PROVIDER"):
                 bcmd += ["--provider", os.environ["LLM_PROVIDER"]]
-            rc = subprocess.run(bcmd, cwd=str(ROOT)).returncode
+            rc = _run_timed(bcmd, "BLOG CONTENT", cwd=str(ROOT))
             if rc != 0:
                 print("✗ blog content failed — build stopped (the classic build is untouched)")
                 sys.exit(rc)
@@ -1601,15 +1620,15 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
         _has_key = bool(os.environ.get("VENICE_API_KEY", "").strip()) or (ROOT / ".llm_env").is_file()
         if _has_key and os.environ.get("META_LLM", "on").lower() not in ("0", "off", "no"):
             meta_cmd.append("--llm")
-        rc_meta = subprocess.run(meta_cmd, cwd=str(ROOT)).returncode
+        rc_meta = _run_timed(meta_cmd, "META TITLES", cwd=str(ROOT))
         if rc_meta != 0:
             print("! meta step skipped — keeping the pack's own title/description")
 
     asm_cmd = [sys.executable, str(ROOT / "assemble.py"), "--plan", str(plan), "--content", str(content)]
-    rc = subprocess.run(asm_cmd, cwd=str(ROOT)).returncode
+    rc = _run_timed(asm_cmd, "ASSEMBLE + GATES", cwd=str(ROOT))
     if rc != 0 and ship_anyway:
         print("! gates failed — retrying in ship-anyway mode (issues become warnings)")
-        rc = subprocess.run(asm_cmd + ["--ship-anyway"], cwd=str(ROOT)).returncode
+        rc = _run_timed(asm_cmd + ["--ship-anyway"], "ASSEMBLE (ship-anyway)", cwd=str(ROOT))
     if rc != 0:
         # errors stay errors while the factory is being tested: a shipped page with a
         # known defect is worse than a red build
@@ -1631,6 +1650,7 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
                          "--plan", str(plan), "--content", str(content)])
 
     step("READY")
+    print(f"· build total: {time.time() - _BUILD_T0:.0f}s")
     print(f"site    : {site}")
     print(f"profile : {ROOT / 'profiles' / (domain + '.json')}")
     print("deploy  : manual (see CLAUDE.md), .htaccess is rejected by the panel — expected")

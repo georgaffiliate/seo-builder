@@ -721,6 +721,29 @@ _labels = {"content.ui.aria_menu": "Menu", "content.sections.ladder.rows.0.k": "
            "content.sections.ladder.rows.1.k": "Pro"}
 chk(not _lz.validate(_labels, dict(_labels), "pt", "Bitnova"),
     "localize: a label that reads the same in both languages is accepted")
+# a failed chunk must ask only the strings that failed — the full-chunk repeat is what
+# turned one bad line into 15+ minutes of a 538-string pack
+_calls = []
+
+
+def _fake_ask(cfg, key, use_http, lang, payload, errors=None, brand=""):
+    _calls.append(sorted(payload))
+    if len(_calls) == 1:
+        return {"content.a": "Alfa", "content.b": "Deposit thirty days"}   # b лишився англійським
+    return {"content.b": "Depozyt trzydzieści dni"}
+
+
+_orig_ask = _lz.ask
+_lz.ask = _fake_ask
+try:
+    _tout, _terr = _lz.translate({"model": "x"}, "k", True, "pl",
+                                 {"content.a": "Alpha copy here", "content.b": "Deposit thirty days"},
+                                 brand="Acme")
+finally:
+    _lz.ask = _orig_ask
+chk(_tout.get("content.b") == "Depozyt trzydzieści dni" and not _terr
+    and _calls[1] == ["content.b"],
+    "localize: a repair pass asks only the failed strings")
 _reordered = {"content.hero.device_delta": "↗ 2,4% in the last 30 days"}
 # Japanese may add small counters ("3つの手順") but never invent a figure
 chk(not _lz.validate({"x.y": "Three steps"}, {"x.y": "3つのステップ"}, "ja")
