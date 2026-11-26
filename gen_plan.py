@@ -1586,7 +1586,7 @@ def run_build(domain, force, with_llm=False, offline=False, translate=False, shi
         # instead of shipping weak copy or relaxing the rule
         step_run("CONTENT REPAIR",
                  [sys.executable, str(ROOT / "tools" / "repair_content.py"),
-                  "--plan", str(plan), "--content", str(content)])
+                  "--plan", str(plan), "--content", str(content), "--passes", "1"])
 
     if (plan_data.get("blog") or {}).get("enabled"):
         blog_f = ROOT / "content" / f"{domain}-blog.json"

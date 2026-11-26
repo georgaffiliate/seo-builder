@@ -642,7 +642,9 @@ def main():
                 # beats re-sending the whole 5k-word pack (which is what used to happen,
                 # and a short article often came back identical after it).
                 full_done = 0
-                for attempt in (1, 2, 3):
+                # один ремонтний пас, як і в контент-паку: не сходиться — офлайн-заглушка
+                # й червона збірка, а не три хвилини переписування тієї самої статті
+                for attempt in (1,):
                     errs = gate(plan, pack)
                     if not errs:
                         break

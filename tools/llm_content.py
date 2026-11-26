@@ -1366,7 +1366,10 @@ def main():
 
     errs = prepare_and_validate(pack, plan, data)
     full_done = 0
-    for attempt in (1, 2, 3):
+    # Один ремонтний пас: перша відповідь моделі → одна спроба виправити → помилка
+    # (фолбек на переклад). Три паси на flash-моделі коштували ~3 хвилини, переписували
+    # одні й ті самі об'єкти і все одно не сходились (live: varnedrako-at.site).
+    for attempt in (1,):
         if not errs:
             break
         inner_keys, _rest = inner_page_errors(errs)
