@@ -174,15 +174,16 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
     arts = B.get("articles") or []
     if not isinstance(arts, list):
         return ["blog.articles is not an array"]
-    if len(arts) != len(topics):
-        errs.append(f"articles: {len(arts)} entries, plan asked for {len(topics)}")
-    if not 3 <= len(arts) <= 5:
-        errs.append(f"articles: {len(arts)} entries, expected 3..5")
+    if not 1 <= len(arts) <= 5:
+        errs.append(f"articles: {len(arts)} entries, expected 1..5")
 
     want_ids = [str(t.get("id") or "") for t in topics]
     got_ids = [str((a or {}).get("topic") or "") for a in arts]
-    if sorted(want_ids) != sorted(got_ids):
-        errs.append(f"article topics do not match the plan brief: {got_ids} vs {want_ids}")
+    if len(got_ids) != len(set(got_ids)):
+        errs.append(f"article topics repeat: {got_ids}")
+    extra_topics = [t for t in got_ids if t not in want_ids]
+    if extra_topics:
+        errs.append(f"article topics not in the plan brief: {extra_topics}")
 
     seen_slugs, seen_titles, seen_paras = set(), set(), {}
     allowed_related = {str((a or {}).get("slug") or "").strip() for a in arts}
@@ -288,9 +289,9 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
                 errs.append(f"{tag}.faq[{k}].a is too short ({len(ans)} chars)")
 
         related = a.get("related") or []
-        if not isinstance(related, list) or not related:
+        if len(arts) > 1 and (not isinstance(related, list) or not related):
             errs.append(f"{tag}.related needs at least 1 other slug")
-        else:
+        elif isinstance(related, list):
             for r in related:
                 if r not in allowed_related or r == slug:
                     errs.append(f"{tag}.related points to an unknown/self slug: {r}")

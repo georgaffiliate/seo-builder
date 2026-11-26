@@ -52,6 +52,9 @@ _jobs: dict[str, dict] = {}
 # running child processes live OUTSIDE the job dict: json.dumps() must never meet a Popen
 _procs: dict[str, subprocess.Popen] = {}
 _queue: "queue.Queue[str]" = queue.Queue()
+# Global pause: a stopped worker takes no new jobs. Running children are killed when
+# the operator asks for a hard stop; their jobs go through _retry_or_fail and wait.
+_paused = False
 # Порядок черги для діагностики (queue_pos у /jobs). Тримаємо окремо, бо queue.Queue
 # не дає зазирнути всередину; елементи знімаються, коли воркер бере job або його скасовано.
 _queued_order: list[str] = []
@@ -67,6 +70,28 @@ def _log(job: dict, line: str) -> None:
 
 def _tail(text: str, limit: int = LOG_TAIL) -> str:
     return text[-limit:] if len(text) > limit else text
+
+
+def _set_paused(paused: bool, kill: bool = False) -> dict:
+    """Pause/resume the queue worker. A hard pause also stops running builds.
+
+    A killed build re-enters the queue through _retry_or_fail and waits there, so
+    resuming the service continues the work instead of marking the site failed.
+    """
+    global _paused
+    _paused = bool(paused)
+    killed = []
+    if _paused and kill:
+        with _lock:
+            procs = list(_procs.items())
+        for jid, proc in procs:
+            _kill_tree(proc)
+            killed.append(jid)
+            job = _jobs.get(jid)
+            if job is not None:
+                _log(job, "== build stopped by the pause switch")
+    return {"ok": True, "paused": _paused, "killed": killed,
+            "queued": len(_queued_order)}
 
 
 def _retry_or_fail(job: dict, error: str, *, retryable: bool = False,
@@ -185,8 +210,12 @@ def _kill_tree(p: subprocess.Popen) -> None:
 
 def _worker() -> None:
     while True:
+        while _paused:
+            time.sleep(0.5)
         try:
-            jid = _queue.get()
+            jid = _queue.get(timeout=1.0)
+        except queue.Empty:
+            continue
         except Exception:  # noqa: BLE001 - the queue thread must never die silently
             time.sleep(1.0)
             continue
@@ -361,6 +390,7 @@ class Handler(BaseHTTPRequestHandler):
                      if jid in _jobs and _jobs[jid]["status"] == "queued"]
             return self._send(200, {"ok": True, "service": "seo-builder",
                                     "queued": len(queue), "jobs": len(all_jobs),
+                                    "paused": _paused,
                                     "running": running, "queue": queue})
         if path == "/jobs":
             if not self._auth():
@@ -410,7 +440,19 @@ class Handler(BaseHTTPRequestHandler):
                 job["finished_at"] = time.time()
                 _log(job, "!! cancelled by operator")
             return self._send(200, {"ok": True, "job_id": job["job_id"], "status": job["status"]})
-        if self.path.split("?", 1)[0] == "/blog/article":
+        path_now = self.path.split("?", 1)[0]
+        if path_now in ("/pause", "/resume"):
+            if not self._auth():
+                return self._send(401, {"ok": False, "error": "unauthorized"})
+            if path_now == "/resume":
+                return self._send(200, _set_paused(False))
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                body = json.loads(self.rfile.read(length) or b"{}") if length else {}
+            except (ValueError, json.JSONDecodeError):
+                return self._send(400, {"ok": False, "error": "invalid JSON body"})
+            return self._send(200, _set_paused(True, kill=bool(body.get("kill", True))))
+        if path_now == "/blog/article":
             if not self._auth():
                 return self._send(401, {"ok": False, "error": "unauthorized"})
             try:
@@ -433,7 +475,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "article": payload,
                                     "domain": req.get("domain")})
 
-        if self.path.split("?", 1)[0] != "/build":
+        if path_now != "/build":
             return self._send(404, {"ok": False, "error": "not found"})
         if not self._auth():
             return self._send(401, {"ok": False, "error": "unauthorized"})
@@ -459,9 +501,11 @@ class Handler(BaseHTTPRequestHandler):
                                     "domain": domain, "deduped": True,
                                     "poll": f"/jobs/{active['job_id']}"})
 
-        if (ROOT / "plans" / f"{domain}.json").exists() and not req.get("force"):
+        if ((ROOT / "plans" / f"{domain}.json").exists()
+                and not req.get("force") and not req.get("retry")):
             return self._send(409, {"ok": False,
-                                    "error": f"domain {domain} already has a plan; pass force=true to rebuild"})
+                                    "error": f"domain {domain} already has a plan; pass force=true "
+                                             f"or retry=true to rebuild"})
 
         jid = uuid.uuid4().hex
         job = {"job_id": jid, "status": "queued", "domain": domain, "stage": "queued",
@@ -541,6 +585,8 @@ def _validate(req: dict) -> str | None:
         return "seed must be an integer"
     if "blog" in req and not isinstance(req["blog"], bool):
         return "blog must be a boolean"
+    if "retry" in req and not isinstance(req["retry"], bool):
+        return "retry must be a boolean"
     return None
 
 

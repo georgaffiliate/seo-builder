@@ -1128,6 +1128,102 @@ def rescue_inner_pages(pack: dict) -> dict:
     return result
 
 
+EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF]")
+ICON_GLYPHS = ["◆", "↗", "●", "▣", "◈", "▤", "◇", "▷"]
+# countdown captions: four short time words per language (days/hours/min/sec)
+COUNTDOWN_L10N = {
+    "en": ("days", "hrs", "min", "sec"),
+    "pt": ("dias", "horas", "min", "seg"),
+    "es": ("días", "h", "min", "s"),
+    "it": ("giorni", "ore", "min", "sec"),
+    "fr": ("jours", "h", "min", "s"),
+    "de": ("Tage", "Std", "Min", "Sek"),
+    "nl": ("dagen", "uur", "min", "sec"),
+    "da": ("dage", "timer", "min", "sek"),
+    "nb": ("dager", "timer", "min", "sek"),
+    "sv": ("dagar", "tim", "min", "sek"),
+    "fi": ("päivää", "tuntia", "min", "sek"),
+    "pl": ("dni", "godz", "min", "sek"),
+    "cs": ("dny", "hod", "min", "s"),
+    "sk": ("dni", "hod", "min", "s"),
+    "ro": ("zile", "ore", "min", "sec"),
+    "hu": ("nap", "óra", "perc", "mp"),
+    "el": ("ημέρες", "ώρες", "λεπ", "δευτ"),
+    "tr": ("gün", "saat", "dk", "sn"),
+    "ru": ("дней", "часов", "мин", "сек"),
+    "uk": ("днів", "годин", "хв", "сек"),
+}
+
+
+def _heal_scarcity(pack: dict, plan: dict) -> None:
+    """The countdown needs four short time words; phrases like 'available this week'
+    are not captions and used to send the whole pack back to the model."""
+    sc = pack.get("scarcity")
+    if not isinstance(sc, dict):
+        return
+    units = [str(u).strip() for u in (sc.get("units") or []) if str(u).strip()]
+    bad = (len(units) != 4
+           or len({u.casefold() for u in units}) != 4
+           or any(re.search(r"\d", u) or len(u) > 16 for u in units))
+    if not bad:
+        return
+    lang = str(plan["params"].get("lang") or "en").lower()
+    sc["units"] = list(COUNTDOWN_L10N.get(lang) or COUNTDOWN_L10N["en"])
+
+
+def _heal_icons(pack: dict) -> None:
+    """Coloured emoji in card icons are replaced with the site's monochrome glyphs."""
+    n = 0
+
+    def walk(node):
+        nonlocal n
+        if isinstance(node, dict):
+            ic = node.get("ic")
+            if isinstance(ic, str) and EMOJI_RE.search(ic):
+                node["ic"] = ICON_GLYPHS[n % len(ICON_GLYPHS)]
+                n += 1
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk(pack)
+
+
+def _heal_category(pack: dict, plan: dict) -> None:
+    """An invalid meta.category is derived from the (brand-free) home title, or dropped."""
+    meta = pack.get("meta")
+    if not isinstance(meta, dict):
+        return
+    cat = str(meta.get("category") or "").strip()
+    brand = str(plan["params"].get("brand") or "")
+    if not cat or meta_titles._ok_category(cat, brand):
+        return
+    src = re.sub(rf"\b{re.escape(brand)}\b", " ", str(meta.get("title_home") or ""),
+                 flags=re.I) if brand else str(meta.get("title_home") or "")
+    cand = " ".join(re.findall(r"[^\W\d_]+", src, re.UNICODE)[:4])
+    if cand and meta_titles._ok_category(cand, brand):
+        meta["category"] = cand
+    else:
+        meta.pop("category", None)
+
+
+def _heal_quote(pack: dict, plan: dict) -> None:
+    """The hero quote must not repeat the brand (the h1 already prints it)."""
+    brand = str(plan["params"].get("brand") or "").strip()
+    pr = (pack.get("hero") or {}).get("proof")
+    if not brand or not isinstance(pr, dict):
+        return
+    q = str(pr.get("quote") or "")
+    if brand.lower() not in q.lower():
+        return
+    q = re.sub(rf"\s*\b{re.escape(brand)}\b\s*", " ", q, flags=re.I)
+    q = re.sub(r"\s{2,}", " ", q)
+    q = re.sub(r"\s+([,.!?;:])", r"\1", q).strip()
+    pr["quote"] = q
+
+
 def _heal_stats(pack: dict, plan: dict) -> None:
     """Numeric/repeated stats captions fall back to the language bank (words, not figures)."""
     stats = (pack.get("sections") or {}).get("stats")
@@ -1196,6 +1292,10 @@ def self_heal(pack: dict, plan: dict) -> None:
             if pick:
                 meta["category"] = pick
     _heal_stats(pack, plan)
+    _heal_scarcity(pack, plan)
+    _heal_icons(pack)
+    _heal_category(pack, plan)
+    _heal_quote(pack, plan)
     for _key in [k for k in pack if str(k).startswith("inner_")]:
         pack[_key] = _normalize_inner_page(pack[_key])
     _heal_inner_titles(pack)
@@ -1404,7 +1504,11 @@ def _pack_set(pack, path, value) -> bool:
                 return False
             node = node[int(part)]
         elif isinstance(node, dict):
-            node = node.setdefault(part, {})
+            nxt = node.get(part)
+            if nxt is None:
+                nxt = {}
+                node[part] = nxt
+            node = nxt
         else:
             return False
     last = parts[-1]
@@ -1483,8 +1587,11 @@ def repair_objects(pack: dict, plan: dict, data: dict, errs: list, targets: list
             if path not in patch:
                 continue
             old, new = _pack_at(pack, path), patch[path]
-            # a different shape means the model misunderstood; let the full pack handle it
-            if type(old) is not type(new) or isinstance(new, str) and not new.strip():
+            # a missing/None slot may be filled with a fresh string/array/object;
+            # only an existing value of a different shape is rejected
+            if old is not None and type(old) is not type(new):
+                continue
+            if isinstance(new, str) and not new.strip():
                 continue
             if _pack_set(pack, path, new):
                 applied_paths.append(path)

@@ -141,8 +141,42 @@ def test_execute_requeues_on_build_failure():
         _cleanup_job(jid)
 
 
+def test_existing_plan_retry_flag():
+    """Після рестарту білдера план лишається на диску: retry=true має його перезаписати."""
+    api.API_TOKEN = ""
+    srv, port = _server()
+    domain = f"retry-plan-{uuid.uuid4().hex[:10]}.site"
+    plan_f = api.ROOT / "plans" / f"{domain}.json"
+    plan_f.parent.mkdir(exist_ok=True)
+    plan_f.write_text("{}", encoding="utf-8")
+    try:
+        body = {"brand": "Retry Plan", "lang": "en", "domain": domain}
+        code, first = _call(port, "POST", "/build", body)
+        assert code == 409 and "already has a plan" in first["error"], first
+        code, second = _call(port, "POST", "/build", {**body, "retry": True})
+        assert code == 202 and second["job_id"], second
+        _cleanup_job(second["job_id"])
+    finally:
+        if plan_f.exists():
+            plan_f.unlink()
+        srv.shutdown()
+
+
+def test_pause_switch():
+    api._set_paused(False)
+    try:
+        res = api._set_paused(True, kill=False)
+        assert res["paused"] is True and api._paused is True
+        res = api._set_paused(False)
+        assert res["paused"] is False and api._paused is False
+    finally:
+        api._set_paused(False)
+
+
 if __name__ == "__main__":
     test_dedupe_queue_and_cancel()
     test_retry_budget()
     test_execute_requeues_on_build_failure()
-    print("OK: dedupe / queue_pos / cancel / healthz / retry budget")
+    test_existing_plan_retry_flag()
+    test_pause_switch()
+    print("OK: dedupe / queue_pos / cancel / healthz / retry budget / retry plan / pause")

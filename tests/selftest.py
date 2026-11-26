@@ -1026,6 +1026,30 @@ _tp = {"inner_product": {"title": "Stessa pagina", "h1": "Piattaforma unica"},
 _lc._heal_inner_titles(_tp)
 chk(_tp["inner_product"]["title"] != _tp["inner_offer"]["title"],
     "self-heal: duplicate inner titles fall back to each page h1")
+_sc = {"scarcity": {"units": ["Vagas desta semana", "Pedidos aprovados hoje",
+                              "Aprovação rápida", "Vagas no lote atual"]}}
+_lc._heal_scarcity(_sc, {"params": {"lang": "pt"}})
+chk(_sc["scarcity"]["units"] == ["dias", "horas", "min", "seg"],
+    "self-heal: countdown phrases become four time labels")
+_ic = {"sections": {"features": {"cards": [{"ic": "🕘"}]}}}
+_lc._heal_icons(_ic)
+chk(_ic["sections"]["features"]["cards"][0]["ic"] == "◆",
+    "self-heal: emoji card icon becomes a monochrome glyph")
+_cat = {"meta": {"title_home": "PNAF — plataforma de investimento",
+                 "category": "PNAF investimento 24/7"}}
+_lc._heal_category(_cat, {"params": {"brand": "PNAF"}})
+chk("category" not in _cat["meta"]
+    or _lc.meta_titles._ok_category(_cat["meta"]["category"], "PNAF"),
+    "self-heal: an invalid meta.category is derived without the brand or dropped")
+_qt = {"hero": {"proof": {"quote": "Uso a PNAF todos os dias para acompanhar o mercado."}}}
+_lc._heal_quote(_qt, {"params": {"brand": "PNAF"}})
+chk("PNAF" not in _qt["hero"]["proof"]["quote"],
+    "self-heal: the hero quote no longer repeats the brand")
+_none_patch = {}
+import repair_content as _repair_mod
+_repair_mod._set(_none_patch, "thanks.eyebrow", "OBRIGADO")
+chk(_none_patch.get("thanks", {}).get("eyebrow") == "OBRIGADO",
+    "repair: a missing/None branch can be created by a patch")
 chk(_lc.repair_targets(["faq answer too short (1 chars): ……",
                         "persona name reused from another offer: Ana K."])
     == ["faq.items", "reviews.items"],
@@ -1217,6 +1241,11 @@ _shrink(_tol_pack["articles"][0], 372)
 chk(_bc.article_words(_tol_pack["articles"][0]) == 372
     and not _ba.validate_blog(_tol_plan, _tol_pack),
     "a 372-word article (within the floor) passes the blog gate")
+_one = _bc.offline_pack(_tol_plan)
+_one["articles"] = _one["articles"][:1]
+_one["articles"][0]["related"] = []
+chk(not _ba.validate_blog(_tol_plan, _one),
+    "one good article is a valid blog pack (a broken one can be dropped)")
 _shrink(_tol_pack["articles"][0], 300)
 chk(any("body is" in e and "articles[0]" in e
         for e in _ba.validate_blog(_tol_plan, _tol_pack)),
@@ -1232,7 +1261,13 @@ _rep_pack = {"hub": {}, "articles": [
 _orig_ask = _bc.ask_article
 _bc.ask_article = lambda *a, **k: {"topic": "a", "slug": "a-new", "title": "A nieuw",
                                    "sections": [{"h2": "Nieuwe kop hier",
-                                                 "p": ["Een nieuwe alinea."]}],
+                                                 "p": ["Een nieuwe alinea met genoeg woorden om "
+                                                       "als een echte paragraaf te tellen in deze "
+                                                       "test, zodat de structuurcheck hem "
+                                                       "accepteert en de rest van het artikel "
+                                                       "ongemoeid blijft in de pakketcontrole."]}],
+                                   "faq": [{"q": "Vraag een?", "a": "Antwoord een."},
+                                           {"q": "Vraag twee?", "a": "Antwoord twee."}],
                                    "related": ["b-keep"]}
 try:
     _fixed_n = _bc.repair_articles(_rep_plan, _rep_pack, {}, {}, "KEY", {0: ["bad"]}, 380)

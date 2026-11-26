@@ -52,7 +52,11 @@ def _set(pack, path, value):
                 return False
             node = node[int(part)]
         elif isinstance(node, dict):
-            node = node.setdefault(part, {})
+            nxt = node.get(part)
+            if nxt is None:
+                nxt = {}
+                node[part] = nxt
+            node = nxt
         else:
             return False
     last = parts[-1]

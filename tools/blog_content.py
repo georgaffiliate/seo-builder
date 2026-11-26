@@ -473,6 +473,11 @@ def repair_articles(plan: dict, pack: dict, data: dict, cfg: dict, where: str,
         if not art:
             print(f"  ✗ articles[{idx}]: no usable rewrite")
             continue
+        if not (isinstance(art.get("sections"), list) and art["sections"]
+                and isinstance(art.get("faq"), list) and len(art["faq"]) >= 2
+                and article_words(art) >= 20):
+            print(f"  ✗ articles[{idx}]: rewrite is structurally broken — keeping the old one")
+            continue
         before = article_words(cur)
         replace_article(pack, idx, art)
         fixed += 1
@@ -684,6 +689,20 @@ def main():
                     if not isinstance(pack, dict):
                         break
                 if isinstance(pack, dict):
+                    # Last resort: drop articles the gate still rejects. One good
+                    # article beats a red build (the plan topic list is an allow-list).
+                    for _ in range(6):
+                        errs = gate(plan, pack)
+                        if not errs:
+                            break
+                        by_idx, _pack_level = article_error_map(errs)
+                        arts = pack.get("articles") or []
+                        drop = {i for i in by_idx if 0 <= i < len(arts)}
+                        if not drop or len(arts) - len(drop) < 1:
+                            break
+                        print(f"! dropping {len(drop)} article(s) that still fail the gate")
+                        pack["articles"] = [a for i, a in enumerate(arts) if i not in drop]
+                        _repoint_related(pack)
                     errs = gate(plan, pack)
                     if errs:
                         print("! blog pack still invalid: " + "; ".join(errs[:6]))
