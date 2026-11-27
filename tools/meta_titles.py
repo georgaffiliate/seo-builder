@@ -91,17 +91,24 @@ TRANSPARENCY = (
     "sem custos escondidos", "gizli ücret", "nihai maliyet",
 )
 PLACEHOLDER = (
-    "lorem", "ipsum", "build real headline", "{brand}", "{", "todo", "tbd", "xxx",
+    "lorem", "ipsum", "build real headline", "{brand}", "{", "TODO", "TBD", "xxx",
     "sample text", "your headline", "placeholder", "заголовок",
 )
-# Same tokens as the lint, but removable: a model occasionally leaves a schema
-# placeholder inside a title/description, and the meta gate then blocks the build
-# after assembly (the pack's own validator is looser). Sanitising the meta fields
-# before render keeps a reusable pack from failing every run.
 PLACEHOLDER_RX = re.compile(
-    r"(?:\{[^{}]{0,80}\}|\{\{|\}\}|\blorem\b|\bipsum\b|\bbuild real headline\b|"
-    r"\bsample text\b|\byour headline\b|\bplaceholder\b|\btodo\b|\btbd\b|\bxxx\b|"
-    r"\bзаголовок\b)", re.I)
+    r"\{[^{}]{0,80}\}|\{\{|\}\}|"
+    r"(?i:lorem|ipsum|build real headline|sample text|your headline|placeholder|заголовок)|"
+    r"\bTODO\b|\bTBD\b|\bXXX\b")
+# "todo"/"todos" is an ordinary word in Portuguese/Spanish ("all"); only the
+# uppercase code marker is a placeholder. Substring matching used to fail a pt
+# blog page on "para todos" (live: pnaf.info).
+PLACEHOLDER = (
+    "lorem", "ipsum", "build real headline", "{brand}", "{", "TODO", "TBD", "xxx",
+    "sample text", "your headline", "placeholder", "заголовок",
+)
+
+
+def _placeholder_hit(text) -> bool:
+    return bool(PLACEHOLDER_RX.search(str(text or "")))
 
 
 def clean_meta(text) -> str:
@@ -110,6 +117,7 @@ def clean_meta(text) -> str:
     s = re.sub(r"[{}]", " ", s)
     s = re.sub(r"\s{2,}", " ", s)
     return s.strip(" .,;:—-")
+
 
 
 DEPOSIT_RE = re.compile(
@@ -212,7 +220,7 @@ def _ok_category(cat: str, brand: str = "") -> bool:
         return False
     if brand and brand.lower() in c.lower():
         return False
-    return not (_has(c, CLICHE) or _has(c, RISK) or _has(c, PLACEHOLDER))
+    return not (_has(c, CLICHE) or _has(c, RISK) or _placeholder_hit(c))
 
 
 def pack_category(pack: dict, brand: str = "") -> str:
@@ -229,7 +237,7 @@ def _ok_hook(hook: str, allow_deposit: bool) -> bool:
         return False
     if h[0] in "≤≥~<>≈±+":                       # "≤ 1 hour" reads badly after a comma
         return False
-    if _has(h, CLICHE) or _has(h, RISK) or _has(h, PLACEHOLDER):
+    if _has(h, CLICHE) or _has(h, RISK) or _placeholder_hit(h):
         return False
     if not allow_deposit and DEPOSIT_RE.search(h):
         return False
@@ -396,7 +404,7 @@ def score_title(title: str, brand: str, category: str = "", geo: str = "") -> tu
     if b and low.count(b) > 1:
         seo -= 8
         notes.append("бренд двічі")
-    if _has(t, PLACEHOLDER):
+    if _placeholder_hit(t):
         seo -= 40
         notes.append("плейсхолдер")
     return max(0, min(100, seo)), max(0, min(100, ctr)), notes
@@ -437,7 +445,7 @@ def score_desc(desc: str, title: str, brand: str, category: str = "") -> tuple[i
         seo -= 20
         ctr -= 20
         notes.append(f"комплаєнс-ризик: «{_has(d, RISK)}»")
-    if _has(d, PLACEHOLDER):
+    if _placeholder_hit(d):
         seo -= 40
         notes.append("плейсхолдер")
     if title and _key(d).startswith(_key(title)[:40]):
@@ -544,7 +552,7 @@ def lint_h1(rest: str, accent: str, brand: str = "",
         out.append(("WARN", f"акцент {len(a.split())} слів (краще 2–4)"))
     if _has(both, CLICHE) or _has(both, RISK):
         out.append(("WARN", "H1 з кліше або комплаєнс-словом"))
-    if _has(both, PLACEHOLDER):
+    if _placeholder_hit(both):
         out.append(("ERR", "плейсхолдер у H1"))
     if topic and r and a and not _on_topic(both, topic):
         out.append(("WARN", "H1 без тематичного слова — емоція без релевантності"))
@@ -583,7 +591,7 @@ def variants(brand: str, lang: str = "en", *, categories=None, facts=(), sentenc
             mixed.append(short)
     hooks = mixed[:6]
     sents = [_clean(s) for s in sentences if 45 <= len(_clean(s)) <= 230
-             and not _has(s, RISK) and not _has(s, PLACEHOLDER)]
+             and not _has(s, RISK) and not _placeholder_hit(s)]
     cta = _clean(cta).rstrip(".")
     facts_phrase = _facts_phrase([f for f in strong if _ok_hook(f, allow_deposit)])
 
@@ -634,7 +642,7 @@ def variants(brand: str, lang: str = "en", *, categories=None, facts=(), sentenc
             continue
         if _width(title) > TITLE_HARD or _key(title) in seen:
             continue
-        if _has(title, RISK) or _has(title, PLACEHOLDER):
+        if _has(title, RISK) or _placeholder_hit(title):
             continue
         cat0 = cat
         seo_t, ctr_t, notes_t = score_title(title, brand, cat0, geo)
@@ -677,7 +685,7 @@ def lint(title: str, description: str, brand: str, *, lang: str = "en",
     t = _clean(title)
     d = _clean(description)
     out: list[tuple[str, str]] = []
-    if _has(t, PLACEHOLDER) or _has(d, PLACEHOLDER):
+    if _placeholder_hit(t) or _placeholder_hit(d):
         out.append(("ERR", "плейсхолдер у meta"))
     if t and brand and not t.lower().startswith(_clean(brand).lower()):
         out.append(("ERR", "title не починається з назви воронки"))

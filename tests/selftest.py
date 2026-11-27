@@ -1078,6 +1078,17 @@ chk(_none_patch.get("thanks", {}).get("eyebrow") == "OBRIGADO",
     "repair: a missing/None branch can be created by a patch")
 chk(_lc.meta_titles.clean_meta("Plano {x} TODO — mínimo") == "Plano — mínimo",
     "meta sanitizer strips schema placeholders from a title")
+chk(not _lc.meta_titles._placeholder_hit("Plano de trading para todos os níveis")
+    and _lc.meta_titles._placeholder_hit("TODO: headline")
+    and _lc.meta_titles.clean_meta("Plano para todos") == "Plano para todos",
+    "placeholder check is word-aware: Portuguese 'todos' is not a TODO marker")
+_meta_todos = [m for lvl, m in _lc.meta_titles.lint(
+    "PNAF plano de trading para todos", "PNAF: um plano simples para todos os níveis",
+    "PNAF", home=False) if "плейсхолдер" in m]
+chk(not _meta_todos, "meta lint does not flag Portuguese 'todos' as a placeholder")
+chk(_ba.body_word_target("ja") == 700 and _ba.body_word_floor("ja") >= 500
+    and _ba._units("あ" * 700, "ja") == 700,
+    "CJK blog body is measured in characters")
 _C_san = {"meta": {"title_home": "Acme {brand} trading", "description": "lorem ipsum"},
           "inner_about": {"title": "Sobre {x}", "lead": "TODO"}}
 _B_san = {"hub": {"title": "Guias {x}", "lead": "lorem ipsum"},

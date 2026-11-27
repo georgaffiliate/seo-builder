@@ -87,13 +87,20 @@ def _words(text: str) -> int:
     return len(re.findall(r"\w+", str(text or ""), re.UNICODE))
 
 
+def _units(text: str, lang: str) -> int:
+    """Latin copy is measured in words, CJK in characters (no spaces between words)."""
+    if _cjk(lang):
+        return A.text_units(text, lang)
+    return _words(text)
+
+
 def _cjk(lang: str) -> bool:
     return (lang or "").lower() in ("ja", "zh", "ko")
 
 
 def body_word_target(lang: str) -> int:
-    """Words of article body the gate asks for (CJK scripts pack more per word)."""
-    return 220 if _cjk(lang) else 380
+    """Body target in the gate's units: words for Latin, characters for CJK."""
+    return 700 if _cjk(lang) else 380
 
 
 def body_word_floor(lang: str) -> int:
@@ -106,6 +113,8 @@ def body_word_floor(lang: str) -> int:
     ±60 words (16% on the 380 target) so a rounding miss never costs a build.
     """
     target = body_word_target(lang)
+    if _cjk(lang):
+        return target - min(120, max(20, round(target * 0.16)))
     return target - min(60, max(8, round(target * 0.16)))
 
 
@@ -262,7 +271,7 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
                         errs.append(f"{tag}.sections[{j}].p[{k}] repeats a paragraph from "
                                     f"{seen_paras[norm]}")
                     seen_paras[norm] = f"{tag}.sections[{j}].p[{k}]"
-                words += _words(text)
+                words += _units(text, lang)
             pts = sec.get("points") or []
             if pts and (not isinstance(pts, list) or len(pts) < 2 or len(pts) > 6):
                 errs.append(f"{tag}.sections[{j}].points needs 2..6 bullets")
@@ -270,11 +279,12 @@ def validate_blog(plan: dict, B: dict) -> list[str]:
                 for p in pts:
                     if len(str(p or "").strip()) < 12:
                         errs.append(f"{tag}.sections[{j}].points has a too-short bullet")
-                    words += _words(p)
-            words += _words(h2)
+                    words += _units(p, lang)
+            words += _units(h2, lang)
         min_words = body_word_floor(lang)
+        _unit = "chars" if _cjk(lang) else "words"
         if words < min_words:
-            errs.append(f"{tag} body is {words} words, needs >= {min_words}")
+            errs.append(f"{tag} body is {words} {_unit}, needs >= {min_words}")
 
         faq = a.get("faq") or []
         if not isinstance(faq, list) or not 2 <= len(faq) <= 5:
@@ -556,8 +566,8 @@ def article_jsonld(plan, B, art, url: str, image_url: str = "") -> str:
     dom = plan["params"]["domain"]
     hub = B.get("hub") or {}
     home = (plan.get("layout", {}).get("menu") or ["Home"])[0]
-    words = sum(_words(s.get("h2")) + sum(_words(p) for p in (s.get("p") or []))
-                + sum(_words(x) for x in (s.get("points") or []))
+    words = sum(_units(s.get("h2"), plan["params"].get("lang", "en")) + sum(_units(p, plan["params"].get("lang", "en")) for p in (s.get("p") or []))
+                + sum(_units(x, plan["params"].get("lang", "en")) for x in (s.get("points") or []))
                 for s in (art.get("sections") or []) if isinstance(s, dict))
     post = {
         "@type": "BlogPosting", "@id": f"{url}#article",
@@ -617,8 +627,8 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
                   f'<p class="blog-kicker">{A.esc(hub.get("toc_label") or "Contents")}</p>'
                   f'<nav>{toc}</nav></aside><div class="blog-body">{blocks}</div></div>')
     elif style == "c":
-        words = sum(_words(s.get("h2")) + sum(_words(p) for p in (s.get("p") or []))
-                    + sum(_words(x) for x in (s.get("points") or [])) for s in secs)
+        words = sum(_units(s.get("h2"), plan["params"].get("lang", "en")) + sum(_units(p, plan["params"].get("lang", "en")) for p in (s.get("p") or []))
+                    + sum(_units(x, plan["params"].get("lang", "en")) for x in (s.get("points") or [])) for s in secs)
         layout = (f'<div class="blog-facts">'
                   f'<div><b>{len(secs)}</b><span>{A.esc(hub.get("facts_sections_label") or "sections")}</span></div>'
                   f'<div><b>{words}</b><span>{A.esc(hub.get("facts_words_label") or "words")}</span></div>'

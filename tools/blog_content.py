@@ -274,9 +274,9 @@ def article_error_map(errs: list) -> tuple[dict, list]:
     return by_idx, pack_level
 
 
-def article_words(art: dict) -> int:
-    """Same count the gate uses: headings + paragraphs + bullets."""
-    return sum(len(re.findall(r"\w+", str(x or ""), re.UNICODE))
+def article_words(art: dict, lang: str = "en") -> int:
+    """Same count the gate uses: words for Latin, characters for CJK."""
+    return sum(A.text_units(str(x or ""), lang)
                for s in (art.get("sections") or []) if isinstance(s, dict)
                for x in [s.get("h2"), *(s.get("p") or []), *(s.get("points") or [])])
 
@@ -308,6 +308,7 @@ def polish_article(plan: dict, art: dict) -> None:
     misses before validating, so a 74-char title no longer costs a repair round-trip.
     """
     brand = plan["params"]["brand"]
+    lang = plan["params"].get("lang", "en")
     title = meta_titles.clean_meta(str(art.get("title") or "").strip())
     h1 = meta_titles.clean_meta(str(art.get("h1") or "").strip())
     excerpt = meta_titles.clean_meta(str(art.get("excerpt") or "").strip())
@@ -337,7 +338,7 @@ def polish_article(plan: dict, art: dict) -> None:
             cand = f"{cand} — {h1}".strip(" —")
         excerpt = _trim(cand, 190)
     art["excerpt"] = excerpt
-    art["read_min"] = max(2, round(article_words(art) / 200))
+    art["read_min"] = max(2, round(article_words(art, lang) / (400 if A.is_cjk_lang(lang) else 200)))
 
 
 def polish_pack(plan: dict, pack: dict) -> None:
@@ -381,9 +382,10 @@ def ask_article(plan: dict, data: dict, topic: dict, known_slugs: list, titles: 
     rules = " ".join(r for r in data["rules"] if not r.startswith("Exactly one article"))
     extra = ""
     if target_words:
-        extra += (f"\nLENGTH: write at least {target_words} words of body copy across 4..6 "
-                  f"sections (h2 + 2..4 paragraphs of 40..90 words each, plus 2..6 bullets "
-                  f"in at least one section).")
+        _unit = "characters" if A.is_cjk_lang(plan["params"].get("lang", "en")) else "words"
+        extra += (f"\nLENGTH: write at least {target_words} {_unit} of body copy across 4..6 "
+                  f"sections (h2 + 2..4 substantial paragraphs, plus 2..6 bullets in at "
+                  f"least one section).")
     if errs:
         extra += "\nFIX THESE PROBLEMS from the previous attempt: " + "; ".join(errs[:10])
     messages = [
@@ -476,13 +478,13 @@ def repair_articles(plan: dict, pack: dict, data: dict, cfg: dict, where: str,
             continue
         if not (isinstance(art.get("sections"), list) and art["sections"]
                 and isinstance(art.get("faq"), list) and len(art["faq"]) >= 2
-                and article_words(art) >= 20):
+                and article_words(art, plan["params"].get("lang", "en")) >= 20):
             print(f"  ✗ articles[{idx}]: rewrite is structurally broken — keeping the old one")
             continue
-        before = article_words(cur)
+        before = article_words(cur, plan["params"].get("lang", "en"))
         replace_article(pack, idx, art)
         fixed += 1
-        print(f"  ↻ articles[{idx}] rewritten ({before} → {article_words(art)} words)")
+        print(f"  ↻ articles[{idx}] rewritten ({before} → {article_words(art, plan['params'].get('lang', 'en'))} units)")
     return fixed
 
 
