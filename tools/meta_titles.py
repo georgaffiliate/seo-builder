@@ -94,6 +94,24 @@ PLACEHOLDER = (
     "lorem", "ipsum", "build real headline", "{brand}", "{", "todo", "tbd", "xxx",
     "sample text", "your headline", "placeholder", "заголовок",
 )
+# Same tokens as the lint, but removable: a model occasionally leaves a schema
+# placeholder inside a title/description, and the meta gate then blocks the build
+# after assembly (the pack's own validator is looser). Sanitising the meta fields
+# before render keeps a reusable pack from failing every run.
+PLACEHOLDER_RX = re.compile(
+    r"(?:\{[^{}]{0,80}\}|\{\{|\}\}|\blorem\b|\bipsum\b|\bbuild real headline\b|"
+    r"\bsample text\b|\byour headline\b|\bplaceholder\b|\btodo\b|\btbd\b|\bxxx\b|"
+    r"\bзаголовок\b)", re.I)
+
+
+def clean_meta(text) -> str:
+    """Strip schema/placeholder tokens from a title or description."""
+    s = PLACEHOLDER_RX.sub(" ", str(text or ""))
+    s = re.sub(r"[{}]", " ", s)
+    s = re.sub(r"\s{2,}", " ", s)
+    return s.strip(" .,;:—-")
+
+
 DEPOSIT_RE = re.compile(
     r"(€\s?\d|£\s?\d|\$\s?\d|\d\s?€|\d\s?£|deposit|depozyt|einzahlung|deposito|versement|"
     r"storting|wpłata|yatırım tutarı)", re.I)

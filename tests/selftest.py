@@ -1050,6 +1050,24 @@ import repair_content as _repair_mod
 _repair_mod._set(_none_patch, "thanks.eyebrow", "OBRIGADO")
 chk(_none_patch.get("thanks", {}).get("eyebrow") == "OBRIGADO",
     "repair: a missing/None branch can be created by a patch")
+chk(_lc.meta_titles.clean_meta("Plano {x} TODO — mínimo") == "Plano — mínimo",
+    "meta sanitizer strips schema placeholders from a title")
+_C_san = {"meta": {"title_home": "Acme {brand} trading", "description": "lorem ipsum"},
+          "inner_about": {"title": "Sobre {x}", "lead": "TODO"}}
+_B_san = {"hub": {"title": "Guias {x}", "lead": "lorem ipsum"},
+          "articles": [{"title": "Plano {x} mínimo de trading",
+                        "h1": "Plano mínimo de trading",
+                        "excerpt": "placeholder text",
+                        "sections": [{"h2": "Plano mínimo",
+                                      "p": ["Um plano de trading mínimo define o risco por operação, "
+                                            "o número de entradas e o limite diário antes de abrir "
+                                            "qualquer posição no mercado."]}]}]}
+_asm3.sanitize_meta_copy(_C_san, _B_san, {"params": {"brand": "Acme"}})
+_Ba = _B_san["articles"][0]
+chk("{" not in _C_san["meta"]["title_home"] and "lorem" not in _C_san["meta"]["description"]
+    and "{" not in _Ba["title"] and len(_Ba["excerpt"]) >= 60
+    and _Ba["excerpt"].lower().find("placeholder") < 0,
+    "build-time sanitizer cleans content and blog meta before the gate")
 chk(_lc.repair_targets(["faq answer too short (1 chars): ……",
                         "persona name reused from another offer: Ana K."])
     == ["faq.items", "reviews.items"],

@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import llm_content as L
+import meta_titles
 from blog_assemble import A, body_word_target, validate_blog
 
 MAX_TOKENS = 16000
@@ -307,9 +308,9 @@ def polish_article(plan: dict, art: dict) -> None:
     misses before validating, so a 74-char title no longer costs a repair round-trip.
     """
     brand = plan["params"]["brand"]
-    title = str(art.get("title") or "").strip()
-    h1 = str(art.get("h1") or "").strip()
-    excerpt = str(art.get("excerpt") or "").strip()
+    title = meta_titles.clean_meta(str(art.get("title") or "").strip())
+    h1 = meta_titles.clean_meta(str(art.get("h1") or "").strip())
+    excerpt = meta_titles.clean_meta(str(art.get("excerpt") or "").strip())
     if len(title) < 18 and h1:
         title = h1
     for _ in range(10):

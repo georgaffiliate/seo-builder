@@ -442,6 +442,69 @@ def contacts_for(plan, C: dict) -> dict:
         tel = f"{pref} {digits}".strip() if pref else f"+00 {digits}"
     return {"email": email, "telephone": tel}
 
+def sanitize_meta_copy(C, B, plan) -> None:
+    """Strip schema placeholders from titles/descriptions before the meta gate sees them.
+
+    A reused content/blog pack can carry a `{...}`, `TODO`, `placeholder`, `xxx` or
+    `lorem` token in a title/excerpt. The pack's own validator does not reject all of
+    them, but the SEO meta gate does — and because the pack is reused, every rebuild
+    failed on the same page (live: pnaf.info blog). Cleaning the fields in memory
+    makes the build deterministic without touching the operator's pack on disk.
+    """
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import meta_titles
+    except Exception:
+        return
+
+    def clean(v):
+        return meta_titles.clean_meta(v) if isinstance(v, str) else v
+
+    if isinstance(C, dict):
+        meta = C.get("meta")
+        if isinstance(meta, dict):
+            for k in ("title_home", "description", "og_description"):
+                if isinstance(meta.get(k), str):
+                    meta[k] = clean(meta[k])
+        for key, page in C.items():
+            if str(key).startswith("inner_") and isinstance(page, dict):
+                for f in ("title", "h1", "lead"):
+                    if isinstance(page.get(f), str):
+                        page[f] = clean(page[f])
+    if isinstance(B, dict):
+        hub = B.get("hub")
+        if isinstance(hub, dict):
+            for f in ("title", "lead", "eyebrow"):
+                if isinstance(hub.get(f), str):
+                    hub[f] = clean(hub[f])
+        for art in B.get("articles") or []:
+            if isinstance(art, dict):
+                for f in ("title", "h1", "excerpt"):
+                    if isinstance(art.get(f), str):
+                        art[f] = clean(art[f])
+                # a cleaned title can fall below the blog gate's 18-char floor;
+                # the article's own h1/excerpt keeps it a real title
+                if len(str(art.get("title") or "")) < 18:
+                    alt = str(art.get("h1") or "") or str(art.get("excerpt") or "")
+                    if len(alt) >= 18:
+                        art["title"] = alt[:72].rstrip(" .,;:—-")
+                if len(str(art.get("excerpt") or "")) < 60:
+                    alt = str(art.get("h1") or "") or str(art.get("title") or "")
+                    body = ""
+                    for sec in art.get("sections") or []:
+                        if isinstance(sec, dict):
+                            ps = [str(x).strip() for x in (sec.get("p") or []) if str(x or "").strip()]
+                            if ps:
+                                body = ps[0]
+                                break
+                    cand = " ".join(x for x in (alt, body or str(art.get("excerpt") or "")) if x)
+                    if len(cand) < 60:
+                        cand = " ".join(x for x in (alt, str(art.get("title") or ""),
+                                                    str(art.get("excerpt") or "")) if x)
+                    if len(cand) >= 60:
+                        art["excerpt"] = cand[:190]
+
+
 def office_defaults(C: dict, plan) -> None:
     """Fill contact cells the pack may omit and reject sentence-style labels."""
     lang = plan["params"].get("lang", "en")
@@ -2416,12 +2479,14 @@ def cmd_build(a):
         _cnt = contacts_for(plan, C)
         C.setdefault("meta", {})["email"] = _cnt["email"]
         C["meta"]["telephone"] = _cnt["telephone"]
+        sanitize_meta_copy(C, None, plan)
         errs = validate_content(C, plan, strict=True); errs and die("; ".join(errs))
     else:
         C = seed_content(plan); office_defaults(C, plan); ui_defaults(C, plan)
         reconcile_numbers(plan, C); ok("content: seeded placeholders")
         _cnt = contacts_for(plan, C)
         C["meta"]["email"], C["meta"]["telephone"] = _cnt["email"], _cnt["telephone"]
+        sanitize_meta_copy(C, None, plan)
     B = None
     if (plan.get("blog") or {}).get("enabled"):
         blog_path = ROOT / "content" / f"{dom}-blog.json"
@@ -2431,6 +2496,7 @@ def cmd_build(a):
         if B.get("_offline_fallback"):
             die("blog pack is the offline placeholder — regenerate it: "
                 f"tools/blog_content.py --plan {a.plan}")
+        sanitize_meta_copy(None, B, plan)
         import blog_assemble
         _berrs = blog_assemble.validate_blog(plan, B)
         if _berrs:
