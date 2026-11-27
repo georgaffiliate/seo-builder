@@ -826,8 +826,31 @@ def validate_plan(plan: dict) -> None:
         # the hub is the fixed directory landing page (/blog/index.php); an old plan's
         # hub_slug is ignored, not honoured — the silo must not move per plan.
 
+CJK_LANGS = {"ja", "zh", "ko"}
+CJK_CHAR_RE = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]")
+LATIN_TOKEN_RE = re.compile(r"[A-Za-z0-9]+")
+
+
+def is_cjk_lang(lang: str) -> bool:
+    return (lang or "").lower() in CJK_LANGS
+
+
+def text_units(text: str, lang: str) -> int:
+    """Length in words for Latin scripts, in characters for CJK.
+
+    Japanese/Chinese/Korean copy has no whitespace between words, so a 1,000-char
+    article counted only ~50 "words" and every inner-page gate failed (live:
+    bitnesora.online, bitnesora-jp.online). CJK targets are min_words*2 chars.
+    """
+    text = str(text or "")
+    if is_cjk_lang(lang):
+        return len(CJK_CHAR_RE.findall(text)) + len(LATIN_TOKEN_RE.findall(text))
+    return len(text.split())
+
+
 def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
     errs = []
+    lang = plan["params"].get("lang", "en")
     lang_re = re.compile(rf"[??]")  # placeholder; language check delegated to reviewer
     # forbidden: deposit-like sums inside meta fields
     dep_pat = re.compile(r"(€\s?250\b|250\s?€|\b\d{2,3}\s?(000|k)\s?(NOK|zł|Kč|Ft)\b)", re.I)
@@ -963,11 +986,21 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
         for x in fqs:
             blob += " " + str(x.get("q") or "") + " " + str(x.get("a") or "")
         words = len(blob.split())
+        cjk = is_cjk_lang(lang)
+        units = text_units(blob, lang) if cjk else words
         # ±60 words is a rounding miss, not thin copy: 447/450 must not send the
-        # whole pack through another repair round-trip (and then throw it away)
-        floor = min_words - min(60, max(10, round(min_words * 0.16)))
-        if words < floor:
-            errs.append(f"{key} has {words} words, needs >= {floor}")
+        # whole pack through another repair round-trip (and then throw it away).
+        # CJK counts characters (~2 per word) with the same relative tolerance.
+        if cjk:
+            target = min_words * 2
+            floor = target - min(120, max(20, round(target * 0.16)))
+            unit_name = "chars"
+        else:
+            target = min_words
+            floor = target - min(60, max(10, round(target * 0.16)))
+            unit_name = "words"
+        if units < floor:
+            errs.append(f"{key} has {units} {unit_name}, needs >= {floor}")
         if len(secs) < min_sections:
             errs.append(f"{key}.sections has {len(secs)} entries, needs >= {min_sections}")
         if len(fqs) < min_faq:
@@ -985,7 +1018,7 @@ def validate_content(content: dict, plan: dict, strict=False) -> list[str]:
             v = str(stats.get(key) or "").strip()
             if not v:
                 continue
-            if re.search(r"\d", v):
+            if re.search(r"\d", v) and not is_cjk_lang(lang):
                 errs.append(f"sections.stats.{key} must be a word label, got a number: {v[:24]}")
             low = v.casefold()
             if low in seen_lbl:

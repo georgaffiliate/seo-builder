@@ -129,6 +129,13 @@ chk(_sa2.audit_stats_captions(
     and _sa2.audit_stats_captions(
         '<div class="wrap stats-band"><div><span>1234</span></div></div>') == ["1234"],
     "stats captions stop at the band, not at an embedded gauge scale")
+chk(_asm3.text_units("注文" * 300, "ja") >= 600
+    and _asm3.text_units("one two three", "en") == 3,
+    "CJK copy is counted in characters, Latin copy in words")
+chk(_sa2.audit_stats_captions(
+        '<section><div class="wrap stats-band"><div><b>1.2k</b>'
+        '<span>1秒あたりの注文数</span></div></div></section>') == [],
+    "a CJK stats caption with an embedded digit is accepted")
 import content_gen as _cg
 chk({k: v.strip() for k, v in _cg.PHONE_CC.items()} == _asm3.PHONE_CC,
     "phone prefixes: assemble mirrors content_gen (non-EU countries included)")

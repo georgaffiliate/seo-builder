@@ -966,7 +966,7 @@ def _inner_pool(pack: dict) -> list:
     return pool
 
 
-def _inner_words(page: dict) -> int:
+def _inner_words(page: dict, lang: str = "en") -> int:
     blob = " ".join(str(page.get("lead") or "").split())
     for sec in page.get("sections") or []:
         if not isinstance(sec, dict):
@@ -977,7 +977,7 @@ def _inner_words(page: dict) -> int:
     for f in page.get("faq") or []:
         if isinstance(f, dict):
             blob += " " + str(f.get("q") or "") + " " + str(f.get("a") or "")
-    return len(blob.split())
+    return assemble.text_units(blob, lang)
 
 
 def _pack_headings(pack: dict) -> set:
@@ -1001,7 +1001,7 @@ def _pack_headings(pack: dict) -> set:
     return heads
 
 
-def rescue_inner_pages(pack: dict) -> dict:
+def rescue_inner_pages(pack: dict, lang: str = "en") -> dict:
     """Deterministic long pages from the pack's own copy, for a model that refuses the shape.
 
     `content_gen.long_inner_pages` needs rich features/security/steps sections; plans
@@ -1083,11 +1083,11 @@ def rescue_inner_pages(pack: dict) -> dict:
         for f in (page.get("faq") or []) + faq_pref:
             add_faq(f)
         page["faq"] = fqs
-        while _inner_words(page) < min_words and len(fqs) < 12:
+        while _inner_words(page, lang) < min_words and len(fqs) < 12:
             if not any(add_faq(f) for f in home_faq):
                 break
         page["faq"] = fqs
-        while leftover and len(page["sections"]) < cap and _inner_words(page) < min_words:
+        while leftover and len(page["sections"]) < cap and _inner_words(page, lang) < min_words:
             cand = leftover.pop(0)
             if cand["h2"].casefold() in used_h2:
                 continue
@@ -1095,14 +1095,14 @@ def rescue_inner_pages(pack: dict) -> dict:
             page["sections"].append(cand)
         # pool exhausted but still short: append unused paragraphs to existing
         # sections (cross-page reuse is fine; no duplicate h2, no duplicate paragraph)
-        if _inner_words(page) < min_words and page["sections"]:
+        if _inner_words(page, lang) < min_words and page["sections"]:
             present = {" ".join(str(p).split()) for s in page["sections"]
                        for p in (s.get("paragraphs") or [])}
             for cand in all_pool:
-                if _inner_words(page) >= min_words:
+                if _inner_words(page, lang) >= min_words:
                     break
                 for para in cand["paragraphs"]:
-                    if _inner_words(page) >= min_words:
+                    if _inner_words(page, lang) >= min_words:
                         break
                     norm = " ".join(para.split())
                     if not norm or norm in present:
@@ -1120,11 +1120,13 @@ def rescue_inner_pages(pack: dict) -> dict:
         return page
 
     result = {}
+    # CJK counts characters (~2 per word), so the internal targets double
+    scale = 2 if assemble.is_cjk_lang(lang) else 1
     # inner_faq claims extras first (highest word floor)
     for key, words, cap, pref in (("inner_faq", 560, 8, home_faq),
                                   ("inner_product", 400, 7, home_faq[:6]),
                                   ("inner_offer", 400, 7, home_faq[6:12])):
-        result[key] = fill(key, words, cap, pref)
+        result[key] = fill(key, words * scale, cap, pref)
     return result
 
 
@@ -1593,6 +1595,13 @@ def repair_objects(pack: dict, plan: dict, data: dict, errs: list, targets: list
                 continue
             if isinstance(new, str) and not new.strip():
                 continue
+            if isinstance(new, list) and isinstance(old, list):
+                if len(new) < len(old):
+                    continue
+                if path.endswith("faq.items") and any(
+                        not isinstance(x, dict) or not str(x.get("q") or "").strip()
+                        or not str(x.get("a") or "").strip() for x in new):
+                    continue      # an emptied FAQ patch used to replace good answers
             if _pack_set(pack, path, new):
                 applied_paths.append(path)
     if applied_paths:
@@ -1759,7 +1768,7 @@ def main():
         # must not throw away the whole pack and trigger a full translation pass
         # (live: apex-ai-it.online, quvanel.cfd).
         try:
-            fixed = rescue_inner_pages(pack)
+            fixed = rescue_inner_pages(pack, plan["params"].get("lang", "en"))
             replaced = []
             for key, page in fixed.items():
                 if any(str(e).startswith(key) for e in errs):

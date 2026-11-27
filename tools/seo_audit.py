@@ -324,7 +324,10 @@ def audit_stats_captions(html):
     for m in re.finditer(r'<div\b[^>]*class="[^"]*\bstats-band\b[^"]*"[^>]*>', html):
         chunk = _balanced_div(html, m.start())
         for cap in re.findall(r"<span>([^<]*)</span>", chunk):
-            if re.search(r"\d", cap):
+            # a CJK caption such as "1秒あたりの注文数" is a label, not a figure:
+            # Japanese/Chinese use the digit inside the phrase
+            if re.search(r"\d", cap) and not re.search(
+                    r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]", cap):
                 bad.append(cap.strip())
     return bad
 
