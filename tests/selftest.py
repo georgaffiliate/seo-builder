@@ -245,6 +245,25 @@ _lb_ja = _gp.build_livebar(__import__("random").Random(2), "a", "ja", "JP")["sub
 _lb_de = _gp.build_livebar(__import__("random").Random(2), "a", "de", "DE")["subs"]
 chk("." in _lb_ja.get("LB_S2V", "") and "," in _lb_de.get("LB_S2V", ""),
     "API uptime follows the language separators")
+_lb_t = _gp.build_livebar(__import__("random").Random(3), "t", "en", "AU")["subs"]
+_lb_t_blob = json.dumps(_lb_t, ensure_ascii=False)
+chk(not any(w in _lb_t_blob for w in ("Punti", "Motori", "Code attive", "Latenza"))
+    and _lb_t.get("LB2S") == "Data points/s",
+    "board livebar uses the plan language (no hardcoded Italian on an en site)")
+_it_words = ("Punti", "Motori", "Code attive", "Latenza", "Sessioni", "Trimestre",
+             "Verifiche", "Mld", "Tasso", "Infl.", "Disoccupazione")
+_bad_it = []
+for _lv in ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
+            "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+            "aa", "ab", "ac", "ad", "ae", "af"):
+    try:
+        _blob = json.dumps(_gp.build_livebar(__import__("random").Random(7), _lv,
+                                             "en", "AU")["subs"], ensure_ascii=False)
+    except Exception:
+        continue
+    if any(w in _blob for w in _it_words):
+        _bad_it.append(_lv)
+chk(not _bad_it, f"no hardcoded Italian labels in an en livebar (bad: {_bad_it})")
 chk(_gp.decimal_comma("tr") and _gp.decimal_comma("de") and _gp.decimal_comma("fr")
     and not _gp.decimal_comma("en") and not _gp.decimal_comma("ja")
     and _gp._fmt_num(1234.5, "tr") == "1.234,50" and _gp._fmt_num(1234.5, "en") == "1,234.50",

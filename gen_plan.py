@@ -1010,6 +1010,30 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
       {{GEO_SHORT}}                  global token (plan param)
     """
     L = LIVEBAR_L10N.get(lang) or LIVEBAR_L10N["en"]
+    # variant t/u/v used to hardcode Italian captions ("Punti dati/s", "Code attive"),
+    # so an AU/en site showed Italian in its top strip. Keep these labels localised.
+    BOARD = {
+        "en": ("Tick/s", "Data points/s", "Uptime", "Data engines", "Latency",
+               "Active queues", "Open sessions", "Quarter", "Checks/day"),
+        "it": ("Tick/s", "Punti dati/s", "Uptime", "Motori dati", "Latenza",
+               "Code attive", "Sessioni aperte", "Trimestre", "Verifiche/giorno"),
+        "es": ("Tick/s", "Puntos de datos/s", "Uptime", "Motores de datos", "Latencia",
+               "Colas activas", "Sesiones abiertas", "Trimestre", "Verificaciones/día"),
+        "cs": ("Tick/s", "Datové body/s", "Uptime", "Datové motory", "Latence",
+               "Aktivní fronty", "Otevřené relace", "Čtvrtletí", "Kontrol/den"),
+    }.get(lang) or ("Tick/s", "Data points/s", "Uptime", "Data engines", "Latency",
+                    "Active queues", "Open sessions", "Quarter", "Checks/day")
+    X = {
+        "en": {"mld": "B", "ecb": "ECB rate", "infl": "Eurozone inflation",
+               "unemp": "Unemployment"},
+        "it": {"mld": "Mld", "ecb": "Tasso BCE", "infl": "Infl. eurozona",
+               "unemp": "Disoccupazione"},
+        "es": {"mld": "MM", "ecb": "Tipo BCE", "infl": "Inflación eurozona",
+               "unemp": "Desempleo"},
+        "cs": {"mld": "mld", "ecb": "Sazba ECB", "infl": "Inflace eurozóny",
+               "unemp": "Nezaměstnanost"},
+    }.get(lang) or {"mld": "B", "ecb": "ECB rate", "infl": "Eurozone inflation",
+                    "unemp": "Unemployment"}
     comma = decimal_comma(lang)
 
     def num(lo, hi, dec=2):
@@ -1047,7 +1071,7 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     elif variant == "c":
         items = q_six(_livebar_data("c"))
         live = f"{L['crypto']} · 24/7"
-        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} Mld"), ("API", api_uptime()),
+        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} {X['mld']}"), ("API", api_uptime()),
                  (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
     elif variant == "d":
         items = q_six(_livebar_data("d"))
@@ -1058,7 +1082,7 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
         items = q_six(_livebar_data("e"))
         live = L["commod"]
         stats = [(L["source"], "flow int."), ("API", api_uptime()),
-                 (L["volume"], f"{num(0.4, 2.2, 1)} Mld")]
+                 (L["volume"], f"{num(0.4, 2.2, 1)} {X['mld']}")]
     elif variant == "f":
         live = L["news_tag"]
         news = list(L["news"])[:4]
@@ -1074,7 +1098,7 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
         for city, off, (st, cls) in zip(L["cities"], offsets, states):
             lt = (hh + off) % 24
             items.append((city, f"{lt:02d}:{mm:02d}", L[st], cls))
-        stats = [("Sessioni aperte", str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
+        stats = [(BOARD[6], str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
     elif variant == "h":
         live = L["sentiment"]
         pct = rng.randint(30, 75)
@@ -1095,8 +1119,8 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
                  (L["support"], f"< {rng.randint(2, 9)} min", "", ""),
                  (L["queue"], str(rng.randint(14, 48)), "", ""),
                  (L["slots"], str(rng.randint(3, 9)), "", ""),
-                 ("Verifiche/giorno", f"{rng.randint(700, 1_500):,}".replace(",", "."), "", "")]
-        stats = [("Uptime", api_uptime()), (L["latency"], f"{rng.randint(28, 62)} ms"), ("", "")]
+                 (BOARD[8], f"{rng.randint(700, 1_500):,}".replace(",", "."), "", "")]
+        stats = [(BOARD[2], api_uptime()), (BOARD[4], f"{rng.randint(28, 62)} ms"), ("", "")]
     elif variant == "j":
         live = "LIVE"
         items = q_six(_livebar_data("a"))[:4]
@@ -1117,15 +1141,15 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
         stats = [("BTP–Bund", f"{rng.randint(90, 160)} bp"), (L["updated"], clock), ("", "")]
     elif variant == "n":
         live = L["macro"]
-        items = [("Tasso BCE", f"{num(3.5, 4.5, 2)}%", "", ""), ("Infl. eurozona", f"{num(1.8, 3.2, 1)}%", "", ""),
-                 ("PMI", num(48, 53, 1), "", ""), ("Disoccupazione", f"{num(6.2, 7.8, 1)}%", "", ""),
+        items = [(X["ecb"], f"{num(3.5, 4.5, 2)}%", "", ""), (X["infl"], f"{num(1.8, 3.2, 1)}%", "", ""),
+                 ("PMI", num(48, 53, 1), "", ""), (X["unemp"], f"{num(6.2, 7.8, 1)}%", "", ""),
                  ("GDP", f"+{num(0.1, 1.2, 1)}%", "up", "up"), ("Spread", f"{rng.randint(90, 160)} bp", "", "")]
         stats = [(L["updated"], clock), ("API", api_uptime()), ("", "")]
     elif variant == "o":
         live = L["calendar"]
         times = [f"{rng.randint(8, 16):02d}:{rng.choice(['00', '15', '30', '45'])}" for _ in range(4)]
         items = [(ev, t, "", "") for ev, t in zip(L["calendar_events"][:4], times)]
-        stats = [("Sessioni aperte", str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
+        stats = [(BOARD[6], str(rng.randint(1, 4))), (L["updated"], clock), ("", "")]
     elif variant == "p":
         live = L["movers"]
         data = _livebar_data("p")
@@ -1145,30 +1169,33 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     elif variant == "r":
         items = q_six(_livebar_data("r"))
         live = L["metals"]
-        stats = [(L["volume"], f"{num(0.2, 1.6, 1)} Mld"), (L["updated"], clock), ("", "")]
+        stats = [(L["volume"], f"{num(0.2, 1.6, 1)} {X['mld']}"), (L["updated"], clock), ("", "")]
     elif variant == "s":
         items = q_six(_livebar_data("s"))
         live = L["altcoin"]
-        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} Mld"), ("API", api_uptime()),
+        stats = [(L["volume"], f"{num(0.8, 4.0, 1)} {X['mld']}"), ("API", api_uptime()),
                  (L["orders"], f"{rng.randint(1_800, 4_200):,}".replace(",", " "))]
     elif variant == "t":
         live = L["throughput"]
-        items = [("Tick/s", f"{rng.randint(28, 46)}k", "", ""), ("Punti dati/s", f"{rng.randint(2, 4)}k", "", ""),
-                 ("Uptime", api_uptime(), "", ""), ("Motori dati", str(rng.randint(6, 9)), "", ""),
-                 ("Latenza", f"{rng.randint(28, 62)} ms", "", ""), ("Code attive", str(rng.randint(2, 6)), "", "")]
-        stats = [("Uptime", api_uptime()), (L["latency"], f"{rng.randint(28, 62)} ms"), ("", "")]
+        items = [(BOARD[0], f"{rng.randint(28, 46)}k", "", ""),
+                 (BOARD[1], f"{rng.randint(2, 4)}k", "", ""),
+                 (BOARD[2], api_uptime(), "", ""),
+                 (BOARD[3], str(rng.randint(6, 9)), "", ""),
+                 (BOARD[4], f"{rng.randint(28, 62)} ms", "", ""),
+                 (BOARD[5], str(rng.randint(2, 6)), "", "")]
+        stats = [(BOARD[2], api_uptime()), (BOARD[4], f"{rng.randint(28, 62)} ms"), ("", "")]
     elif variant == "u":
         live = L["clocks"]
         offsets = [9, 10, 0, 1, -5, 1]
         for city, off in zip(L["cities"], offsets):
             lt = (hh + off) % 24
             items.append((city, f"{lt:02d}:{mm:02d}", f"UTC{off:+d}", ""))
-        stats = [("UTC", f"{hh:02d}:{mm:02d}"), ("Sessioni aperte", str(rng.randint(1, 4))), ("", "")]
+        stats = [("UTC", f"{hh:02d}:{mm:02d}"), (BOARD[6], str(rng.randint(1, 4))), ("", "")]
     elif variant == "v":
         live = L["earnings"]
         times = [f"{rng.randint(8, 16):02d}:{rng.choice(['00', '30'])}" for _ in range(4)]
         items = [(co, t, L["report"], "") for co, t in zip(L["earnings_co"][:4], times)]
-        stats = [("Trimestre", f"Q{rng.randint(1, 4)}"), (L["updated"], clock), ("", "")]
+        stats = [(BOARD[7], f"Q{rng.randint(1, 4)}"), (L["updated"], clock), ("", "")]
     elif variant == "w":
         live = L["history"]
         items = [(t, "", "", "") for t in L["history_facts"][:4]]
@@ -1207,8 +1234,8 @@ def build_livebar(rng, variant: str, lang: str, geo_short: str) -> dict:
     elif variant in ("ad", "ae"):
         # compact one-line macro strip: n's figures without the stacked meters
         live = L["macro"]
-        items = [("Tasso BCE", f"{num(3.5, 4.5, 2)}%", "", ""), ("Infl. eurozona", f"{num(1.8, 3.2, 1)}%", "", ""),
-                 ("PMI", num(48, 53, 1), "", ""), ("Disoccupazione", f"{num(6.2, 7.8, 1)}%", "", ""),
+        items = [(X["ecb"], f"{num(3.5, 4.5, 2)}%", "", ""), (X["infl"], f"{num(1.8, 3.2, 1)}%", "", ""),
+                 ("PMI", num(48, 53, 1), "", ""), (X["unemp"], f"{num(6.2, 7.8, 1)}%", "", ""),
                  ("GDP", f"+{num(0.1, 1.2, 1)}%", "up", "up"), ("Spread", f"{rng.randint(90, 160)} bp", "", "")]
         stats = [(L["updated"], clock), ("API", api_uptime()), ("", "")]
     elif variant == "af":
