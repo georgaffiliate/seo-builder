@@ -136,6 +136,9 @@ chk(_sa2.audit_stats_captions(
         '<section><div class="wrap stats-band"><div><b>1.2k</b>'
         '<span>1秒あたりの注文数</span></div></div></section>') == [],
     "a CJK stats caption with an embedded digit is accepted")
+chk(_sa2._body_units("あ" * 600, "ja") >= 600
+    and _sa2._body_units("one two three", "en") == 3,
+    "article body length is counted in characters for CJK")
 import content_gen as _cg
 chk({k: v.strip() for k, v in _cg.PHONE_CC.items()} == _asm3.PHONE_CC,
     "phone prefixes: assemble mirrors content_gen (non-EU countries included)")

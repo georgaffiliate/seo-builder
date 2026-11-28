@@ -332,6 +332,15 @@ def audit_stats_captions(html):
     return bad
 
 
+def _body_units(text: str, lang: str) -> int:
+    """Article length: words for Latin, characters for CJK (no spaces between words)."""
+    if (lang or "").lower() in ("ja", "zh", "ko"):
+        return len(re.findall(
+            r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]",
+            text)) + len(re.findall(r"[A-Za-z0-9]+", text))
+    return len(re.findall(r"\w+", text))
+
+
 def audit_market_prices(html):
     """One instrument must show one price on a page.
 
@@ -613,9 +622,16 @@ def main():
             f"article page /{path} has no valid non-future datePublished ({dates[:2]})")
         chk(bool(re.search(r"<time[^>]+datetime=", art_html)), "ERR", f"article time /{path}",
             f"article page /{path} shows no <time datetime> byline")
-        body_words = len(re.findall(r"\w+", unescape(" ".join(_page_text_nodes(art_html).split()))))
-        chk(body_words >= 300, "ERR", f"article body /{path}",
-            f"article body on /{path} is {body_words} words — thin copy (<300)")
+        m_lang = PAGE_LANG_RE.search(art_html)
+        alang = (m_lang.group(1) if m_lang else "").lower().split("-")[0]
+        body_text = unescape(" ".join(_page_text_nodes(art_html).split()))
+        body_words = _body_units(body_text, alang)
+        if alang in ("ja", "zh", "ko"):
+            min_body, unit = 500, "chars"
+        else:
+            min_body, unit = 300, "words"
+        chk(body_words >= min_body, "ERR", f"article body /{path}",
+            f"article body on /{path} is {body_words} {unit} — thin copy (<{min_body})")
         chk(bool(re.search(r'href="(?:\.\./)?index\.php#claim"', art_html)), "ERR", f"article CTA /{path}",
             f"article page /{path} does not link to the offer's form (index.php#claim)")
 
