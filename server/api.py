@@ -268,6 +268,8 @@ def _execute(job: dict) -> None:
         cmd += ["--seed", str(req["seed"])]
     if req.get("calculator") in ("on", "off"):
         cmd += ["--calculator", req["calculator"]]
+    if req.get("chat") in ("on", "off"):
+        cmd += ["--chat", req["chat"]]
     # force is for the first attempt: a retry should reuse whatever content/blog
     # pack is already valid on disk instead of paying for a full regeneration again
     if req.get("force") and int(job.get("attempt") or 1) == 1:
@@ -579,6 +581,8 @@ def _validate(req: dict) -> str | None:
             return f"field {key} must be a string"
     if req.get("calculator") not in (None, "auto", "on", "off"):
         return "calculator must be auto|on|off"
+    if req.get("chat") not in (None, "auto", "on", "off"):
+        return "chat must be auto|on|off"
     if req.get("llm_provider") not in (None, "", "auto", "http", "cli"):
         return "llm_provider must be auto|http|cli"
     if "seed" in req and not isinstance(req["seed"], int):
