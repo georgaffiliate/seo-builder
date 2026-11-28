@@ -54,6 +54,9 @@ chk(_asm.chat_send("it") == "Invia", "chat send label localized")
 chk(_asm.chat_enabled({"params": {"domain": "chat-check.site"}}) ==
     _asm.chat_enabled({"params": {"domain": "chat-check.site"}}),
     "chat split is stable per domain")
+_rate = sum(_asm.chat_enabled({"params": {"domain": f"rate-{i}.test"}})
+            for i in range(2000)) / 2000
+chk(0.76 <= _rate <= 0.84, f"chat split ≈80% ({_rate:.0%} of 2000 domains)")
 
 for _of in (ROOT / "blocks").glob("blk-office*.html"):
     chk("{{c:office.eyebrow}}" in _of.read_text(), f"{_of.name}: office eyebrow localised")

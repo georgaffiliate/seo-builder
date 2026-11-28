@@ -198,7 +198,8 @@ curl -sk -X POST https://seo-builder-tls:8443/build \
 | `currency`   | string   | ні          | Валюта депозиту, за замовчуванням `EUR` |
 | `seed`       | int      | ні          | Фіксація варіації плану (інакше детерміновано з brand+domain) |
 | `calculator` | string   | ні          | `auto` (за замовчуванням) / `on` / `off` |
-| `chat`       | string   | ні          | плаваючий чат-віджет: `auto` (50/50 за доменом) / `on` / `off` |
+| `chat`       | string   | ні          | плаваючий чат-віджет: `auto` (80% за доменом) / `on` / `off` |
+| `chat_pct`   | int      | ні          | Частка сайтів для `chat:auto`, 0..100 (за замовчуванням 80) |
 | `with_llm`   | bool     | ні          | `true` — унікальні тексти пише LLM (потрібен `VENICE_API_KEY`); `false` — мовний банк |
 | `blog`       | bool     | ні          | `true` — додати блог-шар: 3–5 статей з банку тем + teaser на головній |
 | `llm_model`  | string   | ні          | Перевизначити модель LLM |

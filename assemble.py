@@ -1375,8 +1375,11 @@ def safe_emails(html: str) -> str:
     out.append(_swap(html[pos:]))
     return "".join(out)
 
+CHAT_PCT = 80  # default share of new sites that get the floating chat widget
+
+
 def chat_enabled(plan) -> bool:
-    """50/50 fleet split, deterministic per domain.
+    """Stable fleet share (default 80%), deterministic per domain.
 
     New plans carry `chat_widget.enabled` from gen_plan. Old plans that were
     generated before the widget existed fall back to the same hash, so a rebuild
@@ -1388,7 +1391,7 @@ def chat_enabled(plan) -> bool:
     if isinstance(cw, bool):
         return cw
     dom = str((plan.get("params") or {}).get("domain") or "")
-    return int(hashlib.sha1(dom.encode("utf-8")).hexdigest()[:8], 16) % 2 == 0
+    return int(hashlib.sha1(dom.encode("utf-8")).hexdigest()[:8], 16) % 100 < CHAT_PCT
 
 
 def chat_agent(plan):

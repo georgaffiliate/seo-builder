@@ -470,14 +470,18 @@ def pick_people(rng, lang: str, hist: list) -> list:
     return sorted(rng.sample(fresh, k=min(3, len(fresh))))
 
 
-def chat_split(domain: str, mode: str = "auto") -> bool:
-    """Floating chat widget: a stable 50/50 split across the fleet.
+CHAT_PCT = 80  # default share of new sites that get the floating chat widget
+
+
+def chat_split(domain: str, mode: str = "auto", pct: int = CHAT_PCT) -> bool:
+    """Floating chat widget: a stable share of the fleet (default 80%).
 
     The decision is a hash of the domain, so a rebuild never flips a live site.
-    `--chat on|off` is only for previews and tests."""
+    `--chat on|off` is only for previews and tests; `--chat-pct` changes the share."""
     if mode == "on": return True
     if mode == "off": return False
-    return int(hashlib.sha1(domain.encode("utf-8")).hexdigest()[:8], 16) % 2 == 0
+    pct = max(0, min(100, int(pct)))
+    return int(hashlib.sha1(domain.encode("utf-8")).hexdigest()[:8], 16) % 100 < pct
 
 
 def pick_chat_agent(rng, lang: str, people: list, photos: list, hist: list) -> dict:
@@ -1017,8 +1021,9 @@ def build_plan(rng, args, hist)->dict|None:
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }
-    _chat_on = chat_split(args.domain, getattr(args, "chat", "auto"))
-    plan["chat_widget"] = {"enabled": _chat_on}
+    _chat_pct = max(0, min(100, int(getattr(args, "chat_pct", CHAT_PCT))))
+    _chat_on = chat_split(args.domain, getattr(args, "chat", "auto"), _chat_pct)
+    plan["chat_widget"] = {"enabled": _chat_on, "pct": _chat_pct}
     if _chat_on:
         # dedicated RNG: turning the widget on/off must not reshuffle blogs/widgets
         _crng = random.Random(f"chat:{args.seed}:{args.domain}:{args.lang}")
@@ -1798,7 +1803,9 @@ def main():
                          "tile-flip); auto follows the rotation")
     ap.add_argument("--chat",choices=("auto","on","off"),default="auto",
                     help="floating chat-style lead form: on/off forces it, auto keeps the "
-                         "50/50 fleet split (stable per domain)")
+                         "fleet split (stable per domain)")
+    ap.add_argument("--chat-pct",type=int,default=CHAT_PCT,
+                    help="share of sites that get the chat on auto, 0..100 (default 80)")
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--offline",action="store_true",
                     help="build copy from the language bank only (tests / no API key)")

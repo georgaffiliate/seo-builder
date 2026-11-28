@@ -270,6 +270,8 @@ def _execute(job: dict) -> None:
         cmd += ["--calculator", req["calculator"]]
     if req.get("chat") in ("on", "off"):
         cmd += ["--chat", req["chat"]]
+    if req.get("chat_pct") is not None:
+        cmd += ["--chat-pct", str(int(req["chat_pct"]))]
     # force is for the first attempt: a retry should reuse whatever content/blog
     # pack is already valid on disk instead of paying for a full regeneration again
     if req.get("force") and int(job.get("attempt") or 1) == 1:
@@ -583,6 +585,9 @@ def _validate(req: dict) -> str | None:
         return "calculator must be auto|on|off"
     if req.get("chat") not in (None, "auto", "on", "off"):
         return "chat must be auto|on|off"
+    if "chat_pct" in req:
+        if type(req["chat_pct"]) is not int or not 0 <= req["chat_pct"] <= 100:
+            return "chat_pct must be an integer 0..100"
     if req.get("llm_provider") not in (None, "", "auto", "http", "cli"):
         return "llm_provider must be auto|http|cli"
     if "seed" in req and not isinstance(req["seed"], int):
