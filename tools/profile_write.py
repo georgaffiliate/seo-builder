@@ -98,6 +98,10 @@ def main():
         "widgets": list(plan["widgets"].values()),
         "slugs": plan["layout"].get("slugs", {}),
         "people": [{"name": n, "photo": ph} for n, ph in zip(plan.get("people", []), plan.get("photos", []))],
+        "chat": ({"enabled": bool((plan.get("chat_widget") or {}).get("enabled")),
+                  "agent": (plan.get("chat_widget") or {}).get("name", ""),
+                  "photo": (plan.get("chat_widget") or {}).get("photo", "")}
+                 if isinstance(plan.get("chat_widget"), dict) else {"enabled": False}),
         "personas": personas_of(content),
         "content_fp": fingerprints(content, brand_variants),
         "plan": f"plans/{dom}.json",

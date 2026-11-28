@@ -53,6 +53,7 @@ PALETTES_F = ROOT / "content" / "palettes-blk.json"
 REG_F = ROOT / "resources" / "regulators.json"
 BLOG_TOPICS_F = ROOT / "resources" / "blog-topics.json"
 PEOPLE_DIR = ROOT / "people"
+CHAT_AVATARS = ROOT / "chat-avatars"
 APPSHOT_DIR = ROOT / "appshots"
 TRUST_DIR = ROOT / "trust"
 PRIZES_DIR = ROOT / "prizes"
@@ -301,6 +302,10 @@ def load_history()->list[dict]:
             "combo": (d.get("design",{}).get("skin",""), d.get("design",{}).get("palette_id","")),
             "people": d.get("people",[]) or [],
             "photos": d.get("photos",[]) or [],
+            "chat_name": ((d.get("chat_widget") or {}).get("name","")
+                          if isinstance(d.get("chat_widget"), dict) else ""),
+            "chat_photo": ((d.get("chat_widget") or {}).get("photo","")
+                           if isinstance(d.get("chat_widget"), dict) else ""),
             "appshot": (d.get("appshot") or {}).get("file", "") if isinstance(d.get("appshot"), dict) else "",
             "trust_badges": d.get("trust_badges", []) or [],
             "partner_badges": d.get("partner_badges", []) or [],
@@ -463,6 +468,43 @@ def pick_people(rng, lang: str, hist: list) -> list:
     if len(fresh) < 3:
         fresh += sorted((n for n in nb if counts[n] > 0), key=lambda n: counts[n])
     return sorted(rng.sample(fresh, k=min(3, len(fresh))))
+
+
+def chat_split(domain: str, mode: str = "auto") -> bool:
+    """Floating chat widget: a stable 50/50 split across the fleet.
+
+    The decision is a hash of the domain, so a rebuild never flips a live site.
+    `--chat on|off` is only for previews and tests."""
+    if mode == "on": return True
+    if mode == "off": return False
+    return int(hashlib.sha1(domain.encode("utf-8")).hexdigest()[:8], 16) % 2 == 0
+
+
+def pick_chat_agent(rng, lang: str, people: list, photos: list, hist: list) -> dict:
+    """A dedicated portrait + first name for the chat header.
+
+    It must not be one of the testimonial faces on the page and must match the
+    photo's gender, otherwise the same person answers the chat and writes a
+    review two screens below."""
+    bank = sorted(CHAT_AVATARS.glob("s-*.jpg")) if CHAT_AVATARS.exists() else []
+    recent = {h.get("chat_photo") for h in hist[-6:] if h.get("chat_photo")}
+    free = [f.name for f in bank if f.name not in recent]
+    if not free:
+        free = [f.name for f in bank]
+    rng.shuffle(free)
+    photo = free[0] if free else ""
+    female = photo.startswith("s-women")
+    firsts = FEMALE_FIRST.get(lang, FEMALE_FIRST["fallback"]) if female else \
+             MALE_FIRST.get(lang, MALE_FIRST["fallback"])
+    nb = NAME_BANK.get(lang, NAME_BANK["fallback"])
+    used = {str(n).split()[0] for n in (people or [])}
+    used |= {str(n).split()[0] for h in hist for n in (h.get("people") or [])}
+    used |= {str(h.get("chat_name") or "").split()[0] for h in hist if h.get("chat_name")}
+    candidates = [n for n in nb if n.split()[0] in firsts and n.split()[0] not in used]
+    if not candidates:
+        candidates = [n for n in nb if n.split()[0] in firsts] or nb
+    name = rng.choice(candidates).split()[0] if candidates else "Support"
+    return {"name": name, "photo": photo}
 
 
 def pick_variant(rng, key: str, pool: list, hist: list, lookback: int = 3) -> str:
@@ -975,6 +1017,12 @@ def build_plan(rng, args, hist)->dict|None:
         "livebar":livebar,
         "content_hint":f"content/{args.domain}-content.json",
     }
+    _chat_on = chat_split(args.domain, getattr(args, "chat", "auto"))
+    plan["chat_widget"] = {"enabled": _chat_on}
+    if _chat_on:
+        # dedicated RNG: turning the widget on/off must not reshuffle blogs/widgets
+        _crng = random.Random(f"chat:{args.seed}:{args.domain}:{args.lang}")
+        plan["chat_widget"].update(pick_chat_agent(_crng, args.lang, people, photos, hist))
     if getattr(args, "blog", False):
         bl = build_blog_block(rng, args, hist)
         if bl:
@@ -1748,6 +1796,9 @@ def main():
     ap.add_argument("--market",choices=("auto",)+tuple(G1_MARKET_LAYOUTS),default="auto",
                     help="force the G1 live market widget (heatmap, listino-rows, price-board, "
                          "tile-flip); auto follows the rotation")
+    ap.add_argument("--chat",choices=("auto","on","off"),default="auto",
+                    help="floating chat-style lead form: on/off forces it, auto keeps the "
+                         "50/50 fleet split (stable per domain)")
     ap.add_argument("--build",action="store_true",help="run content → assemble → icons → lint → profile")
     ap.add_argument("--offline",action="store_true",
                     help="build copy from the language bank only (tests / no API key)")
@@ -1831,6 +1882,9 @@ def main():
         print(f"  market   : {_me.get('kind')} embedded in {_me.get('slot')}")
     print(f"  numbers  : rating {d['numbers']['rating']} · reviews {d['numbers']['reviews']} · users {d['numbers']['users']} · {d['numbers']['latency_ms']} ms")
     print(f"  people   : {', '.join(d['people'])}" + (f"  · photos: {', '.join(d['photos'])}" if d['photos'] else ""))
+    _cw = d.get("chat_widget") or {}
+    print("  chat     : " + (f"on · {_cw.get('name','')} · {_cw.get('photo','')}"
+                            if _cw.get("enabled") else "off"))
     if d.get("regulator"): print(f"  regulator: {d['regulator']['name']} ({d['regulator']['country']})")
     print(f"  variants : {' '.join(f'{k}:{v}' for k,v in sorted(d['layout'].get('variants',{}).items())) or '—'}")
     print(f"  novel    : {', '.join(d['structure']['novel_slots']) or '—'}")

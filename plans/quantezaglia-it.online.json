@@ -251,5 +251,10 @@
    "LB6D": ""
   }
  },
- "content_hint": "content/quantezaglia-it.online-content.json"
+ "content_hint": "content/quantezaglia-it.online-content.json",
+ "chat_widget": {
+  "enabled": true,
+  "name": "Giulia",
+  "photo": "s-women-01.jpg"
+ }
 }

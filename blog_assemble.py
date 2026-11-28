@@ -485,7 +485,7 @@ def build_hub(plan, C, B, css_vars, fonts_import, theme, covers=None) -> str:
                         f"/{A.BLOG_DIR}/{A.BLOG_HUB}",
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
-                        jsonld=hub_jsonld(plan, B, url), blog=True)
+                        jsonld=hub_jsonld(plan, B, url), blog=True, chat=A.chat_enabled(plan))
     page = page.replace('href="#claim"', 'href="../index.php#claim"')
     page = A.finish_page(page, plan, C)
     local = {A.BLOG_HUB} | {f"{a['slug']}.php" for a in (B.get("articles") or [])}
@@ -666,7 +666,7 @@ def build_article(plan, C, B, art, css_vars, fonts_import, theme, covers=None) -
                         plan["params"].get("locale") or plan["params"].get("lang"),
                         css_vars, fonts_import, theme, body,
                         jsonld=article_jsonld(plan, B, art, url, image_url),
-                        og_type="article", og_image=image_url, blog=True)
+                        og_type="article", og_image=image_url, blog=True, chat=A.chat_enabled(plan))
     page = page.replace('href="#claim"', 'href="../index.php#claim"')
     page = A.finish_page(page, plan, C)
     local = {A.BLOG_HUB, f"{slug}.php"} | {

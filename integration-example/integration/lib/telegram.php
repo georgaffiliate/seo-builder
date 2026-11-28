@@ -174,6 +174,13 @@ function tg_build_message(array $lead, array $crmResult, bool $showCrmLog = true
 
     $statusLine = $crmOk ? '✅ LEAD ACCEPTED' : '❌ LEAD REJECTED';
     $fullName   = trim($clean($lead['first_name'] ?? '') . ' ' . $clean($lead['last_name'] ?? ''));
+    // chat widget / report-abuse text: CRM ignores it, the Telegram card should not
+    $leadMessage = trim((string) ($lead['message'] ?? ''));
+    if ($leadMessage !== '') {
+        $leadMessage = function_exists('mb_substr')
+            ? mb_substr($leadMessage, 0, 300)
+            : substr($leadMessage, 0, 300);
+    }
 
     $lines = [
         $statusLine,
@@ -197,6 +204,7 @@ function tg_build_message(array $lead, array $crmResult, bool $showCrmLog = true
         ['label' => 'Email', 'value' => $clean($lead['email'] ?? '')],
      //   ['label' => 'Phone', 'value' => $clean($lead['phone'] ?? '')],
         ['label' => 'IP', 'value' => $clean($lead['ip'] ?? '')],
+        ['label' => 'Сообщение', 'value' => $leadMessage],
     ]));
     
     $lines[] = '';

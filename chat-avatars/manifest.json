@@ -1,0 +1,174 @@
+{
+ "note": "Support-agent avatars. Pexels License: free for commercial use, attribution not required; source pages are listed for traceability.",
+ "license_url": "https://www.pexels.com/license/",
+ "photos": [
+  {
+   "file": "s-women-01.jpg",
+   "gender": "f",
+   "pexels_id": 7709255,
+   "source": "https://www.pexels.com/photo/7709255/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-02.jpg",
+   "gender": "f",
+   "pexels_id": 7709222,
+   "source": "https://www.pexels.com/photo/7709222/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-03.jpg",
+   "gender": "f",
+   "pexels_id": 7682350,
+   "source": "https://www.pexels.com/photo/7682350/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-04.jpg",
+   "gender": "f",
+   "pexels_id": 38758069,
+   "source": "https://www.pexels.com/photo/38758069/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-05.jpg",
+   "gender": "f",
+   "pexels_id": 39842804,
+   "source": "https://www.pexels.com/photo/39842804/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-06.jpg",
+   "gender": "f",
+   "pexels_id": 27086922,
+   "source": "https://www.pexels.com/photo/27086922/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-07.jpg",
+   "gender": "f",
+   "pexels_id": 36439572,
+   "source": "https://www.pexels.com/photo/36439572/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-08.jpg",
+   "gender": "f",
+   "pexels_id": 38197025,
+   "source": "https://www.pexels.com/photo/38197025/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-09.jpg",
+   "gender": "f",
+   "pexels_id": 30004325,
+   "source": "https://www.pexels.com/photo/30004325/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-10.jpg",
+   "gender": "f",
+   "pexels_id": 30479363,
+   "source": "https://www.pexels.com/photo/30479363/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-11.jpg",
+   "gender": "f",
+   "pexels_id": 19321495,
+   "source": "https://www.pexels.com/photo/19321495/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-women-12.jpg",
+   "gender": "f",
+   "pexels_id": 27086761,
+   "source": "https://www.pexels.com/photo/27086761/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-01.jpg",
+   "gender": "m",
+   "pexels_id": 7681359,
+   "source": "https://www.pexels.com/photo/7681359/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-02.jpg",
+   "gender": "m",
+   "pexels_id": 12311572,
+   "source": "https://www.pexels.com/photo/12311572/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-03.jpg",
+   "gender": "m",
+   "pexels_id": 37148308,
+   "source": "https://www.pexels.com/photo/37148308/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-04.jpg",
+   "gender": "m",
+   "pexels_id": 40079131,
+   "source": "https://www.pexels.com/photo/40079131/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-05.jpg",
+   "gender": "m",
+   "pexels_id": 7432863,
+   "source": "https://www.pexels.com/photo/7432863/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-06.jpg",
+   "gender": "m",
+   "pexels_id": 35129369,
+   "source": "https://www.pexels.com/photo/35129369/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-07.jpg",
+   "gender": "m",
+   "pexels_id": 15946547,
+   "source": "https://www.pexels.com/photo/15946547/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-08.jpg",
+   "gender": "m",
+   "pexels_id": 34299170,
+   "source": "https://www.pexels.com/photo/34299170/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-09.jpg",
+   "gender": "m",
+   "pexels_id": 13375591,
+   "source": "https://www.pexels.com/photo/13375591/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-10.jpg",
+   "gender": "m",
+   "pexels_id": 36712860,
+   "source": "https://www.pexels.com/photo/36712860/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-11.jpg",
+   "gender": "m",
+   "pexels_id": 10816007,
+   "source": "https://www.pexels.com/photo/10816007/",
+   "license": "Pexels License"
+  },
+  {
+   "file": "s-men-12.jpg",
+   "gender": "m",
+   "pexels_id": 8937582,
+   "source": "https://www.pexels.com/photo/8937582/",
+   "license": "Pexels License"
+  }
+ ]
+}

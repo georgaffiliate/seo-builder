@@ -30,6 +30,31 @@ for token in ("lead-form", "api_local/integration/api.php", "js-lead-phone",
               "form-submit", "form-error", "form-status"):
     chk(token in fa, f"form contract: {token}")
 
+# chat widget: same lead-form contract, real form, no socket
+_cw_js = (ROOT / "blocks" / "chat-widget.js")
+_cw_css = (ROOT / "blocks" / "chat-widget.css")
+chk(_cw_js.exists() and _cw_css.exists(), "chat widget assets present")
+_cw_body = _cw_js.read_text() if _cw_js.exists() else ""
+chk("getElementById('cw')" in _cw_body, "chat widget boots from #cw")
+chk("WebSocket" not in _cw_body, "chat widget has no socket layer")
+_ca = ROOT / "chat-avatars"
+chk(_ca.exists() and len(list(_ca.glob("s-women-*.jpg"))) >= 4
+    and len(list(_ca.glob("s-men-*.jpg"))) >= 4,
+    "support avatar bank present (men + women)")
+sys.path.insert(0, str(ROOT))
+import assemble as _asm
+_cw_html = _asm.chat_widget_html(
+    {"params": {"domain": "chat-check.site", "lang": "it", "brand": "Brand"},
+     "chat_widget": {"enabled": True, "name": "Sofia", "photo": ""}},
+    {"bands": {}})
+for token in ("lead-form", "js-lead-phone", "api_local/integration/api.php",
+              "data-chat-widget", 'name="message"'):
+    chk(token in _cw_html, f"chat form contract: {token}")
+chk(_asm.chat_send("it") == "Invia", "chat send label localized")
+chk(_asm.chat_enabled({"params": {"domain": "chat-check.site"}}) ==
+    _asm.chat_enabled({"params": {"domain": "chat-check.site"}}),
+    "chat split is stable per domain")
+
 for _of in (ROOT / "blocks").glob("blk-office*.html"):
     chk("{{c:office.eyebrow}}" in _of.read_text(), f"{_of.name}: office eyebrow localised")
 

@@ -7,8 +7,11 @@ if (!is_array($__cfg)) {
 
 $__country = (string) ($__cfg['country'] ?? 'auto');
 $__poll    = !empty($__cfg['job_polling']) ? 'true' : 'false';
-$__thanks  = (isset($thanksUrl) && $thanksUrl !== '') ? $thanksUrl : './thanks.php';
-$__base    = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+// Offer pages live at the domain root, but they can be included from /blog/*.php.
+// A relative './thanks.php' or '/blog/lead-form.js' breaks there, so both the
+// script and the redirect target are root-absolute.
+$__base    = '';
+$__thanks  = (isset($thanksUrl) && $thanksUrl !== '') ? $thanksUrl : $__base . '/thanks.php';
 $__lf      = __DIR__ . '/../../lead-form.js';
 $__ver     = is_file($__lf) ? (string) filemtime($__lf) : '1';
 $__src     = $__base . '/lead-form.js?v=' . $__ver;

@@ -29,6 +29,7 @@ CONTENT_SCHEMA = ROOT / "content" / "content-pack.schema.json"
 PALETTES = ROOT / "content" / "palettes-blk.json"
 INTEGRATION_SRC = ROOT / "integration-example" / "integration"
 PEOPLE_DIR = ROOT / "people"
+CHAT_AVATARS = ROOT / "chat-avatars"
 APPSHOT_DIR = ROOT / "appshots"
 TRUST_DIR = ROOT / "trust"
 PRIZE_DIR = ROOT / "prizes"
@@ -238,6 +239,103 @@ UI_L10N = {
     "nb": ("Hovednavigasjon", "Meny", "Gjenstående tid", "Simuleringens graf"),
     "en": ("Main navigation", "Menu", "Time left to claim", "Simulation chart"),
 }
+# Chat widget voice. The widget is a lead form in chat clothing, so the copy is
+# deliberately plain: no "manager is online", no bonuses, no fake queue. Field
+# labels/placeholders/consent come from the content pack (`bands.*`), these are
+# only the bubbles and chrome that the pack has no keys for.
+# Keys: role · hi · ask · after · type · open · close.
+CHAT_L10N = {
+    "en": ("Client support", "Hi, I'm {name}.", "Ask a question or leave your details — we'll call you back during office hours.",
+           "Thanks! Leave your contact details and we'll get back to you.", "Type a message…", "Open chat", "Close chat"),
+    "it": ("Supporto clienti", "Ciao, sono {name}.", "Fai una domanda o lascia i tuoi dati — ti richiamiamo negli orari di ufficio.",
+           "Grazie! Lascia i tuoi contatti e ti ricontattiamo.", "Scrivi un messaggio…", "Apri la chat", "Chiudi la chat"),
+    "cs": ("Zákaznická podpora", "Dobrý den, jsem {name}.", "Zeptejte se nebo zanechte kontakt — ozveme se vám v pracovní době.",
+           "Děkujeme! Zanechte své kontaktní údaje a ozveme se vám.", "Napište zprávu…", "Otevřít chat", "Zavřít chat"),
+    "sk": ("Zákaznícka podpora", "Dobrý deň, som {name}.", "Opýtajte sa alebo zanechajte kontakt — ozveme sa vám v pracovnom čase.",
+           "Ďakujeme! Zanechajte svoje kontaktné údaje a ozveme sa vám.", "Napíšte správu…", "Otvoriť chat", "Zavrieť chat"),
+    "pl": ("Obsługa klienta", "Dzień dobry, jestem {name}.", "Zadaj pytanie lub zostaw swoje dane — oddzwonimy w godzinach pracy.",
+           "Dziękujemy! Zostaw swoje dane kontaktowe, a odezwiemy się.", "Napisz wiadomość…", "Otwórz czat", "Zamknij czat"),
+    "de": ("Kundensupport", "Hallo, ich bin {name}.", "Stellen Sie eine Frage oder hinterlassen Sie Ihre Daten — wir rufen zu den Geschäftszeiten zurück.",
+           "Danke! Hinterlassen Sie Ihre Kontaktdaten, wir melden uns bei Ihnen.", "Nachricht schreiben…", "Chat öffnen", "Chat schließen"),
+    "fr": ("Support client", "Bonjour, je suis {name}.", "Posez une question ou laissez vos coordonnées — nous vous rappelons pendant les heures de bureau.",
+           "Merci ! Laissez vos coordonnées et nous vous recontacterons.", "Écrivez un message…", "Ouvrir le chat", "Fermer le chat"),
+    "es": ("Atención al cliente", "Hola, soy {name}.", "Haz una pregunta o deja tus datos: te llamamos en horario de oficina.",
+           "¡Gracias! Déjanos tus datos de contacto y te responderemos.", "Escribe un mensaje…", "Abrir el chat", "Cerrar el chat"),
+    "pt": ("Apoio ao cliente", "Olá, sou {name}.", "Faça uma pergunta ou deixe os seus dados — ligamos durante o horário de expediente.",
+           "Obrigado! Deixe os seus contactos e entraremos em contacto.", "Escreva uma mensagem…", "Abrir chat", "Fechar chat"),
+    "nl": ("Klantenservice", "Hallo, ik ben {name}.", "Stel een vraag of laat uw gegevens achter — we bellen u terug tijdens kantooruren.",
+           "Bedankt! Laat uw contactgegevens achter, dan nemen we contact op.", "Typ een bericht…", "Chat openen", "Chat sluiten"),
+    "hu": ("Ügyfélszolgálat", "Szia, {name} vagyok.", "Tegyen fel kérdést, vagy hagyja itt az adatait — munkaidőben visszahívjuk.",
+           "Köszönjük! Hagyja itt az elérhetőségeit, és jelentkezünk.", "Írjon üzenetet…", "Chat megnyitása", "Chat bezárása"),
+    "ro": ("Suport clienți", "Bună, sunt {name}.", "Puneți o întrebare sau lăsați datele — vă contactăm în timpul programului.",
+           "Mulțumim! Lăsați datele de contact și vă răspundem.", "Scrieți un mesaj…", "Deschide chatul", "Închide chatul"),
+    "bg": ("Клиентска подкрепа", "Здравейте, аз съм {name}.", "Задайте въпрос или оставете данните си — ще се свържем с вас в работно време.",
+           "Благодарим! Оставете данните си за контакт и ще се свържем с вас.", "Напишете съобщение…", "Отвори чата", "Затвори чата"),
+    "el": ("Υποστήριξη πελατών", "Γεια σας, είμαι {name}.", "Κάντε μια ερώτηση ή αφήστε τα στοιχεία σας — θα σας καλέσουμε εντός ωραρίου.",
+           "Ευχαριστούμε! Αφήστε τα στοιχεία επικοινωνίας σας και θα επικοινωνήσουμε.", "Γράψτε μήνυμα…", "Άνοιγμα συνομιλίας", "Κλείσιμο συνομιλίας"),
+    "hr": ("Korisnička podrška", "Bok, ja sam {name}.", "Postavite pitanje ili ostavite podatke — javit ćemo se u radno vrijeme.",
+           "Hvala! Ostavite kontakt podatke i javit ćemo se.", "Napišite poruku…", "Otvori chat", "Zatvori chat"),
+    "sl": ("Podpora strankam", "Pozdravljeni, sem {name}.", "Postavite vprašanje ali pustite podatke — poklicali vas bomo v delovnem času.",
+           "Hvala! Pustite kontaktne podatke in oglasili se bomo.", "Napišite sporočilo…", "Odpri klepet", "Zapri klepet"),
+    "lt": ("Klientų pagalba", "Sveiki, aš {name}.", "Užduokite klausimą arba palikite duomenis — paskambinsime darbo valandomis.",
+           "Ačiū! Palikite kontaktinius duomenis ir susisieksime.", "Rašykite žinutę…", "Atidaryti pokalbį", "Uždaryti pokalbį"),
+    "lv": ("Klientu atbalsts", "Sveiki, es esmu {name}.", "Uzdodiet jautājumu vai atstājiet datus — mēs jums piezvanīsim darba laikā.",
+           "Paldies! Atstājiet kontaktinformāciju, un mēs sazināsimies.", "Rakstiet ziņu…", "Atvērt čatu", "Aizvērt čatu"),
+    "et": ("Klienditugi", "Tere, mina olen {name}.", "Esitage küsimus või jätke oma andmed — helistame tagasi tööajal.",
+           "Aitäh! Jätke oma kontaktandmed ja võtame teiega ühendust.", "Kirjutage sõnum…", "Ava vestlus", "Sulge vestlus"),
+    "fi": ("Asiakaspalvelu", "Hei, olen {name}.", "Kysy kysymys tai jätä tietosi — soitamme takaisin virka-aikana.",
+           "Kiitos! Jätä yhteystietosi, niin otamme yhteyttä.", "Kirjoita viesti…", "Avaa chat", "Sulje chat"),
+    "sv": ("Kundsupport", "Hej, jag är {name}.", "Ställ en fråga eller lämna dina uppgifter — vi ringer tillbaka under kontorstid.",
+           "Tack! Lämna dina kontaktuppgifter så hör vi av oss.", "Skriv ett meddelande…", "Öppna chatten", "Stäng chatten"),
+    "da": ("Kundesupport", "Hej, jeg er {name}.", "Stil et spørgsmål eller efterlad dine oplysninger — vi ringer tilbage i kontortiden.",
+           "Tak! Efterlad dine kontaktoplysninger, så vender vi tilbage.", "Skriv en besked…", "Åbn chat", "Luk chat"),
+    "nb": ("Kundestøtte", "Hei, jeg er {name}.", "Still et spørsmål eller legg igjen opplysningene dine — vi ringer tilbake i kontortiden.",
+           "Takk! Legg igjen kontaktinformasjonen din, så tar vi kontakt.", "Skriv en melding…", "Åpne chat", "Lukk chat"),
+    "uk": ("Підтримка клієнтів", "Вітаю, я {name}.", "Поставте запитання або залиште свої дані — ми зателефонуємо в робочий час.",
+           "Дякую! Залиште контактні дані, і ми зв'яжемося з вами.", "Напишіть повідомлення…", "Відкрити чат", "Закрити чат"),
+    "tr": ("Müşteri desteği", "Merhaba, ben {name}.", "Soru sorun veya bilgilerinizi bırakın — çalışma saatlerinde sizi ararız.",
+           "Teşekkürler! İletişim bilgilerinizi bırakın, size dönüş yapalım.", "Bir mesaj yazın…", "Sohbeti aç", "Sohbeti kapat"),
+    "ja": ("カスタマーサポート", "こんにちは、{name}です。", "ご質問がある方はメッセージを、資料希望の方は連絡先をお知らせください。営業時間内にご連絡します。",
+           "ありがとうございます。連絡先をご記入ください。折り返しご連絡します。", "メッセージを入力…", "チャットを開く", "チャットを閉じる"),
+    "ko": ("고객 지원", "안녕하세요, {name}입니다.", "질문을 남기시거나 연락처를 입력해 주세요. 영업시간 내에 연락드립니다.",
+           "감사합니다! 연락처를 남겨 주시면 다시 연락드리겠습니다.", "메시지를 입력하세요…", "채팅 열기", "채팅 닫기"),
+    "zh": ("客户支持", "您好，我是{name}。", "您可以提问或留下联系方式，我们会在工作时间内回电。",
+           "谢谢！请留下联系方式，我们会与您联系。", "输入消息…", "打开聊天", "关闭聊天"),
+    "hi": ("ग्राहक सहायता", "नमस्ते, मैं {name} हूँ।", "सवाल पूछें या अपनी जानकारी छोड़ें — हम कार्यालय समय में कॉल करेंगे।",
+           "धन्यवाद! अपने संपर्क विवरण छोड़ें, हम आपसे संपर्क करेंगे।", "संदेश लिखें…", "चैट खोलें", "चैट बंद करें"),
+    "th": ("ฝ่ายบริการลูกค้า", "สวัสดีค่ะ ดิฉัน {name}", "สอบถามหรือฝากข้อมูลไว้ได้เลย เราจะโทรกลับในช่วงเวลาทำการ",
+           "ขอบคุณค่ะ โปรดฝากข้อมูลติดต่อไว้ แล้วเราจะติดต่อกลับ", "พิมพ์ข้อความ…", "เปิดแชท", "ปิดแชท"),
+    "he": ("תמיכת לקוחות", "שלום, אני {name}.", "שאלו שאלה או השאירו פרטים — נחזור אליכם בשעות העבודה.",
+           "תודה! השאירו פרטי קשר ונחזור אליכם.", "כתבו הודעה…", "פתח צ'אט", "סגור צ'אט"),
+    "ms": ("Sokongan pelanggan", "Hai, saya {name}.", "Tanya soalan atau tinggalkan butiran anda — kami akan menghubungi anda pada waktu pejabat.",
+           "Terima kasih! Tinggalkan butiran hubungan anda dan kami akan menghubungi anda.", "Taip mesej…", "Buka sembang", "Tutup sembang"),
+    "tl": ("Suporta sa customer", "Kumusta, ako si {name}.", "Magtanong o iwan ang iyong detalye — tatawagan ka namin sa oras ng trabaho.",
+           "Salamat! Iwan ang iyong contact details at makikipag-ugnayan kami.", "Mag-type ng mensahe…", "Buksan ang chat", "Isara ang chat"),
+    "sr": ("Корисничка подршка", "Здраво, ја сам {name}.", "Поставите питање или оставите податке — јавићемо се у радно време.",
+           "Хвала! Оставите контакт податке и јавићемо се.", "Напишите поруку…", "Отвори чет", "Затвори чет"),
+    "nn": ("Kundestøtte", "Hei, eg er {name}.", "Still eit spørsmål eller legg att opplysningane dine — vi ringjer tilbake i kontortida.",
+           "Takk! Legg att kontaktinformasjonen din, så tek vi kontakt.", "Skriv ei melding…", "Opne chat", "Lukk chat"),
+    "ka": ("კლიენტების მხარდაჭერა", "გამარჯობა, მე ვარ {name}.", "დასვით კითხვა ან დატოვეთ თქვენი მონაცემები — სამუშაო საათებში დაგიკავშირდებით.",
+           "გმადლობთ! დატოვეთ საკონტაქტო მონაცემები და დაგიკავშირდებით.", "დაწერეთ შეტყობინება…", "ჩატის გახსნა", "ჩატის დახურვა"),
+    "az": ("Müştəri dəstəyi", "Salam, mən {name}.", "Sual verin və ya məlumatlarınızı buraxın — iş saatlarında sizə zəng edəcəyik.",
+           "Təşəkkür edirik! Əlaqə məlumatlarınızı buraxın, sizinlə əlaqə saxlayacağıq.", "Mesaj yazın…", "Çatı aç", "Çatı bağla"),
+    "ru": ("Поддержка клиентов", "Здравствуйте, я {name}.", "Задайте вопрос или оставьте свои данные — мы перезвоним в рабочее время.",
+           "Спасибо! Оставьте контактные данные, и мы свяжемся с вами.", "Напишите сообщение…", "Открыть чат", "Закрыть чат"),
+}
+
+# send-button label (the arrow is visual only; screen readers need a word)
+CHAT_SEND = {
+    "en": "Send", "it": "Invia", "cs": "Odeslat", "sk": "Odoslať", "pl": "Wyślij",
+    "de": "Senden", "fr": "Envoyer", "es": "Enviar", "pt": "Enviar", "nl": "Versturen",
+    "hu": "Küldés", "ro": "Trimite", "bg": "Изпрати", "el": "Αποστολή", "hr": "Pošalji",
+    "sl": "Pošlji", "lt": "Siųsti", "lv": "Sūtīt", "et": "Saada", "fi": "Lähetä",
+    "sv": "Skicka", "da": "Send", "nb": "Send", "uk": "Надіслати", "tr": "Gönder",
+    "ja": "送信", "ko": "보내기", "zh": "发送", "hi": "भेजें", "th": "ส่ง",
+    "he": "שלח", "ms": "Hantar", "tl": "Ipadala", "sr": "Пошаљи", "nn": "Send",
+    "ka": "გაგზავნა", "az": "Göndər", "ru": "Отправить",
+}
+
+
 # Short control words for the interactive demo widgets (G3). Tuple order:
 # amount · horizon · minute unit · up · down · session · reset · bid · ask · demo.
 WIDGET_L10N = {
@@ -571,6 +669,8 @@ def finish_page(page: str, plan, C: dict) -> str:
                 .replace("{{PHONE_TEL}}", re.sub(r"[^\d+]", "", c["telephone"]))
                 .replace("{{PHONE}}", c["telephone"])
                 .replace("{{EMAIL}}", c["email"]))
+    if "{CHAT_WIDGET}" in page:
+        page = page.replace("{CHAT_WIDGET}", chat_widget_html(plan, C) if chat_enabled(plan) else "")
     page = self_heal_page(page, brand)
     return page
 
@@ -1245,8 +1345,6 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
     "partners": "blk-partners",
     "prizes": "blk-prizes",
 }
-INC_HEAD = "<?php include __DIR__ . '/api_local/integration/header.php'; ?>"
-INC_FOOT = "<?php include __DIR__ . '/api_local/integration/footer.php'; ?>"
 
 def safe_emails(html: str) -> str:
     """No plain-text address may reach the markup.
@@ -1277,13 +1375,134 @@ def safe_emails(html: str) -> str:
     out.append(_swap(html[pos:]))
     return "".join(out)
 
+def chat_enabled(plan) -> bool:
+    """50/50 fleet split, deterministic per domain.
+
+    New plans carry `chat_widget.enabled` from gen_plan. Old plans that were
+    generated before the widget existed fall back to the same hash, so a rebuild
+    never flips a live site from chat to no-chat (or back) by accident.
+    """
+    cw = plan.get("chat_widget")
+    if isinstance(cw, dict) and "enabled" in cw:
+        return bool(cw.get("enabled"))
+    if isinstance(cw, bool):
+        return cw
+    dom = str((plan.get("params") or {}).get("domain") or "")
+    return int(hashlib.sha1(dom.encode("utf-8")).hexdigest()[:8], 16) % 2 == 0
+
+
+def chat_agent(plan):
+    """Agent display name + optional portrait. No photo → CSS initials avatar."""
+    cw = plan.get("chat_widget") if isinstance(plan.get("chat_widget"), dict) else {}
+    name = str(cw.get("name") or "").strip()
+    photo = str(cw.get("photo") or "").strip()
+    if not name:
+        ppl = plan.get("people") or []
+        name = str(ppl[0]).split()[0] if ppl else "Support"
+    return name, photo
+
+
+def chat_send(lang: str) -> str:
+    return CHAT_SEND.get(lang, CHAT_SEND["en"])
+
+
+def chat_widget_html(plan, C: dict) -> str:
+    """Floating chat shell around the canonical lead form.
+
+    The form is a real `form.lead-form`: blocks/lead-form.js wires it together
+    with the page-body form, keeps the phone locked to the offer's single
+    country (data-country comes from integration/config.php) and posts to the
+    same api.php. The widget itself has no network calls.
+    """
+    lang = plan["params"].get("lang", "en")
+    role, hi_t, ask, after, typ, open_l, close_l = CHAT_L10N.get(lang, CHAT_L10N["en"])
+    bands = C.get("bands") or {}
+    labels = bands.get("labels") or {}
+    ph = bands.get("placeholders") or {}
+    ui = C.get("ui") or {}
+    name, photo = chat_agent(plan)
+    if photo and not (CHAT_AVATARS / photo).exists():
+        photo = ""
+    hi = hi_t.replace("{name}", name)
+    brand = plan["params"].get("brand", "")
+    first = labels.get("first") or "First name"
+    last = labels.get("last") or "Last name"
+    email = labels.get("email") or "Email"
+    phone = labels.get("phone") or "Phone"
+    submit = bands.get("submit") or "Send request"
+    consent = safe_emails(str(bands.get("form_consent") or "").strip())
+    status = (f' data-msg-sending="{esc(ui.get("status_sending") or "")}"'
+              f' data-msg-fix="{esc(ui.get("status_fix") or "")}"'
+              f' data-msg-fail="{esc(ui.get("status_fail") or "")}"'
+              f' data-msg-ok="{esc(ui.get("status_ok") or "")}"')
+    if photo:
+        avatar = (f'<img class="cw-avatar" src="/img/chat-agent.jpg" alt="" '
+                  f'width="42" height="42" loading="lazy" decoding="async">')
+        bubble_face = (f'<img src="/img/chat-agent.jpg" alt="" width="58" height="58" '
+                       f'decoding="async">')
+    else:
+        avatar = f'<span class="cw-avatar" aria-hidden="true">{esc(name[:1].upper())}</span>'
+        bubble_face = '<span class="cw-glyph" aria-hidden="true">💬</span>'
+    consent_html = f'<small class="form-consent">{consent}</small>' if consent else ""
+    return f"""<div class="cw" id="cw" data-chat-widget="1" data-after="{esc(after)}">
+  <button class="cw-bubble" type="button" aria-label="{esc(open_l)}" aria-expanded="false">
+    {bubble_face}<span class="cw-dot" aria-hidden="true"></span>
+  </button>
+  <section class="cw-panel" role="dialog" aria-modal="false" aria-labelledby="cw-agent" hidden>
+    <header class="cw-head">
+      {avatar}
+      <div class="cw-id"><b id="cw-agent">{esc(name)}</b><span>{esc(role)}{(' · ' + esc(brand)) if brand else ''}</span></div>
+      <button class="cw-close" type="button" aria-label="{esc(close_l)}">✕</button>
+    </header>
+    <div class="cw-log" aria-live="polite" aria-relevant="additions">
+      <div class="cw-msg cw-in"><p>👋 {esc(hi)} {esc(ask)}</p><span class="cw-time"></span></div>
+    </div>
+    <div class="cw-foot">
+      <form class="cw-say" action="#" novalidate>
+        <input type="text" placeholder="{esc(typ)}" aria-label="{esc(typ)}" autocomplete="off" maxlength="280">
+        <button type="submit" aria-label="{esc(chat_send(lang))}" disabled>→</button>
+      </form>
+      <form class="cw-form lead-form" action="/api_local/integration/api.php" method="post" novalidate hidden aria-label="{esc(bands.get('form_title') or submit)}">
+        <input type="hidden" name="message" value="">
+        <div class="cw-row">
+          <div class="form-group"><label for="cw-first">{esc(first)}
+            <input id="cw-first" name="first_name" required autocomplete="given-name" placeholder="{esc(ph.get('first') or '')}"></label>
+            <div class="form-error" role="alert"></div></div>
+          <div class="form-group"><label for="cw-last">{esc(last)}
+            <input id="cw-last" name="last_name" required autocomplete="family-name" placeholder="{esc(ph.get('last') or '')}"></label>
+            <div class="form-error" role="alert"></div></div>
+        </div>
+        <div class="form-group"><label for="cw-email">{esc(email)}
+          <input id="cw-email" name="email" type="email" required autocomplete="email" placeholder="{esc(ph.get('email') or '')}"></label>
+          <div class="form-error" role="alert"></div></div>
+        <div class="form-group"><label for="cw-phone">{esc(phone)}
+          <input id="cw-phone" class="js-lead-phone" type="tel" required autocomplete="tel" placeholder="{esc(ph.get('phone') or '')}"></label>
+          <div class="form-error" role="alert"></div></div>
+        <button class="blk-btn form-submit" type="submit">{esc(submit)} <span aria-hidden="true">↗</span></button>
+        {consent_html}
+        <p class="form-status" role="status" aria-live="polite"{status}></p>
+      </form>
+    </div>
+  </section>
+</div>"""
+
+
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
                theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True,
-               og_type="website", og_image="", blog=False):
+               og_type="website", og_image="", blog=False, chat=False):
     body = safe_emails(body)
     og_url = og_image or "https://{DOM}/og-image.jpg"
     blog_css = (f'<link rel="stylesheet" href="blocks/blog.css?v={BUILD_V}">\n'
                 if blog else "")
+    chat_css = f'<link rel="stylesheet" href="chat-widget.css?v={BUILD_V}">\n' if chat else ""
+    chat_js = f'<script src="chat-widget.js?v={BUILD_V}"></script>\n' if chat else ""
+    chat_html = "{CHAT_WIDGET}\n" if chat else ""
+    # pages live at the root or one level deep (/blog/*.php); the integration
+    # includes must be reachable from both, or blog pages lose header/footer
+    _depth = max(0, str(canonical_path or "/").strip("/").count("/"))
+    _up = "../" * _depth
+    inc_head = f"<?php include __DIR__ . '/{_up}api_local/integration/header.php'; ?>"
+    inc_foot = f"<?php include __DIR__ . '/{_up}api_local/integration/footer.php'; ?>"
     dom_css = f"<style>{esc(css_vars)}</style>"
     rob = "noindex,follow" if noindex else "index,follow,max-image-preview:large,max-snippet:-1"
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
@@ -1327,15 +1546,15 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <link rel="stylesheet" href="blocks/blocks.css?v={BUILD_V}">
 <link rel="stylesheet" href="skin.css?v={BUILD_V}">
 <link rel="stylesheet" href="widgets.css?v={BUILD_V}">
-{blog_css}<style>@import url('{fonts_import}');</style>
+{chat_css}{blog_css}<style>@import url('{fonts_import}');</style>
 {dom_css}
-{INC_HEAD}
+{inc_head}
 {ld}
 </head>
 <body>
 {body}
-{INC_FOOT}
-<script src="widgets.js?v={BUILD_V}"></script>
+{chat_html}{inc_foot}
+{chat_js}<script src="widgets.js?v={BUILD_V}"></script>
 <script src="app.js?v={BUILD_V}"></script>
 <script src="calculator.js?v={BUILD_V}"></script>
 <script src="pulse-sim.js?v={BUILD_V}"></script>
@@ -1862,7 +2081,7 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     descr = clamp_meta(m["description"]); kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
     page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme,
                       body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld,
-                      blog=bool(B))
+                      blog=bool(B), chat=chat_enabled(plan))
     page = fix_anchors(page)
     if 'id="come"' not in page:
         # no "how it works" section on this plan → drop the hero's secondary link
@@ -2053,7 +2272,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     page = page_shell(f"{title}", descr, m["keywords"].replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
-                       body, jsonld=build_inner_jsonld(plan, C, which))
+                       body, jsonld=build_inner_jsonld(plan, C, which), chat=chat_enabled(plan))
     page = page.replace('href="#claim"', 'href="index.php#claim"')
     page = finish_page(page, plan, C)
     return page
@@ -2122,7 +2341,7 @@ def build_long_inner(plan, C, css_vars, fonts_import, theme, which):
                        (C.get("meta") or {}).get("keywords", "").replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
-                       body_html, jsonld=build_inner_jsonld(plan, C, which))
+                       body_html, jsonld=build_inner_jsonld(plan, C, which), chat=chat_enabled(plan))
     page = page.replace('href="#claim"', 'href="index.php#claim"')
     page = finish_page(page, plan, C)
     return page
@@ -2188,7 +2407,7 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
     page = page_shell(title_map[which], descr,
                        f"{brand}, {terms_l[which]}", f"/{which}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
-                       body, jsonld=build_inner_jsonld(plan, C, which))
+                       body, jsonld=build_inner_jsonld(plan, C, which), chat=chat_enabled(plan))
     page = finish_page(page, plan, C)
     return page
 
@@ -2389,16 +2608,23 @@ def write_assets(out: pathlib.Path, plan, content=None):
     ps = BLOCKS / "pulse-sim.js"
     wc = ROOT / "widgets" / "widgets.css"
     wj = ROOT / "widgets" / "widgets.js"
+    cw_css = BLOCKS / "chat-widget.css"
+    cw_js = BLOCKS / "chat-widget.js"
     if not lf.exists(): die("blocks/lead-form.js missing (canonical lead form logic)")
     if not cf.exists(): die("blocks/calculator.js missing (canonical calculator engine)")
     if not ps.exists(): die("blocks/pulse-sim.js missing (canonical pulse-sim engine)")
     if not wc.exists() or not wj.exists(): die("widgets/widgets.{css,js} missing")
+    if chat_enabled(plan) and (not cw_css.exists() or not cw_js.exists()):
+        die("blocks/chat-widget.{css,js} missing (chat widget enabled in plan)")
     (out / "app.js").write_text(ASSETS_JS_APP, encoding="utf-8")
     (out / "calculator.js").write_text(cf.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "pulse-sim.js").write_text(ps.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "widgets.css").write_text(wc.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "widgets.js").write_text(wj.read_text(encoding="utf-8"), encoding="utf-8")
     (out / "lead-form.js").write_text(lf.read_text(encoding="utf-8"), encoding="utf-8")
+    if chat_enabled(plan):
+        (out / "chat-widget.css").write_text(cw_css.read_text(encoding="utf-8"), encoding="utf-8")
+        (out / "chat-widget.js").write_text(cw_js.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css") if (out / "blocks").exists() else \
         ((out / "blocks").mkdir(parents=True, exist_ok=True), shutil.copy(BLOCKS / "blocks.css", out / "blocks" / "blocks.css"))
     if (BLOCKS / "blog.css").exists() and (plan.get("blog") or {}).get("enabled"):
@@ -2410,6 +2636,12 @@ def write_assets(out: pathlib.Path, plan, content=None):
     for ph in plan.get("photos", []):
         src = PEOPLE_DIR / ph
         if src.exists(): shutil.copy(src, img_dir / ph)
+    # chat agent portrait: a dedicated face, never one of the testimonial photos
+    if chat_enabled(plan):
+        cw = plan.get("chat_widget") if isinstance(plan.get("chat_widget"), dict) else {}
+        ph = str(cw.get("photo") or "")
+        if ph and (CHAT_AVATARS / ph).exists():
+            shutil.copy(CHAT_AVATARS / ph, img_dir / "chat-agent.jpg")
     # app-shot photo (one per plan) + the form trust badges chosen by the plan
     app = appshot_file(plan)
     if app and (APPSHOT_DIR / app).exists():
@@ -2578,6 +2810,8 @@ def cmd_build(a):
                            (BLOCKS / "blog.css").read_bytes() +
                            (SKINS / f"skin-{plan['design'].get('skin')}.css").read_bytes() +
                            (BLOCKS / "lead-form.js").read_bytes() +
+                           (BLOCKS / "chat-widget.css").read_bytes() +
+                           (BLOCKS / "chat-widget.js").read_bytes() +
                            (BLOCKS / "calculator.js").read_bytes() +
                            (BLOCKS / "pulse-sim.js").read_bytes() +
                            (ROOT / "widgets" / "widgets.css").read_bytes() +
