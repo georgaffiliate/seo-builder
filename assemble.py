@@ -475,7 +475,7 @@ def partner_grid_html(plan) -> str:
     for b in partner_badges(plan):
         out.append(
             f'<div class="partner-card"><img src="img/trust/{esc(b["file"])}" '
-            f'alt="{esc(b.get("name", ""))}" loading="lazy" decoding="async"></div>')
+            f'alt="{esc(b.get("name", ""))}" width="120" height="32" loading="lazy" decoding="async"></div>')
     return "".join(out)
 
 def _on_dark(hex_color: str, min_l: float = 0.62) -> str:
@@ -1492,14 +1492,19 @@ def chat_widget_html(plan, C: dict) -> str:
 
 def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_import,
                theme_color, body, og_desc="", jsonld="", noindex=False, canonical=True,
-               og_type="website", og_image="", blog=False, chat=False):
+               og_type="website", og_image="", blog=False, chat=False,
+               need_calc=False, need_pulse=False):
     body = safe_emails(body)
     og_url = og_image or "https://{DOM}/og-image.jpg"
     blog_css = (f'<link rel="stylesheet" href="blocks/blog.css?v={BUILD_V}">\n'
                 if blog else "")
     chat_css = f'<link rel="stylesheet" href="chat-widget.css?v={BUILD_V}">\n' if chat else ""
-    chat_js = f'<script src="chat-widget.js?v={BUILD_V}"></script>\n' if chat else ""
+    chat_js = f'<script src="chat-widget.js?v={BUILD_V}" defer></script>\n' if chat else ""
     chat_html = "{CHAT_WIDGET}\n" if chat else ""
+    # the two engines are only worth a request when their screen is on the page
+    engines_js = "".join(f'<script src="{f}.js?v={BUILD_V}" defer></script>\n'
+                         for f, need in (("calculator", need_calc), ("pulse-sim", need_pulse))
+                         if need)
     # pages live at the root or one level deep (/blog/*.php); the integration
     # includes must be reachable from both, or blog pages lose header/footer
     _depth = max(0, str(canonical_path or "/").strip("/").count("/"))
@@ -1527,6 +1532,7 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <meta name="keywords" content="{esc(keywords)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -1548,8 +1554,8 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <meta name="twitter:image:alt" content="{esc(title)}">
 <link rel="stylesheet" href="blocks/blocks.css?v={BUILD_V}">
 <link rel="stylesheet" href="skin.css?v={BUILD_V}">
-<link rel="stylesheet" href="widgets.css?v={BUILD_V}">
-{chat_css}{blog_css}<style>@import url('{fonts_import}');</style>
+<link rel="preload" href="widgets.css?v={BUILD_V}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+{chat_css}{blog_css}<link rel="stylesheet" href="{fonts_import}">
 {dom_css}
 {inc_head}
 {ld}
@@ -1557,10 +1563,9 @@ def page_shell(title, descr, keywords, canonical_path, locale, css_vars, fonts_i
 <body>
 {body}
 {chat_html}{inc_foot}
-{chat_js}<script src="widgets.js?v={BUILD_V}"></script>
-<script src="app.js?v={BUILD_V}"></script>
-<script src="calculator.js?v={BUILD_V}"></script>
-<script src="pulse-sim.js?v={BUILD_V}"></script>
+{chat_js}<script src="widgets.js?v={BUILD_V}" defer></script>
+<script src="app.js?v={BUILD_V}" defer></script>
+{engines_js}
 </body>
 </html>"""
 
@@ -2022,6 +2027,101 @@ def sanitize_hero_copy(C, brand: str) -> None:
         hero[key] = trim(hero.get(key))
 
 
+_IMG_DIRS = (PEOPLE_DIR, APPSHOT_DIR, PRIZE_DIR, TRUST_DIR)
+
+def _img_size(src: str):
+    """(w,h) from the local file behind an <img src>, or None for remote/unknown."""
+    src = (src or "").split("?")[0]
+    if not src.startswith("img/") or src.startswith("img/trust/"):
+        return None
+    name = src.split("/")[-1]
+    for d in _IMG_DIRS:
+        f = d / name
+        if not f.exists():
+            continue
+        if f.suffix.lower() == ".svg":
+            m = re.search(r'width="(\d+)"[^>]*height="(\d+)"', f.read_text(errors="ignore")[:800])
+            return (int(m.group(1)), int(m.group(2))) if m else None
+        try:
+            from PIL import Image
+            with Image.open(f) as im:
+                return im.size
+        except Exception:
+            return None
+    return None
+
+def _webp_for(src: str, plan=None) -> str:
+    """Same path with a .webp suffix when the converted sibling exists in the bank."""
+    if not src.startswith("img/"):
+        return ""
+    if src.endswith("img/appshot.jpg") and plan:
+        f = APPSHOT_DIR / appshot_file(plan)
+    elif src.startswith("img/prizes/"):
+        f = PRIZE_DIR / src.split("/")[-1]
+    else:
+        return ""
+    if not f.exists():
+        return ""
+    w = f.with_suffix(".webp")
+    if not w.exists():
+        to_webp(f)
+    return src.rsplit(".", 1)[0] + ".webp" if w.exists() else ""
+
+
+def enforce_img_attrs(html: str, plan=None) -> str:
+    """Every <img> ships width/height (CLS) and the first one is the LCP candidate:
+    it loses loading=lazy and gets fetchpriority=high."""
+    first = [True]
+
+    def fix(m):
+        tag = m.group(0)
+        src_m = re.search(r'src="([^"]*)"', tag)
+        srcv = src_m.group(1) if src_m else ""
+        if plan and srcv.endswith("img/appshot.jpg"):
+            f = APPSHOT_DIR / appshot_file(plan)
+            try:
+                from PIL import Image
+                with Image.open(f) as im:
+                    size = im.size
+            except Exception:
+                size = None
+        else:
+            size = _img_size(srcv)
+        if size and "width=" not in tag and "height=" not in tag:
+            tag = tag.replace("<img", f'<img width="{size[0]}" height="{size[1]}"', 1)
+        webp_src = _webp_for(srcv, plan)
+        if webp_src:
+            tag = tag.replace(f'src="{srcv}"', f'src="{webp_src}"', 1)
+        if "decoding=" not in tag:
+            tag = tag.replace("<img", '<img decoding="async"', 1)
+        if first[0]:
+            first[0] = False
+            tag = tag.replace(' loading="lazy"', "")
+            if "fetchpriority" not in tag:
+                tag = tag.replace("<img", '<img fetchpriority="high"', 1)
+        return tag
+
+    return re.sub(r"<img\b[^>]*>", fix, html)
+
+
+def add_review_stars(html: str, C: dict) -> str:
+    """Print the star value on each review card — the same integer the JSON-LD Review
+    carries, so the schema and the visible page agree. Inserted right before the quote
+    so every review layout (card, blockquote, figure) keeps its own structure."""
+    for i, item in enumerate(((C.get("reviews") or {}).get("items") or [])[:3]):
+        quote = str(item.get("quote") or "").strip()
+        if not quote or f'data-rev="{i}"' in html:
+            continue
+        n = max(1, min(5, int(item.get("rating") or 5)))
+        stars = "★" * n + "☆" * (5 - n)
+        idx = html.find(quote)
+        if idx < 0:
+            continue
+        html = (html[:idx] + f'<span class="rev-stars" data-rev="{i}" aria-hidden="true">{stars}</span> '
+                + html[idx:])
+    return html
+
+
 def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     brand = plan["params"]["brand"]; dom = plan["params"]["domain"]
     sanitize_hero_copy(C, brand)
@@ -2064,6 +2164,8 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
             i += 2
             continue
         html = R(slot, plan, C)
+        if slot == "people":
+            html = add_review_stars(html, C)
         if slot in SLOT_REMAP:
             html = html.replace("c:sections.intro.", SLOT_REMAP[slot])
         for _we in embeds.get(slot, ()):
@@ -2078,13 +2180,20 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     body = ensure_anchors(body)
     body = re.sub(r"<br>\s*<span>\s*</span>", "", body)
     body = add_brandnote_links(body, plan, C)
+    body = enforce_img_attrs(body, plan)
     m = C["meta"]
     jsonld = build_jsonld(plan, C, body)
     title = m["title_home"].replace("{Brand}", brand)
     descr = clamp_meta(m["description"]); kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
-    page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme,
-                      body, og_desc=C["meta"].get("og_description", ""), jsonld=jsonld,
-                      blog=bool(B), chat=chat_enabled(plan))
+    _kinds = {str((e or {}).get("kind") or "") for e in
+              ((plan["layout"].get("widget_embed"), plan["layout"].get("market_embed"))) if e}
+    page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme, body,
+                      og_desc=C["meta"].get("og_description", ""), jsonld=jsonld,
+                      blog=bool(B), chat=chat_enabled(plan),
+                      need_calc=("calculator" in plan["layout"]["section_order"]
+                                 or "calculator" in _kinds),
+                      need_pulse=("pulse-sim" in plan["layout"]["section_order"]
+                                  or "pulse-sim" in _kinds))
     page = fix_anchors(page)
     if 'id="come"' not in page:
         # no "how it works" section on this plan → drop the hero's secondary link
@@ -2113,10 +2222,31 @@ def build_jsonld(plan, C, body: str = ""):
         "url": f"https://{dom}/", "logo": f"https://{dom}/favicon.svg", "image": f"https://{dom}/og-image.jpg",
         "description": C["meta"]["description"], "email": contacts["email"],
         "telephone": contacts["telephone"], "areaServed": geo,
-        "currenciesAccepted": plan["params"].get("currency", "EUR"),
-        "aggregateRating": {"@type": "AggregateRating", "ratingValue": str(n.get("rating", "4,7")),
-            "bestRating": "5", "worstRating": "1", "reviewCount": str(n.get("reviews", 641))}}
+        "currenciesAccepted": plan["params"].get("currency", "EUR")}
     if reg: org["slogan"] = f"{brand} — {reg.get('name','')}"
+    # AggregateRating must be a NUMBER (comma decimals are invalid in JSON-LD) and it
+    # must be backed by reviews a visitor can read: the same three cards on the page
+    # become Review nodes, and the headline rating is their mean.
+    # only reviews the visitor can actually read: variant e prints two of the three
+    # cards, and a Review node for an invisible quote is the same mismatch as an
+    # invisible FAQ answer
+    rev_items = [r for r in ((C.get("reviews") or {}).get("items") or [])[:3]
+                 if isinstance(r, dict) and r.get("quote") and str(r["quote"]) in body]
+    if rev_items:
+        ratings = [int(r.get("rating") or 5) for r in rev_items]
+        mean = round(sum(ratings) / len(ratings), 1)
+        org["aggregateRating"] = {
+            "@type": "AggregateRating", "ratingValue": mean, "bestRating": 5,
+            "worstRating": 1, "reviewCount": int(n.get("reviews", 641))}
+        org["review"] = [{
+            "@type": "Review",
+            "author": {"@type": "Person", "name": r.get("name") or ""},
+            "reviewRating": {"@type": "Rating", "ratingValue": int(r.get("rating") or 5),
+                             "bestRating": 5, "worstRating": 1},
+            "reviewBody": r.get("quote") or "",
+        } for r in rev_items]
+    sib = [d for d in (plan.get("siblings") or []) if d and d != dom]
+    if sib: org["sameAs"] = [f"https://{d}/" for d in sib]
     website = {"@type": "WebSite", "@id": f"https://{dom}/#site", "url": f"https://{dom}/",
         "name": brand, "inLanguage": plan["params"].get("locale", ""),
         "publisher": {"@id": f"https://{dom}/#org"}}
@@ -2267,6 +2397,7 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
         body_parts.append(R("cta-band", plan, C).replace("{{c:sections.cta.h2}}", esc(cta.get("h2", brand))))
     body_parts.append("</main>"); body_parts.append(footer)
     body = ensure_anchors("\n".join(body_parts))
+    body = enforce_img_attrs(body, plan)
     m = C["meta"]
     label = PAGE_LABELS.get(plan["params"]["lang"], PAGE_LABELS["en"]).get(which, which.title())
     title = brand_first(cp.get("title") or label, brand, label)
@@ -2337,7 +2468,7 @@ def build_long_inner(plan, C, css_vars, fonts_import, theme, which):
                       if x in plan["layout"]["section_order"]), "access-band")
     body.append(f'<div class="inner-cta-form">{R(form_slot, plan, C)}</div>')
     body.append("</main>"); body.append(footer)
-    body_html = ensure_anchors("\n".join(body))
+    body_html = enforce_img_attrs(ensure_anchors("\n".join(body)), plan)
     title = brand_first(cp.get("title") or label, brand, label)
     descr = clamp_meta(lead or cp.get("h1") or label)
     page = page_shell(title, descr,
@@ -2605,6 +2736,27 @@ fNudge(bs[Math.floor(Math.random()*bs.length)]);});},2600);
 # NOTE: the literal above kept the historic broken IIFE closer `});` (missing "(") —
 # that made the whole IIFE a no-op expression and calculator.js dead. Do not use it.
 
+def to_webp(path: pathlib.Path, quality: int = 82) -> None:
+    """Emit a .webp sibling (kept out of the <img>, offered via <picture>). Failure is
+    not fatal: the JPEG/PNG fallback stays."""
+    if not path.exists() or path.suffix.lower() not in (".jpg", ".jpeg", ".png"):
+        return
+    try:
+        from PIL import Image
+        with Image.open(path) as im:
+            im.save(path.with_suffix(".webp"), "WEBP", quality=quality, method=5)
+    except Exception:
+        pass
+
+def prepare_webp(plan) -> None:
+    """Convert this offer's heavy photos ONCE, before pages are rendered, so the
+    markup can point straight at .webp (a <picture> wrapper broke the prize grid)."""
+    app = appshot_file(plan)
+    if app:
+        to_webp(APPSHOT_DIR / app)
+    for f in ((plan.get("prizes") or {}).get("files") or []):
+        to_webp(PRIZE_DIR / pathlib.Path(str(f)).name)
+
 def write_assets(out: pathlib.Path, plan, content=None):
     lf = BLOCKS / "lead-form.js"
     cf = BLOCKS / "calculator.js"
@@ -2649,6 +2801,7 @@ def write_assets(out: pathlib.Path, plan, content=None):
     app = appshot_file(plan)
     if app and (APPSHOT_DIR / app).exists():
         shutil.copy(APPSHOT_DIR / app, img_dir / "appshot.jpg")
+        to_webp(img_dir / "appshot.jpg")
     trust_dir = img_dir / "trust"
     trust_dir.mkdir(exist_ok=True)
     for b in {x["file"]: x for x in (trust_badges(plan) + partner_badges(plan))}.values():
@@ -2661,7 +2814,9 @@ def write_assets(out: pathlib.Path, plan, content=None):
         prize_dir.mkdir(exist_ok=True)
         for name in prize_files:
             src = PRIZE_DIR / pathlib.Path(name).name
-            if src.exists(): shutil.copy(src, prize_dir / src.name)
+            if src.exists():
+                shutil.copy(src, prize_dir / src.name)
+                to_webp(prize_dir / src.name)
             else: print(f"! prize image missing in prizes/: {name}")
     # favicon + og: copy neutral placeholders (regenerated per brand by icon step)
     for f in ("favicon.svg", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "og-image.png"):
@@ -2826,6 +2981,7 @@ def cmd_build(a):
     if _asm_mod is not None and _asm_mod is not sys.modules.get("__main__"):
         _asm_mod.BUILD_V = BUILD_V
     has_calc = "calculator" in plan["layout"]["section_order"]
+    prepare_webp(plan)
     pages = {"index.php": build_index(plan, C, css_vars, fonts_import, theme, B=B, covers=covers)}
     for which in ("about", "who", "contact", "register", "product", "offer", "faq"):
         slug = plan["layout"].get("slugs", {}).get(which, which)

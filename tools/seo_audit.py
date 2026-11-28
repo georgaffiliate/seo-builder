@@ -429,6 +429,56 @@ def audit_countdown_labels(html, lang=""):
         bad.append(f"foreign alphabet in countdown captions: {labels}")
     return bad
 
+
+def audit_tech(html: str, path: str):
+    """Technical-SEO floor: LCP image, CLS dimensions, blocking chains, valid schema."""
+    imgs = re.findall(r"<img\b[^>]*>", html)
+    no_alt = [t for t in imgs if "alt=" not in t]
+    chk(not no_alt, "ERR", f"img alt /{path}",
+        f"{len(no_alt)} <img> without alt /{path}")
+    no_size = [t for t in imgs if "width=" not in t or "height=" not in t]
+    chk(not no_size, "ERR", f"img sizes /{path}",
+        f"{len(no_size)} <img> without width/height /{path} (CLS)")
+    if imgs:
+        chk("loading=\"lazy\"" not in imgs[0], "ERR", f"lcp eager /{path}",
+            f"first image is lazy — it is the LCP candidate /{path}")
+    chk("@import url(" not in html, "ERR", f"fonts link /{path}",
+        f"fonts load through @import (serial chain) /{path}")
+    sync = [t for t in re.findall(r'<script\b[^>]*src="[^"]+"[^>]*>', html)
+            if "defer" not in t and "async" not in t]
+    chk(not sync, "ERR", f"script defer /{path}",
+        f"{len(sync)} blocking <script src> /{path}")
+    blocks = re.findall(r'<script type="application/ld\+json">([\s\S]*?)</script>', html)
+    for blob in blocks:
+        try:
+            data = json.loads(blob)
+        except Exception as exc:
+            chk(False, "ERR", None, f"invalid JSON-LD /{path}: {exc}")
+            continue
+        nodes = []
+        for node in [data] + list((data.get("@graph") or []) if isinstance(data, dict) else []):
+            if isinstance(node, dict):
+                nodes.append(node)
+        for node in nodes:
+            arl = node.get("aggregateRating")
+            if not isinstance(arl, dict):
+                continue
+            rv = arl.get("ratingValue")
+            chk(isinstance(rv, (int, float)), "ERR", f"schema rating type /{path}",
+                f"aggregateRating.ratingValue is {type(rv).__name__} ({rv!r}) — must be a number /{path}")
+            if isinstance(rv, str):
+                chk("," not in rv, "ERR", f"schema rating dots /{path}",
+                    f"ratingValue uses a comma decimal ({rv!r}) /{path}")
+            revs = node.get("review") or []
+            # some review layouts print two cards + the rating block; what matters is
+            # that every Review node has a visible quote behind it
+            chk(len(revs) >= 2, "ERR", f"schema reviews /{path}",
+                f"aggregateRating without visible Review nodes /{path}")
+            bad = [r for r in revs if not isinstance((r or {}).get("reviewRating"), dict)
+                   or not isinstance((r["reviewRating"] or {}).get("ratingValue"), (int, float))]
+            chk(not bad, "ERR", f"schema review ratings /{path}",
+                f"{len(bad)} Review nodes without a numeric reviewRating /{path}")
+
 def main():
     folder = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "."
     want_deploy = "--deploy" in sys.argv
@@ -529,6 +579,7 @@ def main():
             cpath = d["canonical"].split(domain_hint, 1)[1]
             chk(cpath == "/" or cpath.endswith(".php"), "ERR",
                 f"canonical .php /{path}", f"canonical lacks .php suffix /{path}: {d['canonical']}")
+        audit_tech(html, path)
         f = d["forms"]
         chk(f["lead_forms"] <= 1 or path != "/", "INFO")
         if f["lead_forms"]:

@@ -1335,7 +1335,7 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   h2{font-size:clamp(29px,8.8vw,40px);line-height:1.06;letter-spacing:-.02em;
     text-transform:uppercase;font-weight:800}
   h3{font-size:20px;line-height:1.25}
-  .eyebrow{font-size:10.5px;letter-spacing:.16em}
+  .eyebrow{font-size:11px;letter-spacing:.14em}
   .blk-btn{width:100%;min-height:54px;border-radius:14px;font-size:16px;
     box-shadow:none;padding:14px 18px}
   .blk-btn.ghost{width:auto}
@@ -1373,10 +1373,10 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
     min-height:56px;
     border-radius:14px;font-size:16px;font-weight:800;box-shadow:none}
   .first-screen .form-consent{color:color-mix(in srgb,var(--btn-ink) 76%,transparent);
-    font-size:10.5px;line-height:1.55}
+    font-size:12px;line-height:1.5}
   .first-screen .form-trust{border-top-color:color-mix(in srgb,var(--btn-ink) 22%,transparent)}
-  .first-screen .form-trust-label{color:color-mix(in srgb,var(--btn-ink) 72%,transparent)}
-  .first-screen .form-trust-label{color:color-mix(in srgb,var(--btn-ink) 70%,transparent)}
+  .first-screen .form-trust-label{color:color-mix(in srgb,var(--btn-ink) 70%,transparent);
+    font-size:11px}
   .first-screen .trust-logos{gap:7px}
   .first-screen .trust-logos img{background:#fff;border-radius:6px;padding:4px 6px;
     height:22px;max-width:64px;opacity:1}
@@ -1988,3 +1988,7 @@ main .sec[id],main section[id]{scroll-margin-top:90px}
   .pr-cell span{font-size:12px}
   .pr-rank{min-width:24px;height:24px;font-size:11px}
 }
+
+/* <picture> wrapping only adds a format <source>; it must not become a layout box */
+.pr-fig picture,.pr-card picture,.pr-table picture,.pr-thumb picture,.appshot-media picture,
+.wk-tile picture{display:contents}

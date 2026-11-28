@@ -17,8 +17,8 @@ $__ver     = is_file($__lf) ? (string) filemtime($__lf) : '1';
 $__src     = $__base . '/lead-form.js?v=' . $__ver;
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.15/css/intlTelInput.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.15/js/intlTelInput.min.js"></script>
-<script src="<?= htmlspecialchars($__src, ENT_QUOTES) ?>"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.15/js/intlTelInput.min.js" defer></script>
+<script src="<?= htmlspecialchars($__src, ENT_QUOTES) ?>" defer
         data-country="<?= htmlspecialchars($__country, ENT_QUOTES) ?>"
         data-tsid="{ts_id}"
         data-poll="<?= $__poll ?>"

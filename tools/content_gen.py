@@ -474,12 +474,23 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     if len(people) < 3:
         die(f"plan carries {len(people)} persona(s); the reviews section needs 3 different "
             f"people — regenerate the plan (gen_plan pick_people) or run with --with-llm")
+    # Star ratings are BACKED by the reviews: the JSON-LD Review nodes and the ★ in
+    # the cards come from these values, and the headline rating is their exact mean.
+    # Before, the schema asserted 4,5 with a count but no review object carried a
+    # rating, which is the structured-data hole Google flags first.
+    _target = float(str(plan["numbers"].get("rating", "4,5")).replace(",", ".") or 4.5)
+    triples = [(5, 5, 4), (5, 4, 4), (4, 4, 5), (5, 5, 5), (4, 5, 4)]
+    triple = min(triples, key=lambda t: abs(sum(t) / 3 - _target))
     for i, (name, photo) in enumerate(zip(people[:3], photos[:3])):
         content["reviews"]["items"].append({
             "name": name, "city": cities[i % len(cities)], "role": roles[i % len(roles)],
             "tenure": tenures[i % len(tenures)],
             "gain": f"+{money(rng.uniform(180, 1_900) * rate, cur)} {month_word}",
-            "photo": photo, "quote": quotes[i % len(quotes)]})
+            "photo": photo, "quote": quotes[i % len(quotes)], "rating": triple[i]})
+    _mean = round(sum(triple) / 3, 1)
+    _rating_txt = f"{_mean:.1f}".replace(".", ",") if lang in COMMA_DECIMAL else f"{_mean:.1f}"
+    content["hero"]["stats"][0]["v"] = _rating_txt
+    content.setdefault("schema", {})["rating"] = f"{_mean:.1f}"
 
     for which, key in (("about", "inner_about"), ("tech", "inner_tech"),
                        ("who", "inner_who"), ("contact", "inner_contact"),
