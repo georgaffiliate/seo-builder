@@ -76,10 +76,18 @@ def fetch(url, timeout=10):
 def extract(page_html, base_url):
     out = {}
     out["title"] = (re.search(r"<title[^>]*>(.*?)</title>", page_html, re.S|re.I) or [None,""])[1].strip()
-    out["metas"] = {m[0].lower(): m[1] for m in re.findall(
-        r'<meta[^>]+name=["\']([^"\']+)["\'][^>]+content=["\']([^"\']*)["\']', page_html, re.I)}
-    out["metas"].update({m[0].lower(): m[1] for m in re.findall(
-        r'<meta[^>]+content=["\']([^"\']*)["\'][^>]+name=["\']([^"\']+)["\']', page_html, re.I)})
+    # content may itself contain apostrophes ("l'area") — the old [^"']* class stopped
+    # at the first one, so the audit measured a truncated description
+    def _attrs(html):
+        found = {}
+        for m in re.finditer(r'<meta\b[^>]*>', html, re.I):
+            tag = m.group(0)
+            nm = re.search(r'name=(["\'])([^"\']+)\1', tag, re.I)
+            ct = re.search(r'content=(["\'])(.*?)\1', tag, re.I | re.S)
+            if nm and ct:
+                found.setdefault(nm.group(2).lower(), ct.group(2))
+        return found
+    out["metas"] = _attrs(page_html)
     out["h1s"] = [re.sub(r"<[^>]+>", "", m).strip() for m in re.findall(r"<h1[^>]*>(.*?)</h1>", page_html, re.S|re.I)]
     out["h2s"] = [re.sub(r"<[^>]+>", "", m).strip() for m in re.findall(r"<h2[^>]*>(.*?)</h2>", page_html, re.S|re.I)]
     out["canonical"] = (re.search(r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)', page_html, re.I) or [None,""])[1]

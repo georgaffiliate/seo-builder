@@ -708,6 +708,12 @@ def lint(title: str, description: str, brand: str, *, lang: str = "en",
         out.append(("WARN", f"title {tn} > {TITLE_HARD}"))
     elif tn > TITLE_MAX:
         out.append(("WARN", f"title {tn} > {TITLE_MAX} (обріжеться у видачі)"))
+    if not home and t and tn < 35:
+        out.append(("ERR", f"inner title короткий ({tn} < 35) — SERP-простір згаяно"))
+    if not home and d and dn < 95:
+        out.append(("ERR", f"inner description короткий ({dn} < 95)"))
+    if d and not d.rstrip().endswith((".", "!", "?", "。", "！", "？")):
+        out.append(("ERR", "description без фінальної крапки"))
     if d and dn > DESC_MAX + 10:
         out.append(("WARN", f"description {dn} > {DESC_MAX}"))
     elif d and dn < 95:

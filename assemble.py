@@ -500,7 +500,8 @@ def clamp_meta(text, limit: int = 155) -> str:
     """
     t = " ".join(str(text or "").split())
     if len(t) <= limit:
-        return t.strip(" .,;:—-")
+        body = t.strip(" .,;:—-")
+        return body + "." if body and len(body) >= 40 else body
     cut = t[:limit]
     body = ""
     for sep in (". ", "! ", "? ", "; "):
@@ -515,7 +516,106 @@ def clamp_meta(text, limit: int = 155) -> str:
         while words and words[-1].lower().strip(".,") in WEAK_TAIL:
             words.pop()
         body = " ".join(words)
-    return body.strip(" .,;:—-")
+    body = body.strip(" .,;:—-")
+    return body + "." if body and len(body) >= 40 else body
+
+def cap_brand_line(body: str, brand: str) -> str:
+    """`.brand-line` is the h1 name chip the audit reads; a lower-case plan brand must
+    not print lowercase there."""
+    if not brand or brand != brand.lower():
+        return body
+    disp = brand[:1].upper() + brand[1:]
+    return re.sub(r'(<span class="brand-line">\s*)' + re.escape(brand),
+                  lambda m: m.group(1) + disp, body, flags=re.I)
+
+def cap_brand(text: str, brand: str) -> str:
+    """A plan may carry the brand in lower case; titles and h1 start with it, so the
+    first occurrence is capitalised there (never the domain, never the body copy)."""
+    if not text or not brand or brand != brand.lower():
+        return text
+    disp = brand[:1].upper() + brand[1:]
+    return re.sub(rf"\b{re.escape(brand)}\b", disp, text, count=1, flags=re.I)
+
+
+def _first_clause(text, max_words: int = 9) -> str:
+    t = re.split(r"[.;:!?]", " ".join(str(text or "").split()))[0].strip(" .,;:—-")
+    words = t.split()
+    return " ".join(words[:max_words]) if len(words) >= 2 else ""
+
+
+def strip_cta_tail(desc: str, C: dict) -> str:
+    """The model likes to end a description with the submit label ("Open my account").
+    Cut it when it only repeats the button the visitor already sees."""
+    btn = str((C.get("bands") or {}).get("submit") or "").strip(" .")
+    if not btn or not desc:
+        return desc
+    tail = desc.rstrip(" .")
+    if tail.lower().endswith(btn.lower()):
+        cut = tail[: -len(btn)].rstrip(" .,;:—-·")
+        if len(cut) >= 90:
+            return cut + "."
+    return desc
+
+
+def clamp_title(text: str, limit: int = 70) -> str:
+    t = " ".join(str(text or "").split())
+    if len(t) <= limit:
+        return t
+    cut = t[:limit]
+    i = cut.rfind(" ")
+    body = cut[:i] if i >= 30 else cut
+    words = body.split()
+    while words and words[-1].lower().strip(".,") in WEAK_TAIL:
+        words.pop()
+    return " ".join(words).strip(" .,;:—-")
+
+
+def inner_meta(cp: dict, plan: dict, C: dict, label: str, brand: str) -> tuple[str, str]:
+    """Title/description for an inner page: brand — topic — hook, and a 120+ char
+    description assembled from the page's own copy. The bare label ("About", 20 chars)
+    wasted the SERP and the gate only policed the home page."""
+    topic = str(cp.get("title") or cp.get("h1") or label)
+    hook = _first_clause(cp.get("lead")) or str((C.get("meta") or {}).get("category") or "")
+    head = f"{topic} — {hook}" if hook and hook.lower() not in topic.lower() else topic
+    title = clamp_title(brand_first(head, brand, label))
+    if len(title) < 40:
+        extra = str((C.get("meta") or {}).get("category") or "").strip(" .")
+        if extra and extra.lower() not in title.lower():
+            title = clamp_title(f"{title} — {extra}")
+    _h1 = str(cp.get("h1") or "")
+    pieces = [cp.get("lead")]
+    if _h1 and _h1.lower() not in str(cp.get("title") or "").lower():
+        pieces.append(_h1)
+    for b in (cp.get("blocks") or []):
+        pieces.append((b or {}).get("d"))
+    for sec in (cp.get("sections") or []):
+        pieces.extend((sec or {}).get("paragraphs") or [])
+        pieces.extend((sec or {}).get("bullets") or [])
+    desc = ""
+    for piece in pieces:
+        piece = " ".join(str(piece or "").split())
+        if not piece or piece.lower() in desc.lower():
+            continue
+        desc = f"{desc.rstrip(' .;:—-')}. {piece}".strip() if desc else piece
+        if len(desc) >= 120:
+            break
+    desc = strip_cta_tail(clamp_meta(desc or label), C)
+    # thin pages (contact, register) carry almost no prose: keep filling from the
+    # site's own process facts, then from the home description before the 95 floor
+    for filler in ([str((C.get("meta") or {}).get("category") or "").strip(" .")]
+                   + [str(x) for x in ((C.get("bands") or {}).get("mid_points") or [])][:2]):
+        if len(desc) >= 95:
+            break
+        filler = filler.strip(" .")
+        if filler and filler.lower() not in desc.lower():
+            desc = clamp_meta(f"{desc.rstrip('.')} · {filler}")
+    if len(desc) < 95:
+        home = str((C.get("meta") or {}).get("description") or "")
+        if home and home[:40].lower() not in desc.lower():
+            desc = clamp_meta(f"{desc.rstrip('.')} {home}")
+    if desc and not desc.rstrip().endswith((".", "!", "?")):
+        desc = desc.rstrip() + "."
+    return cap_brand(title, brand), desc
 
 def contacts_for(plan, C: dict) -> dict:
     """Email + phone that belong to this offer's domain and country.
@@ -2181,10 +2281,12 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
     body = re.sub(r"<br>\s*<span>\s*</span>", "", body)
     body = add_brandnote_links(body, plan, C)
     body = enforce_img_attrs(body, plan)
+    body = cap_brand_line(body, brand)
     m = C["meta"]
     jsonld = build_jsonld(plan, C, body)
-    title = m["title_home"].replace("{Brand}", brand)
-    descr = clamp_meta(m["description"]); kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
+    title = cap_brand(m["title_home"].replace("{Brand}", brand), brand)
+    descr = strip_cta_tail(clamp_meta(m["description"]), C)
+    kw = m["keywords"].replace("{Brand}", brand).replace("{dom}", dom)
     _kinds = {str((e or {}).get("kind") or "") for e in
               ((plan["layout"].get("widget_embed"), plan["layout"].get("market_embed"))) if e}
     page = page_shell(title, descr, kw, "/", locale, css_vars, fonts_import, theme, body,
@@ -2260,6 +2362,12 @@ def build_jsonld(plan, C, body: str = ""):
     if fq: graph.append({"@type": "FAQPage", "@id": f"https://{dom}/#faq", "mainEntity": json.loads(f"[{faq_entities}]")})
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
 
+LEGAL_TAIL = {
+    "it": {"terms": "condizioni del servizio", "privacy": "dati, cookie e diritti"},
+    "en": {"terms": "terms of service", "privacy": "data, cookies and rights"},
+    "cs": {"terms": "podmínky služby", "privacy": "data, cookies a práva"},
+    "es": {"terms": "condiciones del servicio", "privacy": "datos, cookies y derechos"},
+}
 PAGE_LABELS = {"it": {"about": "Chi siamo", "who": "Per chi", "contact": "Contatti", "register": "Registrazione",
                       "product": "Piattaforma", "offer": "Come funziona", "faq": "Domande"},
                 "cs": {"about": "O nás", "who": "Pro koho", "contact": "Kontakt", "register": "Registrace",
@@ -2310,9 +2418,11 @@ def h1_with_brand(text, brand) -> str:
     headline already names the brand, the accent span wraps that occurrence instead.
     """
     text = str(text or "").strip() or brand
+    text = cap_brand(text, brand)
     i = text.lower().find(brand.lower())
     if i < 0:
-        return f'{esc(text)}<br><span class="brand-line">{esc(brand)}</span>'
+        disp = brand[:1].upper() + brand[1:] if brand == brand.lower() else brand
+        return f'{esc(text)}<br><span class="brand-line">{esc(disp)}</span>'
     return (esc(text[:i]) + f'<span class="brand-line">{esc(text[i:i + len(brand)])}</span>'
             + esc(text[i + len(brand):]))
 
@@ -2400,9 +2510,8 @@ def build_inner(plan, C, css_vars, fonts_import, theme, which):
     body = enforce_img_attrs(body, plan)
     m = C["meta"]
     label = PAGE_LABELS.get(plan["params"]["lang"], PAGE_LABELS["en"]).get(which, which.title())
-    title = brand_first(cp.get("title") or label, brand, label)
+    title, descr = inner_meta(cp, plan, C, label, brand)
     if "{Brand}" in title: title = title.replace("{Brand}", brand)
-    descr = clamp_meta(cp.get("lead") or cp.get("h1") or label)
     page = page_shell(f"{title}", descr, m["keywords"].replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
@@ -2469,8 +2578,8 @@ def build_long_inner(plan, C, css_vars, fonts_import, theme, which):
     body.append(f'<div class="inner-cta-form">{R(form_slot, plan, C)}</div>')
     body.append("</main>"); body.append(footer)
     body_html = enforce_img_attrs(ensure_anchors("\n".join(body)), plan)
-    title = brand_first(cp.get("title") or label, brand, label)
-    descr = clamp_meta(lead or cp.get("h1") or label)
+    title, descr = inner_meta(cp, plan, C, label, brand)
+    if "{Brand}" in title: title = title.replace("{Brand}", brand)
     page = page_shell(title, descr,
                        (C.get("meta") or {}).get("keywords", "").replace("{Brand}", brand).replace("{dom}", dom),
                        f"/{slugs.get(which, which)}.php",
@@ -2526,8 +2635,9 @@ def build_legal(plan, C, css_vars, fonts_import, theme, which):
     ui = C.get("ui") or {}
     terms_l = {"terms": ui.get("terms_title") or tl[0],
                "privacy": ui.get("privacy_title") or tl[1]}
-    title_map = {"terms": brand_first(terms_l["terms"], brand),
-                 "privacy": brand_first(terms_l["privacy"], brand)}
+    _tail = LEGAL_TAIL.get(plan["params"].get("lang", "en"), LEGAL_TAIL["en"])
+    title_map = {"terms": clamp_title(brand_first(f"{terms_l['terms']} — {_tail['terms']}", brand)),
+                 "privacy": clamp_title(brand_first(f"{terms_l['privacy']} — {_tail['privacy']}", brand))}
     body = f"""{livebar}{header}<main>
 <section class="page-intro">
 <h1>{esc(brand)}<br><span class="brand-line">{esc(terms_l[which])}</span></h1></section>
@@ -2577,7 +2687,7 @@ def build_404(plan, C, css_vars, fonts_import, theme):
     body = f"""{livebar}{header}<main><section class="section"><div class="wrap blk-center">
 <h1>404<br><span class="brand-line">{esc(brand)}</span></h1><p>{nf[0]}</p><a class="blk-btn" href="index.php">{nf[1]}</a>
 </div></section></main>{footer}"""
-    page = page_shell(brand_first(f"404 — {nf[0]}", brand), nf[0], "", "/404.php",
+    page = page_shell(cap_brand(clamp_title(brand_first(f"404 — {nf[0]} — the address does not exist", brand)), brand), nf[0], "", "/404.php",
                        plan["params"].get("locale") or plan["params"]["lang"], css_vars, fonts_import, theme,
                        body, noindex=True)
     page = finish_page(page, plan, C)
@@ -2897,9 +3007,8 @@ def write_seo_files(out: pathlib.Path, plan, pages: list[str], blog: dict | None
     (out / "sitemap.xml").write_text(SITEMAP_T.format(urls="\n".join(urls)), encoding="utf-8")
     (out / "robots.txt").write_text(f"""User-agent: *
 Allow: /
-Allow: /blocks/blocks.css
-Allow: /skin.css
 Disallow: /api_local/
+Disallow: /thanks.php
 
 Sitemap: https://{dom}/sitemap.xml
 """, encoding="utf-8")
