@@ -55,6 +55,7 @@ BLOG_TOPICS_F = ROOT / "resources" / "blog-topics.json"
 PEOPLE_DIR = ROOT / "people"
 APPSHOT_DIR = ROOT / "appshots"
 TRUST_DIR = ROOT / "trust"
+PRIZES_DIR = ROOT / "prizes"
 
 def _bank(name: str, key: str) -> list:
     try:
@@ -65,6 +66,16 @@ def _bank(name: str, key: str) -> list:
 
 APPSHOT_BANK = _bank("appshots", "photos")
 TRUST_BANK = _bank("trust", "badges")
+
+def _prize_sets() -> list:
+    """Prize/gift sets: three product photos each (prizes/sets.json + manifest)."""
+    try:
+        d = json.loads((PRIZES_DIR / "sets.json").read_text(encoding="utf-8"))
+        return [x for x in (d.get("sets") or []) if x.get("id") and x.get("files")]
+    except Exception:
+        return []
+
+PRIZE_SETS = _prize_sets()
 
 # ---------------------------------------------------------------- registries --
 WIDGET_GROUPS = {
@@ -145,7 +156,7 @@ SECTION_POOL = ["intro-center", "features", "steps", "steps-live", "markets", "l
                  "streams", "security", "demo", "risk", "cta-band", "trust-band",
                  "ticker", "timeline", "stats-intro",
                  "numbers", "portal", "compare", "glance",
-                 "facts", "notes", "mini-faq", "guide", "appshot", "partners"]
+                 "facts", "notes", "mini-faq", "guide", "appshot", "partners", "prizes"]
 # Recognisable "screens" that rotate between offers: a plan picks 2-3 of them and
 # never repeats the ones the previous plan / same-brand sibling already shows, so
 # two offers of one factory visibly have DIFFERENT screens (human and Google view).
@@ -163,7 +174,7 @@ VARIANTS = {  # structural fragment variants per slot ("" = canonical file, alwa
     "guide": ["b", "c", "d"], "appshot": ["b", "c", "d"], "partners": ["b", "c", "d", "e"],
     "ladder": ["b", "c"], "office": ["b", "c"], "brand-note": ["b", "c"], "timeline": ["b"],
     "scarcity": ["b"], "markets": ["b", "c"], "ticker": ["b", "c"], "intro-center": ["b", "c"],
-    "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"],
+    "risk": ["b"], "security": ["b"], "streams": ["b"], "demo": ["b"], "prizes": ["a", "b", "c"],
     # only structurally DIFFERENT strips are drawn: marquee, news, centered tape,
     # ledger tape, rows, meters, board, sparkline tape, static chips. The rest of the
     # old b..y ids were the same marquee with another border — they stay renderable
@@ -638,6 +649,33 @@ def build_plan(rng, args, hist)->dict|None:
         if best is None or score>best[0]: best=(score,od)
         if order_ok(od,hist,brand): order=od; break
     if order is None and best: order=best[1]
+    # Prize/gift screen — a soft fixture on the FINAL order. The old draw inside the
+    # attempt loop was re-rolled by every rejected candidate and by every seed bump,
+    # so only 17% of plans kept the block and four offers in a row came out without it.
+    # Deterministic alternation instead: an offer gets the screen when the previous
+    # plan and the same-brand sibling do not have one. Never twice in a row, never
+    # starved - and a sibling chain shows it on every other offer.
+    # hist is sorted ALPHABETICALLY, so hist[-1] is not "the previous plan" when
+    # domains sort arbitrarily - recency has to come from mtime here.
+    recent_prizes = False
+    for f in sorted(PLANS.glob("*.json"), key=lambda x: x.stat().st_mtime)[-1:]:
+        if "prizes" in ((load(f, {}) or {}).get("layout", {}).get("section_order") or []):
+            recent_prizes = True
+    if order and "prizes" not in order and len(order) <= 16 \
+            and not recent_prizes and "prizes" not in sib_types:
+        cand = list(order)
+        cand.insert(min(len(cand), rng.randint(3, 6)), "prizes")
+        order = cand if order_ok(cand, hist, brand) else order + ["prizes"]
+    # Prize/gift screen — a soft fixture, applied to the FINAL order: inside the
+    # attempt loop the insert was re-rolled with every rejected candidate and only
+    # 17% of plans kept it (four offers in a row came out without the block). A new
+    # offer gets it; the next plan or a same-brand sibling skips it ~3 times out of 4.
+    if order and "prizes" not in order and len(order) <= 16:
+        seen_prizes = "prizes" in prev_types or "prizes" in sib_types
+        if not seen_prizes or rng.random() < 0.25:
+            cand = list(order)
+            cand.insert(min(len(cand), rng.randint(3, 6)), "prizes")
+            order = cand if order_ok(cand, hist, brand) else order + ["prizes"]
     if order is None: return None
 
     # vertical variants: most slots deviate from neighbours, canonical stays possible
@@ -842,6 +880,12 @@ def build_plan(rng, args, hist)->dict|None:
     used_app={h.get("appshot") for h in hist if h.get("appshot")}
     app_pool=[x for x in APPSHOT_BANK if x["file"] not in used_app] or APPSHOT_BANK
     app_pick=rng.choice(app_pool) if app_pool else {}
+    # prize/gift set: the same three photos are reused for the block and its copy,
+    # rotated against history so two offers never show the same prize trio
+    used_prizes={h.get("prizes",{}).get("set") for h in hist
+                 if isinstance(h.get("prizes"), dict)}
+    prize_pool=[x for x in PRIZE_SETS if x["id"] not in used_prizes] or PRIZE_SETS
+    prize_set=rng.choice(prize_pool) if prize_pool else {}
     # trust badges: the four anchors stay, two rotate so strips differ between offers
     must = ["binance", "coinbase", "visa", "mastercard"]
     rest_pool = [b.get("key") for b in TRUST_BANK if b.get("key") not in must]
@@ -925,6 +969,7 @@ def build_plan(rng, args, hist)->dict|None:
         "inner_pages":inner,"widgets":widgets,"numbers":numbers,"people":people,"photos":photos,
         "appshot":{"file":app_pick.get("file",""),"source":app_pick.get("source",""),
                     "license":app_pick.get("license","")} if app_pick else {},
+        "prizes":{"set":prize_set.get("id",""),"files":prize_set.get("files",[])} if prize_set else {},
         "trust_badges":badges,
         "partner_badges":partner_badges,
         "livebar":livebar,

@@ -1,0 +1,255 @@
+{
+ "seed": 471031,
+ "product": "static-create-sites",
+ "params": {
+  "brand": "Quantezaglia",
+  "geo": "",
+  "geo_short": "IT",
+  "lang": "it",
+  "locale": "it-IT",
+  "domain": "quantezaglia-it.online",
+  "currency": "EUR",
+  "cc": "IT"
+ },
+ "identity": {
+  "archetype": "quiet-desk",
+  "tone": "plain"
+ },
+ "regulator": {
+  "country": "IT",
+  "name": "CONSOB",
+  "note": "Commissione Nazionale per le Società e la Borsa",
+  "lang": "it"
+ },
+ "design": {
+  "palette_id": "p-quantezaglia",
+  "theme": "dark",
+  "skin": "classic-border",
+  "font_pair": "cormorant-jost",
+  "fonts": {
+   "head": "Cormorant Garamond",
+   "body": "Jost"
+  }
+ },
+ "layout": {
+  "hero": "hero-review",
+  "section_order": [
+   "hero",
+   "enroll-band",
+   "markets",
+   "prizes",
+   "numbers",
+   "guide",
+   "partners",
+   "intro-center",
+   "people",
+   "notes",
+   "appshot",
+   "portal",
+   "scarcity",
+   "features",
+   "trust-band",
+   "faq",
+   "brand-note"
+  ],
+  "variants": {
+   "enroll-band": "d",
+   "markets": "c",
+   "prizes": "c",
+   "guide": "b",
+   "partners": "e",
+   "intro-center": "b",
+   "appshot": "b",
+   "scarcity": "b",
+   "features": "c",
+   "faq": "d",
+   "brand-note": "c",
+   "first_screen": "c",
+   "livebar": "ae",
+   "logo": "h",
+   "header": "f",
+   "footer": "d",
+   "form": "b",
+   "hero": "h"
+  },
+  "menu": [
+   "Inizio",
+   "Come funziona",
+   "Motore",
+   "Scrivici"
+  ],
+  "slugs": {
+   "about": "progetto",
+   "who": "a-chi-serve",
+   "contact": "supporto",
+   "register": "inizia",
+   "product": "strumenti",
+   "offer": "metodo",
+   "faq": "faq"
+  },
+  "widget_embed": {
+   "slot": "markets",
+   "kind": "book-ladder",
+   "variant": "f"
+  },
+  "market_embed": null
+ },
+ "structure": {
+  "order_hash": "5b3a22bfd9",
+  "variant_hash": "1d13ef45a5",
+  "novel_slots": [
+   "brand-note",
+   "features",
+   "intro-center",
+   "markets",
+   "notes",
+   "portal",
+   "trust-band"
+  ]
+ },
+ "inner_pages": {
+  "about": [
+   "page-intro",
+   "manifest",
+   "timeline",
+   "principles",
+   "cta"
+  ],
+  "contact": [
+   "page-intro",
+   "contact-grid",
+   "office"
+  ],
+  "faq": [
+   "page-intro",
+   "rich",
+   "faq",
+   "cta"
+  ],
+  "offer": [
+   "page-intro",
+   "rich",
+   "faq",
+   "cta"
+  ],
+  "product": [
+   "page-intro",
+   "rich",
+   "cta"
+  ],
+  "register": [
+   "benefits",
+   "core"
+  ],
+  "who": [
+   "page-intro",
+   "pipeline",
+   "compare",
+   "cta"
+  ]
+ },
+ "widgets": {
+  "G1": "ticker-static",
+  "G2": "countdown-plates",
+  "G3": "book-ladder",
+  "G4": "faq-grid",
+  "G5": "rating-summary"
+ },
+ "numbers": {
+  "rating": "4,5",
+  "reviews": 706,
+  "reviews_bin": [
+   400,
+   900
+  ],
+  "users": 7604,
+  "users_bin": [
+   4000,
+   9000
+  ],
+  "latency_ms": 60,
+  "latency_bin": [
+   60,
+   70
+  ]
+ },
+ "people": [
+  "Gabriele P.",
+  "Roberta N.",
+  "Simone D."
+ ],
+ "photos": [
+  "p-men-49.jpg",
+  "p-women-69.jpg",
+  "p-men-19.jpg"
+ ],
+ "appshot": {
+  "file": "app-10.jpg",
+  "source": "https://www.pexels.com/photo/24709179/",
+  "license": "Pexels License"
+ },
+ "prizes": {
+  "set": "console-plus",
+  "files": [
+   "ps5-clean.jpg",
+   "nintendo-switch.png",
+   "macbook-air.jpg"
+  ]
+ },
+ "trust_badges": [
+  "binance",
+  "coinbase",
+  "visa",
+  "mastercard",
+  "stripe",
+  "litecoin"
+ ],
+ "partner_badges": [
+  "binance",
+  "coinbase",
+  "ripple",
+  "tether",
+  "cardano",
+  "paypal",
+  "mastercard",
+  "barclays"
+ ],
+ "livebar": {
+  "variant": "ae",
+  "subs": {
+   "LB_LIVE": "MACRO",
+   "GEO_SHORT": "IT",
+   "LB_S1K": "Aggiornato",
+   "LB_S1V": "16:08",
+   "LB_S2K": "API",
+   "LB_S2V": "99,97%",
+   "LB_S3K": "",
+   "LB_S3V": "",
+   "LB1S": "Tasso BCE",
+   "LB1V": "4,32%",
+   "LB1C": "",
+   "LB1D": "",
+   "LB2S": "Infl. eurozona",
+   "LB2V": "2,0%",
+   "LB2C": "",
+   "LB2D": "",
+   "LB3S": "PMI",
+   "LB3V": "50,5",
+   "LB3C": "",
+   "LB3D": "",
+   "LB4S": "Disoccupazione",
+   "LB4V": "6,9%",
+   "LB4C": "",
+   "LB4D": "",
+   "LB5S": "GDP",
+   "LB5V": "+0,2%",
+   "LB5C": "up",
+   "LB5D": "up",
+   "LB6S": "Spread",
+   "LB6V": "104 bp",
+   "LB6C": "",
+   "LB6D": ""
+  }
+ },
+ "content_hint": "content/quantezaglia-it.online-content.json"
+}

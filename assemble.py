@@ -31,6 +31,7 @@ INTEGRATION_SRC = ROOT / "integration-example" / "integration"
 PEOPLE_DIR = ROOT / "people"
 APPSHOT_DIR = ROOT / "appshots"
 TRUST_DIR = ROOT / "trust"
+PRIZE_DIR = ROOT / "prizes"
 POSTBACK_SRC = ROOT / "_postback.php"
 
 
@@ -1242,6 +1243,7 @@ BLK_MAP = {  # plan slot -> canonical blk template in blocks/ (blk-*.html author
     "guide": "blk-guide",
     "appshot": "blk-appshot",
     "partners": "blk-partners",
+    "prizes": "blk-prizes",
 }
 INC_HEAD = "<?php include __DIR__ . '/api_local/integration/header.php'; ?>"
 INC_FOOT = "<?php include __DIR__ . '/api_local/integration/footer.php'; ?>"
@@ -1364,7 +1366,19 @@ CANON = {  # canonical blk-* fragment per slot (authored clean, contract-safe)
     "guide": "blk-guide",
     "appshot": "blk-appshot",
     "partners": "blk-partners",
+    "prizes": "blk-prizes",
 }
+
+PRIZE_FALLBACK = ["ps5-clean.jpg", "iphone-18-pro.png", "airpods-pro.jpg"]
+
+def prize_files_for(plan) -> list:
+    """Three prize photo filenames for this offer (plan.prizes, else the fallback trio)."""
+    files = [str(f) for f in ((plan.get("prizes") or {}).get("files") or []) if str(f).strip()]
+    files = [files[i] if i < len(files) else PRIZE_FALLBACK[i] for i in range(3)]
+    return files
+
+def prize_img_src(plan, i: int) -> str:
+    return "img/prizes/" + pathlib.Path(prize_files_for(plan)[i]).name
 
 def frag_for(name: str, plan) -> str:
     """Pick blk-<slot>-<variant> when the plan asked for one, else the canonical slot."""
@@ -1394,6 +1408,8 @@ def R(name: str, plan, C, **kw) -> str:
         "{{REVIEWS}}": fmt_int(plan["numbers"].get("reviews", 641), plan["params"].get("lang", "en")),
         "{{USERS}}": fmt_int(plan["numbers"].get("users", 12500), plan["params"].get("lang", "en")),
         "{{TRUST_LOGOS}}": trust_logos_html(plan),
+        "{{PRIZE_IMG1}}": prize_img_src(plan, 0), "{{PRIZE_IMG2}}": prize_img_src(plan, 1),
+        "{{PRIZE_IMG3}}": prize_img_src(plan, 2),
         "{{PARTNER_GRID}}": partner_grid_html(plan),
     }
     subs.update(widget_subs(plan, C))
@@ -1817,10 +1833,8 @@ def build_index(plan, C, css_vars, fonts_import, theme, B=None, covers=None):
         # (component contracts stay intact; CSS hides the band's long copy column)
         if i == 0 and slot == "hero" and len(order) > 1 and order[1] in FORM_BANDS:
             hero = R("hero", plan, C)
-            # the form on this screen is the action; the hero's own CTAs would only
-            # duplicate the same target (and the header CTA is always visible)
-            hero = re.sub(r'<a\b[^>]*class="[^"]*\bblk-btn\b[^"]*"[^>]*>.*?</a>', "",
-                          hero, flags=re.S)
+            # the first screen keeps the hero's own button: the form is the action,
+            # but a copy column with no button reads as a brochure (competitor parity)
             hero = re.sub(r'<div class="hero-cta">\s*</div>', "", hero)
             band = R(order[1], plan, C)
             _fs = (plan["layout"].get("variants") or {}).get("first_screen") or "a"
@@ -2369,7 +2383,7 @@ fNudge(bs[Math.floor(Math.random()*bs.length)]);});},2600);
 # NOTE: the literal above kept the historic broken IIFE closer `});` (missing "(") —
 # that made the whole IIFE a no-op expression and calculator.js dead. Do not use it.
 
-def write_assets(out: pathlib.Path, plan):
+def write_assets(out: pathlib.Path, plan, content=None):
     lf = BLOCKS / "lead-form.js"
     cf = BLOCKS / "calculator.js"
     ps = BLOCKS / "pulse-sim.js"
@@ -2405,6 +2419,15 @@ def write_assets(out: pathlib.Path, plan):
     for b in {x["file"]: x for x in (trust_badges(plan) + partner_badges(plan))}.values():
         src = TRUST_DIR / b["file"]
         if src.exists(): shutil.copy(src, trust_dir / b["file"])
+    # prize/gift photos: the plan names three files (prizes/sets.json)
+    prize_files = prize_files_for(plan)
+    if prize_files:
+        prize_dir = img_dir / "prizes"
+        prize_dir.mkdir(exist_ok=True)
+        for name in prize_files:
+            src = PRIZE_DIR / pathlib.Path(name).name
+            if src.exists(): shutil.copy(src, prize_dir / src.name)
+            else: print(f"! prize image missing in prizes/: {name}")
     # favicon + og: copy neutral placeholders (regenerated per brand by icon step)
     for f in ("favicon.svg", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "og-image.png"):
         src = ROOT / "assets-brand" / f
@@ -2595,7 +2618,7 @@ def cmd_build(a):
         target.write_text(html, encoding="utf-8")
     ok(f"pages written: {', '.join(sorted(pages))}")
 
-    write_assets(out, plan); ok("assets: app.js/calculator.js/blocks.css/skin.css")
+    write_assets(out, plan, C); ok("assets: app.js/calculator.js/blocks.css/skin.css")
     write_integration(out, plan); ok(f"integration: config filled (cc={plan['params'].get('cc','') or plan['params']['lang'].upper()[:2]})")
     write_seo_files(out, plan, list(pages.keys()), B); ok("sitemap/robots/.htaccess")
     # brand icons are part of the build (never ship an iconless offer)

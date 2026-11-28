@@ -74,7 +74,19 @@ CATEGORY_BANK: dict[str, list[str]] = {
 CLICHE = (
     "best ", "world-class", "world class", "revolutionary", "cutting-edge", "cutting edge",
     "seamless", "empower", "unlock", "ultimate", "leading provider", "welcomes you",
-    "next-level", "game-changer", "state-of-the-art", "інноваційн", "провідн", "найкращ",
+    "next-level", "game-changer", "state-of-the-art",
+    # superlatives in the languages the factory actually ships: "best platform" was
+    # caught only in English, so an Italian "la migliore piattaforma" scored full marks
+    "la migliore", "il migliore", "miglior piattaforma", "migliore piattaforma",
+    "numero uno", "leader del mercato",
+    "la mejor", "el mejor", "mejor plataforma", "número uno", "líder del mercado",
+    "die beste", "der beste", "beste plattform", "marktführer",
+    "la meilleure", "le meilleur", "meilleure plateforme", "numéro un",
+    "a melhor", "o melhor", "melhor plataforma", "número um",
+    "najlepsza", "najlepszy", "numer jeden", "nejlepší", "najlepšia",
+    "de beste", "het beste", "beste platform", "en iyi", "cea mai bună", "cel mai bun",
+    "legjobb", "краща платформа", "кращий вибір",
+    "інноваційн", "провідн", "найкращ",
 )
 RISK = (
     "guaranteed", "guarantee", "risk-free", "risk free", "no risk", "riskless", "fixed return",

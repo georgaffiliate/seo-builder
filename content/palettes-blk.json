@@ -1069,6 +1069,36 @@
     "glass-soft"
    ],
    "default_fonts": "chakra-inter"
+  },
+  {
+   "id": "p-quantezaglia",
+   "theme": "dark",
+   "vars": {
+    "bg": "#101010",
+    "bg_soft": "#171512",
+    "panel": "#1d1a16",
+    "panel_soft": "#14120f",
+    "ink": "#f4efe4",
+    "muted": "#a49a86",
+    "line": "rgb(233 220 195/.16)",
+    "acc": "#c9a24b",
+    "acc_deep": "#a8842f",
+    "acc_text": "#b99c58",
+    "acc_2": "#e7dcc3",
+    "up": "#9bc07a",
+    "down": "#c96b4b",
+    "grad": "linear-gradient(120deg,#c9a24b,#e7dcc3)",
+    "btn_ink": "#111111",
+    "up_text": "#9bc07a",
+    "down_text": "#d3896d",
+    "acc_ondark": "#d2b26a",
+    "up_ondark": "#a7c789",
+    "down_ondark": "#d07e62"
+   },
+   "good_skins": [
+    "classic-border"
+   ],
+   "default_fonts": "cormorant-jost"
   }
  ]
 }

@@ -1,0 +1,133 @@
+{
+ "note": "Prize sets for blocks/blk-prizes*.html. Each set names three files from prizes/manifest.json (rank 1-3); the copy (title/description) is written by the content pack, the images come from here. Add a set -> keep three files that exist in the manifest.",
+ "sets": [
+  {
+   "id": "apple-starter",
+   "files": [
+    "iphone-18-pro.png",
+    "airpods-pro.jpg",
+    "apple-watch.jpg"
+   ]
+  },
+  {
+   "id": "apple-pro",
+   "files": [
+    "macbook-pro.jpg",
+    "iphone-18-pro.png",
+    "ipad-pro.jpg"
+   ]
+  },
+  {
+   "id": "gaming",
+   "files": [
+    "ps5-clean.jpg",
+    "nintendo-switch.png",
+    "galaxy-s24.jpg"
+   ]
+  },
+  {
+   "id": "console-plus",
+   "files": [
+    "ps5-clean.jpg",
+    "nintendo-switch.png",
+    "macbook-air.jpg"
+   ]
+  },
+  {
+   "id": "work-anywhere",
+   "files": [
+    "macbook-air.jpg",
+    "ipad-pro.jpg",
+    "airpods-pro.jpg"
+   ]
+  },
+  {
+   "id": "creator-kit",
+   "files": [
+    "camera.jpg",
+    "drone.jpg",
+    "macbook-pro.jpg"
+   ]
+  },
+  {
+   "id": "mobile-shoot",
+   "files": [
+    "iphone-18-pro.png",
+    "drone.jpg",
+    "camera.jpg"
+   ]
+  },
+  {
+   "id": "home-upgrade",
+   "files": [
+    "dyson.jpg",
+    "macbook-air.jpg",
+    "apple-watch.jpg"
+   ]
+  },
+  {
+   "id": "premium-mix",
+   "files": [
+    "macbook-pro.jpg",
+    "iphone-18-pro.png",
+    "apple-watch.jpg"
+   ]
+  },
+  {
+   "id": "desk-setup",
+   "files": [
+    "macbook-pro.jpg",
+    "ipad-pro.jpg",
+    "airpods-pro.jpg"
+   ]
+  },
+  {
+   "id": "travel-set",
+   "files": [
+    "galaxy-s24.jpg",
+    "drone.jpg",
+    "airpods-pro.jpg"
+   ]
+  },
+  {
+   "id": "entertainment",
+   "files": [
+    "ps5-clean.jpg",
+    "nintendo-switch.png",
+    "ipad-pro.jpg"
+   ]
+  },
+  {
+   "id": "starter-tech",
+   "files": [
+    "iphone-18-pro.png",
+    "galaxy-s24.jpg",
+    "nintendo-switch.png"
+   ]
+  },
+  {
+   "id": "studio",
+   "files": [
+    "camera.jpg",
+    "macbook-pro.jpg",
+    "airpods-pro.jpg"
+   ]
+  },
+  {
+   "id": "luxury",
+   "files": [
+    "apple-watch.jpg",
+    "macbook-pro.jpg",
+    "camera.jpg"
+   ]
+  },
+  {
+   "id": "all-round",
+   "files": [
+    "macbook-air.jpg",
+    "ps5-clean.jpg",
+    "airpods-pro.jpg"
+   ]
+  }
+ ]
+}

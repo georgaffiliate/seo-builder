@@ -215,6 +215,17 @@ TENURE_EXAMPLES = [["3 months", "8 months", "2 years"],
                    ["6 months", "2 years", "6 years"]]
 
 
+def _prize_name(file: str) -> str:
+    try:
+        d = json.loads((ROOT / "prizes" / "manifest.json").read_text(encoding="utf-8"))
+        for it in d.get("items") or []:
+            if it.get("file") == file:
+                return it.get("alt_en") or file
+    except Exception:
+        pass
+    return file
+
+
 def brief(plan: dict) -> dict:
     brand = plan["params"]["brand"]
     used_names, women, men = available_personas(plan)
@@ -271,6 +282,15 @@ def brief(plan: dict) -> dict:
                     "news": "3-4 short headline strings",
                     "reference_en": (gen_plan.LIVEBAR_L10N["en"] if "en" in gen_plan.LIVEBAR_L10N else {})},
         "section_order": slots,
+        "prizes": {
+            "set": (plan.get("prizes") or {}).get("set", ""),
+            "rule": "The three product photos are fixed by the plan. rows[0..2] must name these "
+                    "EXACT products in the plan language, describe each in one line and give a "
+                    "literal alt text for the photo. Never swap in a different device.",
+            "items": [{"file": f, "name_en": _prize_name(f)} for f in
+                      ((plan.get("prizes") or {}).get("files") or [])],
+        } if (plan.get("prizes") or {}).get("files") else {},
+
         "rules": [
             "Cover EVERY content_keys path listed per slot, plus meta/hero/bands/ui/reviews/scarcity/faq/office/brand_note/inner_*/legal/footer/thanks.",
             "meta.title_home: the brand comes FIRST, then ONE category phrase (e.g. "
@@ -322,6 +342,16 @@ def brief(plan: dict) -> dict:
             "livebar.* must be translated into the plan language (it feeds the top strip): all 9 fields plus 3-4 news headlines, short and concrete.",
             "Texts must read unlike the sibling offers: vary sentence openings, examples and section angles.",
             "Hero CTAs, eyebrows, section h2 wording and the submit button must be phrased freshly for THIS offer — never copy boilerplate like 'EMPIEZA HOY'/'Solicitar acceso' from sibling offers.",
+            "sections.prizes is a prize/gift screen open to verified sign-ups: eyebrow 2-4 words, h2 a "
+            "concrete promise (not a lottery cliché), lead 1-2 sentences that state the condition "
+            "(e.g. complete verification this week), rows[0..2] name the three products listed in "
+            "prizes.items exactly as given, each d is one line, alt is a literal description of the "
+            "photo, note is one line of conditions, cta is an imperative with an object. No promise of "
+            "winning, no cash value.",
+            "sections.prizes rows and hero.h1_accent are the two places where this offer's condition "
+            "lives: h1_accent is 2-4 words naming the limit or the concrete term ('only 20 seats this "
+            "week', 'spread and fees in plain sight'); hero.note is the 4-7 word deadline line printed "
+            "under the lead. Both must be true of the demo offer, never a leftover from another site.",
             "Write in the plan language, not English, even if this brief is English.",
         ],
     }
@@ -333,7 +363,7 @@ def skeleton(schema: dict, plan: dict, brief_data: dict) -> dict:
               "sections.ladder.rows": 4, "sections.markets.rows": 4, "sections.risk.rows": 3,
               "sections.security.cards": 3, "sections.streams.cards": 3,
               "sections.guide.items": 6,
-              "sections.appshot.points": 3,
+              "sections.appshot.points": 3, "sections.prizes.rows": 3,
               "inner_product.sections": 5, "inner_offer.sections": 5, "inner_faq.sections": 2,
               "inner_product.sections.0.paragraphs": 2, "inner_offer.sections.0.paragraphs": 2,
               "inner_faq.sections.0.paragraphs": 2,
@@ -747,6 +777,15 @@ def validate(pack: dict, plan: dict, brief_data: dict) -> list[str]:
             node = node.get(part) if isinstance(node, dict) else None
         if not isinstance(node, list) or len(node) < n:
             errs.append(f"{path} needs >= {n} entries")
+    if "prizes" in ((plan.get("layout") or {}).get("section_order") or []):
+        rows = ((pack.get("sections") or {}).get("prizes") or {}).get("rows")
+        if not isinstance(rows, list) or len(rows) != 3:
+            errs.append("sections.prizes.rows needs exactly 3 entries")
+        else:
+            for i, row in enumerate(rows):
+                for field in ("t", "d", "alt"):
+                    if not str((row or {}).get(field, "")).strip():
+                        errs.append(f"sections.prizes.rows[{i}].{field} empty")
     for key, field in (("inner_contact", "lead"), ("inner_register", "lead"), ("inner_about", "lead")):
         if not str((pack.get(key) or {}).get(field, "")).strip():
             errs.append(f"{key}.{field} empty")

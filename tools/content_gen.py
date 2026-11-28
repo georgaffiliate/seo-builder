@@ -251,6 +251,47 @@ def long_inner_pages(content: dict) -> dict:
     }
 
 
+def _prize_catalog() -> dict:
+    """prizes/manifest.json as {file: item} — product names and alt text per language."""
+    try:
+        d = json.loads((ROOT / "prizes" / "manifest.json").read_text(encoding="utf-8"))
+        return {x["file"]: x for x in (d.get("items") or []) if x.get("file")}
+    except Exception:
+        return {}
+
+
+def prizes_section(rng, bank: dict, plan: dict, lang: str, ctx: dict) -> dict:
+    """Prize/gift screen: the text comes from the bank, the three photos from plan.prizes.
+
+    The plan already picked a trio (prizes/sets.json), so the block and the copy can
+    never disagree about which product is shown.
+    """
+    src = ((bank.get("sections") or {}).get("prizes") or {})
+    files = [str(f) for f in ((plan.get("prizes") or {}).get("files") or [])][:3]
+    catalog = _prize_catalog()
+    fallback = ["ps5-clean.jpg", "iphone-18-pro.png", "airpods-pro.jpg"]
+    files = [files[i] if i < len(files) else fallback[i] for i in range(3)]
+    descs = src.get("row_desc") or [""]
+    rows = []
+    for i, f in enumerate(files):
+        item = catalog.get(f) or {}
+        name = item.get("alt_it" if lang == "it" else "alt_en") or item.get("alt_en") or f
+        rows.append({
+            "rank": i + 1, "img": f, "t": name,
+            "d": pick(rng, descs[i % len(descs)], ctx),
+            "alt": name,
+        })
+    return {
+        "eyebrow": pick(rng, src.get("eyebrow", "…"), ctx),
+        "h2": pick(rng, src.get("h2", "…"), ctx),
+        "lead": pick(rng, src.get("lead", "…"), ctx),
+        "side": pick(rng, src.get("side", ""), ctx),
+        "cta": pick(rng, src.get("cta", "…"), ctx),
+        "note": pick(rng, src.get("note", ""), ctx),
+        "credit": str(src.get("credit") or ""),
+        "rows": rows,
+    }
+
 def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     p = plan["params"]
     lang = p["lang"]
@@ -348,6 +389,7 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
             "h1_rest": pick(rng, bank["hero"]["h1_rest"], ctx),
             "h1_accent": pick(rng, bank["hero"]["h1_accent"], ctx),
             "lead": pick(rng, bank["hero"]["lead"], ctx),
+            "note": pick(rng, bank["hero"].get("note", ""), ctx),
             "secondary": pick(rng, bank["hero"]["secondary"], ctx),
             "cta_primary": pick(rng, bank["hero"]["cta_primary"], ctx),
             "cta_secondary": pick(rng, bank["hero"]["cta_secondary"], ctx),
@@ -454,9 +496,12 @@ def build(plan: dict, bank_all: dict, fmt_lang: str = "") -> dict:
     # sections not present in a bank section set get defaults so any order builds
     for slot in ("intro", "ladder", "features", "steps", "markets", "security", "risk",
                  "streams", "cta", "demo", "glance", "stats", "notes", "facts", "portal",
-                 "guide", "appshot", "partners"):
+                 "guide", "appshot", "partners", "prizes"):
         if slot not in content["sections"]:
             content["sections"][slot] = deep(rng, bank["sections"][slot], ctx)
+
+    # prize/gift screen: photos come from the plan, copy from the bank
+    content["sections"]["prizes"] = prizes_section(rng, bank, plan, lang, ctx)
 
     # newer fragment keys (glance, stats labels) must exist even in packs that were
     # generated before they were introduced — top up from the merged bank

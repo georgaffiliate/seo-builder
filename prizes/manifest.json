@@ -1,0 +1,114 @@
+{
+ "note": "Placeholder prize photos from Wikimedia Commons. CC0/PD need no attribution; CC BY / CC BY-SA keep author + source here — print sections.prizes.credit when the licence asks for it, or replace with licensed product renders before a paid launch.",
+ "license_url": "https://commons.wikimedia.org/wiki/Commons:Licensing",
+ "items": [
+  {
+   "file": "iphone-18-pro.png",
+   "alt_it": "iPhone 18 Pro",
+   "alt_en": "iPhone 18 Pro",
+   "commons_title": "IPhone 18 Pro Vector.svg",
+   "license": "CC BY-SA 4.0",
+   "author": "TheGoldenBox",
+   "source": "https://commons.wikimedia.org/wiki/File:IPhone_18_Pro_Vector.svg"
+  },
+  {
+   "file": "ps5-clean.jpg",
+   "alt_it": "Console PlayStation 5 con DualSense",
+   "alt_en": "PlayStation 5 console with DualSense",
+   "commons_title": "PlayStation 5 and DualSense with transparent background.png",
+   "license": "CC BY-SA 4.0",
+   "author": "Soberian (this retouched file)Osh33m (original photograph)",
+   "source": "https://commons.wikimedia.org/wiki/File:PlayStation_5_and_DualSense_with_transparent_background.png"
+  },
+  {
+   "file": "nintendo-switch.png",
+   "alt_it": "Nintendo Switch con Joy-Con",
+   "alt_en": "Nintendo Switch with Joy-Con",
+   "commons_title": "Nintendo-Switch-wJoyCons-BlRd-Standing-FL.png",
+   "license": "Public domain",
+   "author": "Evan-Amos, modified by Gunnar.offel",
+   "source": "https://commons.wikimedia.org/wiki/File:Nintendo-Switch-wJoyCons-BlRd-Standing-FL.png"
+  },
+  {
+   "file": "macbook-air.jpg",
+   "alt_it": "MacBook Air M2",
+   "alt_en": "MacBook Air M2",
+   "commons_title": "M2 Macbook Air Midnight model - 1.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "KKPCW（Kyu3）",
+   "source": "https://commons.wikimedia.org/wiki/File:M2_Macbook_Air_Midnight_model_-_1.jpg"
+  },
+  {
+   "file": "macbook-pro.jpg",
+   "alt_it": "MacBook Pro 16”",
+   "alt_en": "MacBook Pro 16-inch",
+   "commons_title": "Apple MacBook Pro 16\" M2Max.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "SimonWaldherr",
+   "source": "https://commons.wikimedia.org/wiki/File:Apple_MacBook_Pro_16%22_M2Max.jpg"
+  },
+  {
+   "file": "ipad-pro.jpg",
+   "alt_it": "iPad Pro 11”",
+   "alt_en": "iPad Pro 11-inch",
+   "commons_title": "Apple iPad Pro 11.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "彭家杰",
+   "source": "https://commons.wikimedia.org/wiki/File:Apple_iPad_Pro_11.jpg"
+  },
+  {
+   "file": "apple-watch.jpg",
+   "alt_it": "Apple Watch Ultra",
+   "alt_en": "Apple Watch Ultra",
+   "commons_title": "Apple Watch Ultra - 3.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "KKPCW（Kyu3）",
+   "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_Ultra_-_3.jpg"
+  },
+  {
+   "file": "airpods-pro.jpg",
+   "alt_it": "AirPods Pro 2",
+   "alt_en": "AirPods Pro 2",
+   "commons_title": "AirPods 4 and AirPods Pro 2.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "茅野ふたば",
+   "source": "https://commons.wikimedia.org/wiki/File:AirPods_4_and_AirPods_Pro_2.jpg"
+  },
+  {
+   "file": "camera.jpg",
+   "alt_it": "Fotocamera mirrorless Sony",
+   "alt_en": "Sony mirrorless camera",
+   "commons_title": "Sony Alpha 7.jpg",
+   "license": "CC0",
+   "author": "Hans Braxmeier",
+   "source": "https://commons.wikimedia.org/wiki/File:Sony_Alpha_7.jpg"
+  },
+  {
+   "file": "drone.jpg",
+   "alt_it": "Drone DJI Mavic 3 Pro",
+   "alt_en": "DJI Mavic 3 Pro drone",
+   "commons_title": "2024-10- DJI Mavic 3 Pro - 04.jpg",
+   "license": "CC BY 4.0",
+   "author": "A.BourgeoisP",
+   "source": "https://commons.wikimedia.org/wiki/File:2024-10-_DJI_Mavic_3_Pro_-_04.jpg"
+  },
+  {
+   "file": "galaxy-s24.jpg",
+   "alt_it": "Samsung Galaxy S24 Ultra",
+   "alt_en": "Samsung Galaxy S24 Ultra",
+   "commons_title": "Samsung Galaxy S2, Note 4, Note 8, S21 Ultra, and S24 Ultra (alt angle).jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "Benlisquare",
+   "source": "https://commons.wikimedia.org/wiki/File:Samsung_Galaxy_S2%2C_Note_4%2C_Note_8%2C_S21_Ultra%2C_and_S24_Ultra_%28alt_angle%29.jpg"
+  },
+  {
+   "file": "dyson.jpg",
+   "alt_it": "Dyson senza fili",
+   "alt_en": "Cordless Dyson vacuum",
+   "commons_title": "A Dyson vacuum cleaner.jpg",
+   "license": "CC BY-SA 4.0",
+   "author": "Tbatb",
+   "source": "https://commons.wikimedia.org/wiki/File:A_Dyson_vacuum_cleaner.jpg"
+  }
+ ]
+}

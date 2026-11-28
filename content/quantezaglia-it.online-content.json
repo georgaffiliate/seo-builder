@@ -1,0 +1,1009 @@
+{
+ "page_labels": {
+  "about": "Chi siamo",
+  "tech": "Strumenti",
+  "who": "A chi serve",
+  "contact": "Contatti",
+  "register": "Registrazione",
+  "product": "Piattaforma",
+  "offer": "Come funziona",
+  "faq": "Domande"
+ },
+ "meta": {
+  "title_home": "Quantezaglia — piattaforma per investire con metodo",
+  "description": "Quantezaglia raccoglie dati di mercato, strumenti di analisi e assistenza in italiano. Registrazione lineare e area personale ordinata.",
+  "keywords": "Quantezaglia, quantezaglia login, quantezaglia registrazione, quantezaglia-it.online, Quantezaglia Roma, Quantezaglia opinioni",
+  "og_description": "Quantezaglia — dati di mercato e area personale in un'unica interfaccia in italiano.",
+  "email": "info@quantezaglia-it.online",
+  "telephone": "+39 998 142 5308",
+  "content_lang": "it"
+ },
+ "hero": {
+  "eyebrow": "QUANTEZAGLIA · IT",
+  "h1_rest": "Smetti di guardare, inizia a operare",
+  "h1_accent": "demo prima del primo ordine",
+  "lead": "Quotazioni, watchlist e storico ordini in un solo pannello. Registrazione gratuita, verifica in meno di un'ora, demo prima di qualsiasi versamento.",
+  "note": "20 accessi questa settimana · la lista si chiude quando finiscono",
+  "secondary": "Pensato per chi vuole capire cosa sta guardando prima di premere un tasto.",
+  "cta_primary": "Inizia ora",
+  "cta_secondary": "Vedi i passaggi",
+  "stats": [
+   {
+    "v": "4,5",
+    "l": "valutazione utenti"
+   },
+   {
+    "v": "7 604",
+    "l": "utenti registrati"
+   },
+   {
+    "v": "60 ms",
+    "l": "risposta piattaforma"
+   }
+  ],
+  "device_label": "Conto operativo",
+  "device_tag1": "Segnale AI",
+  "device_risk": "Rischio",
+  "device_safe": "Sotto controllo",
+  "trust_label": "recensioni verificate",
+  "device_bal": "€15.454,74",
+  "device_bal_v": "15454.74",
+  "device_cur": "€",
+  "device_cur_code": "EUR",
+  "device_pct": "1.7",
+  "device_aria": "Anteprima del portafoglio",
+  "device_note": "Illustrazione · anteprima dell'interfaccia",
+  "device_delta": "↗ 1,7% negli ultimi 30 giorni",
+  "device_rows": [
+   {
+    "n": "Panieri azionari globale",
+    "s": "MIX-GL",
+    "v": "€8.142,85",
+    "vv": "8142.85",
+    "d": "+1,2%"
+   },
+   {
+    "n": "Liquidità in euro",
+    "s": "BND-EU",
+    "v": "€7.311,89",
+    "vv": "7311.89",
+    "d": "+0,7%"
+   }
+  ],
+  "proof": {
+   "claims": [
+    "Assistenza in italiano",
+    "Prelievi entro 24 ore",
+    "Spread pubblici"
+   ],
+   "quote": "Ordino dal telefono mentre sono in giro per clienti: gli avvisi di prezzo mi hanno tolto il bisogno di guardare i grafici ogni ora.",
+   "quote_by": "Roberto F. · Bergamo",
+   "steps": [
+    {
+     "t": "Compila il modulo",
+     "d": "Tre campi, nessuna chiamata obbligatoria."
+    },
+    {
+     "t": "Carica i documenti",
+     "d": "La verifica parte subito e ti aggiorna via email."
+    },
+    {
+     "t": "Opera quando vuoi",
+     "d": "Demo illimitata prima del primo ordine."
+    }
+   ]
+  }
+ },
+ "bands": {
+  "mid_eyebrow": "REGISTRAZIONE",
+  "mid_h2": "Prendi il tuo posto gratuito",
+  "mid_lead": "Quattro campi: ti richiamiamo noi e ti mostriamo la piattaforma dal vivo.",
+  "mid_points": [
+   "Richiamo entro 30 minuti lavorativi",
+   "Demo dal vivo con uno specialista",
+   "Verifica in ≤ 1 ora",
+   "Supporto 24/5 anche dopo l'apertura"
+  ],
+  "form_title": "Crea il mio account",
+  "form_sub": "250 € → fino a 30–40 € al mese. Nessun canone mensile, prelievi su richiesta.",
+  "form_consent": "Inviando accetti il trattamento dei dati secondo l'informativa privacy. L'area si attiva dopo il primo versamento <small>€250</small>; rendimento non garantito, condizioni complete nella documentazione contrattuale.",
+  "submit_nav": "Apri account",
+  "labels": {
+   "first": "Nome",
+   "last": "Cognome",
+   "email": "Email",
+   "phone": "Telefono"
+  },
+  "placeholders": {
+   "first": "Giulia",
+   "last": "Bianchi",
+   "email": "giulia@email.it",
+   "phone": "333 000 0000"
+  },
+  "submit": "Prendi il mio posto",
+  "trust_label": "Marchi di riferimento",
+  "side_stats": [
+   "4 campi",
+   "≤ 1 ora",
+   "0 €"
+  ],
+  "side_labels": [
+   "da compilare",
+   "verifica tipica",
+   "costo di registrazione"
+  ],
+  "side_note": "La registrazione è gratuita e non vincola: nessun abbonamento, nessun rinnovo automatico."
+ },
+ "ui": {
+  "calc_eyebrow": "SIMULAZIONE",
+  "calc_initial": "Versamento iniziale",
+  "calc_init_note": "EUR · da €250",
+  "calc_monthly": "Versamento mensile",
+  "calc_cur_note": "EUR",
+  "calc_years": "Orizzonte",
+  "calc_rate": "Ipotesi annua",
+  "calc_value_after": "VALORE ORIENTATIVO DOPO",
+  "calc_contributed": "Versato in totale",
+  "calc_gain": "Differenza (orientativa)",
+  "calc_now": "Oggi",
+  "cur_code": "EUR",
+  "cur_sym": "€",
+  "year_full": "ANNI",
+  "year_short": "ANNI",
+  "min_init": "250",
+  "status_sending": "Invio in corso…",
+  "status_fix": "Controlla i campi evidenziati.",
+  "status_fail": "Invio non riuscito, riprova.",
+  "status_ok": "Fatto, ti stiamo reindirizzando…",
+  "aria_nav": "Navigazione principale",
+  "aria_menu": "Menu",
+  "aria_timer": "Conto alla rovescia",
+  "aria_chart": "Grafico di proiezione",
+  "aria_illustration": "Illustrazione",
+  "aria_direction": "Illustrazione della direzione",
+  "terms_title": "Termini",
+  "privacy_title": "Privacy",
+  "not_found_title": "Pagina non trovata",
+  "not_found_back": "Torna all'inizio",
+  "back_home": "Torna all'inizio"
+ },
+ "sections": {
+  "intro": {
+   "eyebrow": "IL PUNTO",
+   "h2": "Tutto quello che serve, nello stesso posto",
+   "lead": "Listini, strumenti di analisi e area personale convivono in una sola schermata. Ogni sezione ha un compito preciso, senza riquadri decorativi."
+  },
+  "ladder": {
+   "eyebrow": "LIVELLI",
+   "h2": "Profili di accesso e cosa cambia",
+   "lead": "I livelli si differenziano per strumenti disponibili e frequenza dei dati, non per promesse di resa.",
+   "rows": [
+    {
+     "k": "Base",
+     "v": "Consultazione",
+     "d": "Listini in differita, area personale, assistenza via email."
+    },
+    {
+     "k": "Plus",
+     "v": "Analisi",
+     "d": "Aggiornamento più frequente, strumenti di confronto, note salvate."
+    },
+    {
+     "k": "Pro",
+     "v": "Operatività",
+     "d": "Listini in tempo reale, più mercati monitorabili, avvisi su soglia."
+    },
+    {
+     "k": "Desk",
+     "v": "Supporto",
+     "d": "Canale diretto con l'assistenza e revisione periodica del profilo."
+    }
+   ]
+  },
+  "features": {
+   "eyebrow": "STRUMENTI",
+   "h2": "Cosa trovi dentro Quantezaglia",
+   "lead": "Funzioni concrete, ognuna con un compito identificabile.",
+   "cards": [
+    {
+     "ic": "▤",
+     "t": "Listini leggibili",
+     "d": "Prezzi e variazioni con colonne allineate e unità dichiarate."
+    },
+    {
+     "ic": "◷",
+     "t": "Storico consultabile",
+     "d": "Serie storiche per periodo, con scala e intervallo visibili."
+    },
+    {
+     "ic": "⌗",
+     "t": "Confronto strumenti",
+     "d": "Due o più strumenti affiancati sulla stessa finestra temporale."
+    },
+    {
+     "ic": "⚑",
+     "t": "Avvisi su soglia",
+     "d": "Una notifica quando un valore supera il livello scelto."
+    },
+    {
+     "ic": "▦",
+     "t": "Note e promemoria",
+     "d": "Annotazioni per strumento, richiamate nella scheda."
+    },
+    {
+     "ic": "⛨",
+     "t": "Accesso protetto",
+     "d": "Verifica in due passaggi e sessioni separati per dispositivo."
+    }
+   ]
+  },
+  "steps": {
+   "eyebrow": "IL PERCORSO",
+   "h2": "Tre passaggi per aprire l'accesso",
+   "steps": [
+    {
+     "t": "Richiesta",
+     "d": "Compila il modulo con nome, email e telefono."
+    },
+    {
+     "t": "Verifica",
+     "d": "Richiamo in orario di ufficio e controllo dei dati."
+    },
+    {
+     "t": "Documenti",
+     "d": "Caricamento dall'area personale, in formato digitale."
+    },
+    {
+     "t": "Primo versamento",
+     "d": "Solo dopo l'approvazione, con le coordinate indicate in area."
+    },
+    {
+     "t": "Accesso attivo",
+     "d": "Credenziali attive e assistenza disponibile."
+    }
+   ]
+  },
+  "markets": {
+   "eyebrow": "LISTINI",
+   "h2": "Dati di mercato in evidenza",
+   "lead": "Valori indicativi, aggiornati nell'interfaccia secondo il livello di accesso.",
+   "rows": [
+    {
+     "sym": "BTC/EUR",
+     "v": "87.450",
+     "chg": "+2,4%"
+    },
+    {
+     "sym": "ETH/EUR",
+     "v": "3.120",
+     "chg": "-0,8%"
+    },
+    {
+     "sym": "INDICE EU",
+     "v": "4.986",
+     "chg": "+0,6%"
+    },
+    {
+     "sym": "ORO/EUR",
+     "v": "2.284",
+     "chg": "+0,3%"
+    }
+   ],
+   "disclaimer": "Valori illustrativi.",
+   "th_symbol": "Strumento",
+   "th_value": "Valore",
+   "th_change": "Variazione"
+  },
+  "security": {
+   "eyebrow": "SICUREZZA",
+   "h2": "Come sono protetti dati e accessi",
+   "cards": [
+    {
+     "ic": "⛨",
+     "t": "Cifratura in transito",
+     "d": "Collegamenti in HTTPS su tutte le pagine dell'area."
+    },
+    {
+     "ic": "⌘",
+     "t": "Verifica in due passaggi",
+     "d": "Codice aggiuntivo richiesto ai nuovi dispositivi."
+    },
+    {
+     "ic": "◫",
+     "t": "Sessioni tracciate",
+     "d": "Elenco degli accessi con data e dispositivo, revocabili."
+    }
+   ]
+  },
+  "risk": {
+   "eyebrow": "RISCHI",
+   "h2": "Cosa può andare diversamente",
+   "lead": "Tre punti da tenere presenti prima di operare.",
+   "rows": [
+    {
+     "ic": "↕",
+     "t": "Prezzo variabile",
+     "d": "Il valore degli strumenti sale e scende; il capitale non è garantito."
+    },
+    {
+     "ic": "◷",
+     "t": "Tempi di esecuzione",
+     "d": "In fasi di volatilità l'ordine può essere eseguito a prezzo diverso."
+    },
+    {
+     "ic": "€",
+     "t": "Costi e cambio",
+     "d": "Commissioni e differenze di cambio incidono sul risultato finale."
+    }
+   ]
+  },
+  "streams": {
+   "eyebrow": "DATI",
+   "h2": "Da dove arrivano i numeri",
+   "cards": [
+    {
+     "ic": "⟡",
+     "t": "Fonti dichiarate",
+     "d": "Ogni listino indica la fonte e l'orario di aggiornamento."
+    },
+    {
+     "ic": "⌁",
+     "t": "Ritardo visibile",
+     "d": "Il differimento dei dati è scritto accanto al prezzo, non nascosto."
+    },
+    {
+     "ic": "⧉",
+     "t": "Esportazione",
+     "d": "Serie e tabelle scaricabili in formato tabellare dall'area."
+    }
+   ]
+  },
+  "cta": {
+   "eyebrow": "PROSSIMO PASSO",
+   "h2": "Apri l'accesso a Quantezaglia",
+   "lead": "Modulo breve, richiamo in orario di ufficio.",
+   "btn": "Inizia ora"
+  },
+  "demo": {
+   "eyebrow": "ANDAMENTO",
+   "h2": "Il grafico si legge a colpo d'occhio",
+   "lead": "Asse del tempo orizzontale, valori in verticale, intervallo scritto sopra il grafico.",
+   "disclaimer": "Tracciato illustrativo, non è una previsione di rendimento."
+  },
+  "stats": {
+   "rating": "Valutazione media",
+   "reviews": "Recensioni verificate",
+   "orders": "Ordini al secondo",
+   "api": "Uptime API",
+   "note": "Valori medi della piattaforma. Le performance passate non garantiscono risultati futuri."
+  },
+  "glance": {
+   "eyebrow": "IN SINTESI",
+   "h2": "Due strumenti che il motore tiene d'occhio adesso"
+  },
+  "notes": {
+   "lead": "Quantezaglia tiene grafici, liste e notizie di mercato in un unico posto: il controllo del mattino richiede minuti, non un'ora.",
+   "note": "Ogni modulo spiega cosa misura e perché importa, senza gergo inutile."
+  },
+  "facts": {
+   "eyebrow": "DOPO LA REGISTRAZIONE",
+   "h2": "I primi minuti nella piattaforma, senza tentativi",
+   "lead": "Ogni modulo si apre con una spiegazione breve: il primo accesso non richiede un manuale.",
+   "points": [
+    "Panoramica dei mercati in una pagina",
+    "Watchlist per gruppi personalizzati",
+    "Storico ordini con export",
+    "Modalità demo su dati reali"
+   ]
+  },
+  "portal": {
+   "eyebrow": "COSA OFFRE",
+   "h2": "La piattaforma come postazione",
+   "lead": "Tre moduli che coprono la maggior parte delle attività quotidiane senza cambiare servizio.",
+   "cards": [
+    {
+     "k": "Panoramiche e dati",
+     "v": "Mercati",
+     "d": "Quotazioni, profondità di mercato e notizie in una sola pagina, senza cambiare scheda."
+    },
+    {
+     "k": "Gestione dell’account",
+     "v": "Account",
+     "d": "Dati, limiti e documenti si aggiornano da solo: nessuna richiesta all’assistenza."
+    },
+    {
+     "k": "Storico e report",
+     "v": "Report",
+     "d": "Registro ordini con commissioni, export per la dichiarazione dei redditi in pochi clic."
+    }
+   ]
+  },
+  "ticker": {
+   "label": "TENDENZA"
+  },
+  "guide": {
+   "eyebrow": "GUIDA PRATICA",
+   "h2": "Una guida breve, senza sorprese",
+   "lead": "Le informazioni che contano prima di aprire l'area, spiegate in modo semplice e verificabile.",
+   "items": [
+    {
+     "t": "Un'unica area, tre livelli",
+     "d": "La schermata iniziale raccoglie la panoramica dei mercati, la lista degli strumenti seguiti e lo storico delle operazioni. Ogni modulo si apre con una spiegazione breve e resta collegato agli altri, così non serve cambiare pagina per controllare una posizione."
+    },
+    {
+     "t": "La demo prima del denaro",
+     "d": "La modalità dimostrativa usa lo stesso pannello dell'area reale, ma con importi simulati. Serve a capire come si impostano gli avvisi, come si legge un grafico e quanto tempo richiede il controllo delle posizioni. Provarla non attiva alcun addebito."
+    },
+    {
+     "t": "Verifica dell'identità",
+     "d": "Dopo la richiesta viene chiesto un documento e un recapito verificabile. I controlli servono a rispettare gli obblighi antiriciclaggio e a proteggere l'accesso. Se un documento non è leggibile, il sistema lo segnala e si può ricaricare senza ricominciare."
+    },
+    {
+     "t": "Come leggere i listini",
+     "d": "Accanto a ogni prezzo compare la variazione della giornata e, se presente, il ritardo del dato. Gli importi mostrati nell'anteprima sono illustrativi finché l'area non è attiva. Per un confronto corretto usate lo stesso orario e lo stesso intervallo."
+    },
+    {
+     "t": "Rischio e limiti",
+     "d": "Nessuno strumento elimina le perdite: si possono impostare avvisi e limiti, ma il mercato resta imprevedibile. Prima di operare conviene definire una cifra massima e un orario fisso per rivedere le posizioni. Se il risultato non è chiaro, meglio fermarsi."
+    },
+    {
+     "t": "Assistenza e documenti",
+     "d": "Il supporto risponde in italiano nei giorni lavorativi e raccoglie le richieste dal modulo o dall'area personale. Condizioni, privacy e contatti sono nelle pagine dedicate del sito. Conservate i riferimenti delle richieste per ritrovarle in seguito."
+    }
+   ]
+  },
+  "appshot": {
+   "eyebrow": "ANTEPRIMA MOBILE",
+   "h2": "L'area di lavoro, dove serve",
+   "lead": "L'anteprima mostra come si leggono grafici, watchlist e cronologia da mobile, senza cambiare interfaccia rispetto al desktop.",
+   "alt": "Anteprima dell'area di lavoro su uno smartphone con grafici di mercato",
+   "points": [
+    "Grafici e watchlist nella stessa vista",
+    "Avvisi di prezzo senza aprire il desktop",
+    "Cronologia ordini sempre a portata"
+   ]
+  },
+  "partners": {
+   "eyebrow": "INTEGRAZIONI",
+   "h2": "Le integrazioni che contano",
+   "lead": "Una selezione di marchi e infrastrutture che rendono l'area più leggibile e i pagamenti più familiari."
+  },
+  "prizes": {
+   "eyebrow": "SOLO PER CHI SI REGISTRA",
+   "h2": "Il premio del primo accesso",
+   "lead": "Chi completa la verifica questa settimana entra nell'estrazione dei premi qui sotto: nessun costo aggiuntivo e nessun acquisto necessario.",
+   "side": "La verifica chiude l'iscrizione: il resto è automatico.",
+   "cta": "Prendi il mio posto",
+   "note": "Partecipazione riservata agli account verificati · i premi non sono convertibili in denaro.",
+   "credit": "Foto prodotto: Wikimedia Commons (CC BY / CC BY-SA)",
+   "rows": [
+    {
+     "rank": 1,
+     "img": "ps5-clean.jpg",
+     "t": "Console PlayStation 5 con DualSense",
+     "d": "Spedizione inclusa, nessun costo aggiuntivo.",
+     "alt": "Console PlayStation 5 con DualSense"
+    },
+    {
+     "rank": 2,
+     "img": "nintendo-switch.png",
+     "t": "Nintendo Switch con Joy-Con",
+     "d": "Secondo premio dell'estrazione di questa settimana.",
+     "alt": "Nintendo Switch con Joy-Con"
+    },
+    {
+     "rank": 3,
+     "img": "macbook-air.jpg",
+     "t": "MacBook Air M2",
+     "d": "Terzo premio: stesso accesso, stessa estrazione.",
+     "alt": "MacBook Air M2"
+    }
+   ]
+  }
+ },
+ "reviews": {
+  "eyebrow": "PERSONE",
+  "h2": "Chi usa Quantezaglia",
+  "lead": "Nomi illustrativi; contenuti indicati dagli utenti in fase di test.",
+  "items": [
+   {
+    "name": "Gabriele P.",
+    "city": "Roma",
+    "role": "Ricercatrice",
+    "tenure": "3 mesi",
+    "gain": "+€287 questo mese",
+    "photo": "p-men-49.jpg",
+    "quote": "Non ci sono finestre che coprono i dati: cosa rara in questo tipo di interfaccia."
+   },
+   {
+    "name": "Roberta N.",
+    "city": "Roma",
+    "role": "Tecnico",
+    "tenure": "7 mesi",
+    "gain": "+€721 questo mese",
+    "photo": "p-women-69.jpg",
+    "quote": "Il richiamo è arrivato in mattinata, la verifica è stata rapida e senza domande ripetute."
+   },
+   {
+    "name": "Simone D.",
+    "city": "Roma",
+    "role": "Grafico",
+    "tenure": "1 anno e mezzo",
+    "gain": "+€347 questo mese",
+    "photo": "p-men-19.jpg",
+    "quote": "Uso l'area più che altro per le note: ritrovo tutto nella scheda dello strumento."
+   }
+  ]
+ },
+ "scarcity": {
+  "eyebrow": "SESSIONE",
+  "h2": "La prossima verifica si chiude a breve",
+  "lead": "Le richieste arrivano in coda e vengono richiamate in orario di ufficio.",
+  "btn": "Entra in coda",
+  "units": [
+   "giorni",
+   "ore",
+   "min",
+   "sec"
+  ]
+ },
+ "faq": {
+  "eyebrow": "DOMANDE",
+  "h2": "Domande frequenti, risposte complete",
+  "items": [
+   {
+    "q": "Serve un versamento per registrarsi?",
+    "a": "No, la richiesta è gratuita e non vincola a nulla. Il versamento serve solo in un secondo momento, per attivare l'area operativa. Fino ad allora potete esplorare la panoramica e decidere con calma."
+   },
+   {
+    "q": "Quanto dura la verifica?",
+    "a": "In genere lo stesso giorno lavorativo, se i dati inviati sono completi e leggibili. Se servono documenti aggiuntivi, il team lo segnala subito nell'area personale. Ricevete una email a ogni cambio di stato."
+   },
+   {
+    "q": "L'assistenza è in italiano?",
+    "a": "Sì, il supporto risponde in italiano in orario di ufficio, dal lunedì al venerdì. Le risposte arrivano per email o tramite il modulo di contatto, di solito entro un giorno lavorativo. Per le domande ricorrenti esiste anche la sezione guide."
+   },
+   {
+    "q": "Posso cambiare i dati dopo l'apertura?",
+    "a": "Sì, dall'area personale: nome, contatti e preferenze si aggiornano in pochi clic. Ogni modifica chiede una conferma via email per sicurezza. Se qualcosa non va a buon fine, l'assistenza vi segue passo per passo."
+   },
+   {
+    "q": "I dati dei listini sono in tempo reale?",
+    "a": "Dipende dal livello dell'account: il ritardo eventuale è indicato accanto al prezzo, così sapete sempre cosa state vedendo. I grafici restano sincronizzati tra desktop e mobile. I valori mostrati restano dimostrativi finché l'area non è attiva."
+   },
+   {
+    "q": "Devo avere esperienza per iniziare?",
+    "a": "No, il percorso parte dalle basi: la panoramica, i listini e la modalità dimostrativa si esplorano senza operare. Chi ha già pratica può regolare watchlist, avvisi e criteri di rischio fin dal primo accesso. In ogni caso conviene provare la demo prima di qualsiasi versamento."
+   },
+   {
+    "q": "Quali mercati posso seguire?",
+    "a": "L'area raccoglie criptovalute, coppie valutarie, indici e materie prime in un'unica vista. Ogni strumento mostra prezzo, variazione della giornata e un breve contesto, così il confronto resta immediato. L'elenco disponibile dipende dal profilo e viene indicato prima dell'attivazione."
+   },
+   {
+    "q": "Come vengono gestiti i miei dati e i fondi?",
+    "a": "I dati personali sono trattati secondo il GDPR e le regole locali; le credenziali viaggiano su connessioni cifrate. I fondi restano separati dalla gestione ordinaria e ogni movimento è registrato nell'area personale. Nessun sistema elimina il rischio di mercato: le decisioni restano sempre vostre."
+   },
+   {
+    "q": "Posso perdere il capitale?",
+    "a": "Sì, ogni strumento finanziario può perdere valore e i risultati passati non anticipano quelli futuri. La piattaforma offre strumenti di analisi e limiti impostabili, non garanzie di rendimento. Prima di operare conviene definire quanto siete disposti a mettere a rischio."
+   },
+   {
+    "q": "Come funziona il prelievo?",
+    "a": "La richiesta si invia dall'area personale e viene registrata con data e importo. I tempi dipendono dal metodo scelto e dalla banca, in genere entro pochi giorni lavorativi. Lo stato resta visibile nella cronologia, con una email a ogni passaggio."
+   },
+   {
+    "q": "Cosa succede dopo l'invio del modulo?",
+    "a": "Un consulente ricontatta il numero indicato per confermare i dati e rispondere alle domande. Segue la verifica dell'identità e, solo se decidete di proseguire, l'attivazione dell'area operativa. Non c'è obbligo di versare nulla durante il colloquio."
+   },
+   {
+    "q": "Ci sono costi nascosti o commissioni?",
+    "a": "Le condizioni applicabili sono indicate prima della conferma, senza addebiti sorpresa per la registrazione o l'assistenza. Eventuali spread, commissioni di terzi e costi di rete restano separati e vanno letti nel dettaglio. In caso di dubbio, chiedete un riepilogo scritto al supporto."
+   }
+  ]
+ },
+ "office": {
+  "eyebrow": "UFFICIO",
+  "h2": "Uffici a Roma",
+  "lead": "Il percorso si completa online; per vedere l'interfaccia su uno schermo reale basta un appuntamento.",
+  "addr_label": "Indirizzo",
+  "addr": "Via Po 138, 68894 Roma",
+  "hours_label": "Aperti",
+  "hours": "Lun–Ven 9:00–17:30",
+  "contact_label": "Scrivici"
+ },
+ "brand_note": {
+  "h2": "Quantezaglia — cosa indica il nome",
+  "p1": "Si cerca quantezaglia login, quantezaglia registrazione e Quantezaglia Roma per arrivare all'area personale. Il dominio ufficiale resta quantezaglia-it.online.",
+  "p2": "Nelle pagine interne trovi il metodo di lavoro, la struttura degli strumenti e i recapiti diretti; le condizioni sono nella pagina termini.",
+  "badge": "IN SINTESI"
+ },
+ "livebar": {
+  "crypto": "CRIPTO",
+  "commod": "MATERIE PRIME",
+  "session": "Sessione UE",
+  "bull": "Rialzisti",
+  "bear": "Ribassisti",
+  "queue": "In coda",
+  "wait": "Attesa media",
+  "slots": "Posti liberi",
+  "payouts": "Pagamenti",
+  "news": [
+   "Borse europee in rialzo in apertura",
+   "Dati inflazione attesi nel pomeriggio",
+   "Bund decennale stabile sopra il 2,3%",
+   "Petrolio in calo dopo le scorte USA"
+  ]
+ },
+ "inner_about": {
+  "title": "Chi siamo — Quantezaglia",
+  "h1": "Un progetto nato da un'esigenza pratica",
+  "lead": "Il punto di partenza è semplice: listini leggibili e passaggi verificabili.",
+  "blocks": [
+   {
+    "t": "Origine",
+    "d": "Quantezaglia nasce dall'idea di ridurre il rumore attorno ai dati di mercato."
+   },
+   {
+    "t": "Metodo",
+    "d": "Ogni sezione ha un compito dichiarato e un ordine di lettura."
+   },
+   {
+    "t": "Confini",
+    "d": "Nessuna promessa di resa: si descrive cosa fa l'interfaccia."
+   },
+   {
+    "t": "Controllo",
+    "d": "Le revisioni periodiche verificano coerenza tra pagine e area personale."
+   }
+  ]
+ },
+ "inner_tech": {
+  "title": "Strumenti — Quantezaglia",
+  "h1": "Come funziona l'interfaccia",
+  "lead": "Ogni funzione ha un limite scritto e un uso previsto.",
+  "blocks": [
+   {
+    "t": "Listini",
+    "d": "Colonne allineate, fonte in calce alla tabella, ritardo indicato."
+   },
+   {
+    "t": "Grafici",
+    "d": "Asse del tempo orizzontale e intervallo sopra il tracciato."
+   },
+   {
+    "t": "Avvisi",
+    "d": "Soglie impostate dall'utente, modificabili in ogni momento."
+   },
+   {
+    "t": "Esportazione",
+    "d": "Tabelle scaricabili per uso personale, senza elaborazioni."
+   }
+  ]
+ },
+ "inner_who": {
+  "title": "A chi serve",
+  "h1": "Per chi è pensato",
+  "lead": "Strumenti per chi vuole leggere i dati prima di decidere.",
+  "blocks": [
+   {
+    "t": "Principianti",
+    "d": "Percorso guidato e lessico spiegato nelle pagine interne."
+   },
+   {
+    "t": "Autonomi",
+    "d": "Chi conosce i mercati trova le funzioni senza passaggi in più."
+   },
+   {
+    "t": "Prudenti",
+    "d": "Note, promemoria e avvisi su soglia restano salvati."
+   },
+   {
+    "t": "Non adatto",
+    "d": "A chi cerca indicazioni personalizzate di investimento."
+   }
+  ]
+ },
+ "inner_contact": {
+  "title": "Scrivici",
+  "h1": "Contatti diretti",
+  "lead": "Rispondiamo in orario di ufficio, in italiano."
+ },
+ "inner_register": {
+  "title": "Apri l'accesso",
+  "h1": "Come aprire l'accesso",
+  "lead": "Compila il modulo in home: il resto si completa al telefono.",
+  "points": [
+   "Richiamo in orario di ufficio",
+   "Documenti caricati online",
+   "Nessun costo di apertura"
+  ]
+ },
+ "inner_product": {
+  "title": "Strumenti — Quantezaglia",
+  "h1": "Come funziona l'interfaccia",
+  "lead": "Ogni funzione ha un limite scritto e un uso previsto. Funzioni concrete, ognuna con un compito identificabile.",
+  "sections": [
+   {
+    "h2": "Cosa trovi dentro Quantezaglia",
+    "paragraphs": [
+     "Funzioni concrete, ognuna con un compito identificabile.",
+     "Listini leggibili — Prezzi e variazioni con colonne allineate e unità dichiarate. Storico consultabile — Serie storiche per periodo, con scala e intervallo visibili. Confronto strumenti — Due o più strumenti affiancati sulla stessa finestra temporale."
+    ],
+    "bullets": [
+     "Listini leggibili",
+     "Storico consultabile",
+     "Confronto strumenti"
+    ]
+   },
+   {
+    "h2": "Come sono protetti dati e accessi",
+    "paragraphs": [
+     "Collegamenti in HTTPS su tutte le pagine dell'area. Codice aggiuntivo richiesto ai nuovi dispositivi. Elenco degli accessi con data e dispositivo, revocabili."
+    ],
+    "bullets": [
+     "Cifratura in transito",
+     "Verifica in due passaggi",
+     "Sessioni tracciate"
+    ]
+   },
+   {
+    "h2": "Dati di mercato in evidenza",
+    "paragraphs": [
+     "Valori indicativi, aggiornati nell'interfaccia secondo il livello di accesso.",
+     "Valori illustrativi."
+    ],
+    "bullets": [
+     "BTC/EUR",
+     "ETH/EUR",
+     "INDICE EU",
+     "ORO/EUR"
+    ]
+   },
+   {
+    "h2": "L'area di lavoro, dove serve",
+    "paragraphs": [
+     "L'anteprima mostra come si leggono grafici, watchlist e cronologia da mobile, senza cambiare interfaccia rispetto al desktop.",
+     "Grafici e watchlist nella stessa vista Avvisi di prezzo senza aprire il desktop Cronologia ordini sempre a portata"
+    ],
+    "bullets": [
+     "Grafici e watchlist nella stessa vista",
+     "Avvisi di prezzo senza aprire il desktop",
+     "Cronologia ordini sempre a portata"
+    ]
+   },
+   {
+    "h2": "Una guida breve, senza sorprese",
+    "paragraphs": [
+     "Le informazioni che contano prima di aprire l'area, spiegate in modo semplice e verificabile.",
+     "Un'unica area, tre livelli — La schermata iniziale raccoglie la panoramica dei mercati, la lista degli strumenti seguiti e lo storico delle operazioni. Ogni modulo si apre con una spiegazione breve e resta collegato agli altri, così non serve cambiare pagina per controllare una posizione. La demo prima del denaro — La modalità dimostrativa usa lo stesso pannello dell'area reale, ma con importi simulati. Serve a capire come si impostano gli avvisi, come si legge un grafico e quanto tempo richiede il controllo delle posizioni. Provarla non attiva alcun addebito."
+    ],
+    "bullets": [
+     "Un'unica area, tre livelli",
+     "La demo prima del denaro",
+     "Verifica dell'identità"
+    ]
+   }
+  ],
+  "faq": [
+   {
+    "q": "Serve un versamento per registrarsi?",
+    "a": "No, la richiesta è gratuita e non vincola a nulla. Il versamento serve solo in un secondo momento, per attivare l'area operativa. Fino ad allora potete esplorare la panoramica e decidere con calma."
+   },
+   {
+    "q": "Quanto dura la verifica?",
+    "a": "In genere lo stesso giorno lavorativo, se i dati inviati sono completi e leggibili. Se servono documenti aggiuntivi, il team lo segnala subito nell'area personale. Ricevete una email a ogni cambio di stato."
+   },
+   {
+    "q": "L'assistenza è in italiano?",
+    "a": "Sì, il supporto risponde in italiano in orario di ufficio, dal lunedì al venerdì. Le risposte arrivano per email o tramite il modulo di contatto, di solito entro un giorno lavorativo. Per le domande ricorrenti esiste anche la sezione guide."
+   },
+   {
+    "q": "Posso cambiare i dati dopo l'apertura?",
+    "a": "Sì, dall'area personale: nome, contatti e preferenze si aggiornano in pochi clic. Ogni modifica chiede una conferma via email per sicurezza. Se qualcosa non va a buon fine, l'assistenza vi segue passo per passo."
+   },
+   {
+    "q": "I dati dei listini sono in tempo reale?",
+    "a": "Dipende dal livello dell'account: il ritardo eventuale è indicato accanto al prezzo, così sapete sempre cosa state vedendo. I grafici restano sincronizzati tra desktop e mobile. I valori mostrati restano dimostrativi finché l'area non è attiva."
+   },
+   {
+    "q": "Devo avere esperienza per iniziare?",
+    "a": "No, il percorso parte dalle basi: la panoramica, i listini e la modalità dimostrativa si esplorano senza operare. Chi ha già pratica può regolare watchlist, avvisi e criteri di rischio fin dal primo accesso. In ogni caso conviene provare la demo prima di qualsiasi versamento."
+   }
+  ]
+ },
+ "inner_offer": {
+  "title": "Tre passaggi per aprire l'accesso",
+  "h1": "Tre passaggi per aprire l'accesso",
+  "lead": "Quattro campi: ti richiamiamo noi e ti mostriamo la piattaforma dal vivo. Compila il modulo in home: il resto si completa al telefono.",
+  "sections": [
+   {
+    "h2": "Tre passaggi per aprire l'accesso",
+    "paragraphs": [
+     "Richiesta — Compila il modulo con nome, email e telefono. Verifica — Richiamo in orario di ufficio e controllo dei dati. Documenti — Caricamento dall'area personale, in formato digitale.",
+     "Primo versamento — Solo dopo l'approvazione, con le coordinate indicate in area. Accesso attivo — Credenziali attive e assistenza disponibile."
+    ],
+    "bullets": [
+     "Richiesta",
+     "Verifica",
+     "Documenti",
+     "Primo versamento",
+     "Accesso attivo"
+    ]
+   },
+   {
+    "h2": "Prendi il tuo posto gratuito",
+    "paragraphs": [
+     "Quattro campi: ti richiamiamo noi e ti mostriamo la piattaforma dal vivo.",
+     "Richiamo entro 30 minuti lavorativi Demo dal vivo con uno specialista Verifica in ≤ 1 ora Supporto 24/5 anche dopo l'apertura"
+    ],
+    "bullets": [
+     "Richiamo entro 30 minuti lavorativi",
+     "Demo dal vivo con uno specialista",
+     "Verifica in ≤ 1 ora",
+     "Supporto 24/5 anche dopo l'apertura"
+    ]
+   },
+   {
+    "h2": "Cosa può andare diversamente",
+    "paragraphs": [
+     "Tre punti da tenere presenti prima di operare.",
+     "Prezzo variabile — Il valore degli strumenti sale e scende; il capitale non è garantito. Tempi di esecuzione — In fasi di volatilità l'ordine può essere eseguito a prezzo diverso. Costi e cambio — Commissioni e differenze di cambio incidono sul risultato finale."
+    ],
+    "bullets": [
+     "Prezzo variabile",
+     "Tempi di esecuzione",
+     "Costi e cambio"
+    ]
+   },
+   {
+    "h2": "Come sono protetti dati e accessi",
+    "paragraphs": [
+     "Collegamenti in HTTPS su tutte le pagine dell'area. Codice aggiuntivo richiesto ai nuovi dispositivi. Elenco degli accessi con data e dispositivo, revocabili."
+    ],
+    "bullets": [
+     "Cifratura in transito",
+     "Verifica in due passaggi",
+     "Sessioni tracciate"
+    ]
+   },
+   {
+    "h2": "La piattaforma come postazione",
+    "paragraphs": [
+     "Tre moduli che coprono la maggior parte delle attività quotidiane senza cambiare servizio.",
+     "Quotazioni, profondità di mercato e notizie in una sola pagina, senza cambiare scheda. Dati, limiti e documenti si aggiornano da solo: nessuna richiesta all’assistenza. Registro ordini con commissioni, export per la dichiarazione dei redditi in pochi clic."
+    ],
+    "bullets": [
+     "Panoramiche e dati",
+     "Gestione dell’account",
+     "Storico e report"
+    ]
+   }
+  ],
+  "faq": [
+   {
+    "q": "Quali mercati posso seguire?",
+    "a": "L'area raccoglie criptovalute, coppie valutarie, indici e materie prime in un'unica vista. Ogni strumento mostra prezzo, variazione della giornata e un breve contesto, così il confronto resta immediato. L'elenco disponibile dipende dal profilo e viene indicato prima dell'attivazione."
+   },
+   {
+    "q": "Come vengono gestiti i miei dati e i fondi?",
+    "a": "I dati personali sono trattati secondo il GDPR e le regole locali; le credenziali viaggiano su connessioni cifrate. I fondi restano separati dalla gestione ordinaria e ogni movimento è registrato nell'area personale. Nessun sistema elimina il rischio di mercato: le decisioni restano sempre vostre."
+   },
+   {
+    "q": "Posso perdere il capitale?",
+    "a": "Sì, ogni strumento finanziario può perdere valore e i risultati passati non anticipano quelli futuri. La piattaforma offre strumenti di analisi e limiti impostabili, non garanzie di rendimento. Prima di operare conviene definire quanto siete disposti a mettere a rischio."
+   },
+   {
+    "q": "Come funziona il prelievo?",
+    "a": "La richiesta si invia dall'area personale e viene registrata con data e importo. I tempi dipendono dal metodo scelto e dalla banca, in genere entro pochi giorni lavorativi. Lo stato resta visibile nella cronologia, con una email a ogni passaggio."
+   },
+   {
+    "q": "Cosa succede dopo l'invio del modulo?",
+    "a": "Un consulente ricontatta il numero indicato per confermare i dati e rispondere alle domande. Segue la verifica dell'identità e, solo se decidete di proseguire, l'attivazione dell'area operativa. Non c'è obbligo di versare nulla durante il colloquio."
+   },
+   {
+    "q": "Ci sono costi nascosti o commissioni?",
+    "a": "Le condizioni applicabili sono indicate prima della conferma, senza addebiti sorpresa per la registrazione o l'assistenza. Eventuali spread, commissioni di terzi e costi di rete restano separati e vanno letti nel dettaglio. In caso di dubbio, chiedete un riepilogo scritto al supporto."
+   }
+  ]
+ },
+ "inner_faq": {
+  "title": "Domande frequenti, risposte complete",
+  "h1": "Domande frequenti, risposte complete",
+  "lead": "Le informazioni che contano prima di aprire l'area, spiegate in modo semplice e verificabile.",
+  "sections": [
+   {
+    "h2": "Una guida breve, senza sorprese",
+    "paragraphs": [
+     "Le informazioni che contano prima di aprire l'area, spiegate in modo semplice e verificabile.",
+     "Un'unica area, tre livelli — La schermata iniziale raccoglie la panoramica dei mercati, la lista degli strumenti seguiti e lo storico delle operazioni. Ogni modulo si apre con una spiegazione breve e resta collegato agli altri, così non serve cambiare pagina per controllare una posizione. La demo prima del denaro — La modalità dimostrativa usa lo stesso pannello dell'area reale, ma con importi simulati. Serve a capire come si impostano gli avvisi, come si legge un grafico e quanto tempo richiede il controllo delle posizioni. Provarla non attiva alcun addebito. Verifica dell'identità — Dopo la richiesta viene chiesto un documento e un recapito verificabile. I controlli servono a rispettare gli obblighi antiriciclaggio e a proteggere l'accesso. Se un documento non è leggibile, il sistema lo segnala e si può ricaricare senza ricominciare."
+    ],
+    "bullets": [
+     "Un'unica area, tre livelli",
+     "La demo prima del denaro",
+     "Verifica dell'identità"
+    ]
+   },
+   {
+    "h2": "L'area di lavoro, dove serve",
+    "paragraphs": [
+     "L'anteprima mostra come si leggono grafici, watchlist e cronologia da mobile, senza cambiare interfaccia rispetto al desktop.",
+     "Grafici e watchlist nella stessa vista Avvisi di prezzo senza aprire il desktop Cronologia ordini sempre a portata"
+    ],
+    "bullets": [
+     "Grafici e watchlist nella stessa vista",
+     "Avvisi di prezzo senza aprire il desktop",
+     "Cronologia ordini sempre a portata"
+    ]
+   }
+  ],
+  "faq": [
+   {
+    "q": "Serve un versamento per registrarsi?",
+    "a": "No, la richiesta è gratuita e non vincola a nulla. Il versamento serve solo in un secondo momento, per attivare l'area operativa. Fino ad allora potete esplorare la panoramica e decidere con calma."
+   },
+   {
+    "q": "Quanto dura la verifica?",
+    "a": "In genere lo stesso giorno lavorativo, se i dati inviati sono completi e leggibili. Se servono documenti aggiuntivi, il team lo segnala subito nell'area personale. Ricevete una email a ogni cambio di stato."
+   },
+   {
+    "q": "L'assistenza è in italiano?",
+    "a": "Sì, il supporto risponde in italiano in orario di ufficio, dal lunedì al venerdì. Le risposte arrivano per email o tramite il modulo di contatto, di solito entro un giorno lavorativo. Per le domande ricorrenti esiste anche la sezione guide."
+   },
+   {
+    "q": "Posso cambiare i dati dopo l'apertura?",
+    "a": "Sì, dall'area personale: nome, contatti e preferenze si aggiornano in pochi clic. Ogni modifica chiede una conferma via email per sicurezza. Se qualcosa non va a buon fine, l'assistenza vi segue passo per passo."
+   },
+   {
+    "q": "I dati dei listini sono in tempo reale?",
+    "a": "Dipende dal livello dell'account: il ritardo eventuale è indicato accanto al prezzo, così sapete sempre cosa state vedendo. I grafici restano sincronizzati tra desktop e mobile. I valori mostrati restano dimostrativi finché l'area non è attiva."
+   },
+   {
+    "q": "Devo avere esperienza per iniziare?",
+    "a": "No, il percorso parte dalle basi: la panoramica, i listini e la modalità dimostrativa si esplorano senza operare. Chi ha già pratica può regolare watchlist, avvisi e criteri di rischio fin dal primo accesso. In ogni caso conviene provare la demo prima di qualsiasi versamento."
+   },
+   {
+    "q": "Quali mercati posso seguire?",
+    "a": "L'area raccoglie criptovalute, coppie valutarie, indici e materie prime in un'unica vista. Ogni strumento mostra prezzo, variazione della giornata e un breve contesto, così il confronto resta immediato. L'elenco disponibile dipende dal profilo e viene indicato prima dell'attivazione."
+   },
+   {
+    "q": "Come vengono gestiti i miei dati e i fondi?",
+    "a": "I dati personali sono trattati secondo il GDPR e le regole locali; le credenziali viaggiano su connessioni cifrate. I fondi restano separati dalla gestione ordinaria e ogni movimento è registrato nell'area personale. Nessun sistema elimina il rischio di mercato: le decisioni restano sempre vostre."
+   },
+   {
+    "q": "Posso perdere il capitale?",
+    "a": "Sì, ogni strumento finanziario può perdere valore e i risultati passati non anticipano quelli futuri. La piattaforma offre strumenti di analisi e limiti impostabili, non garanzie di rendimento. Prima di operare conviene definire quanto siete disposti a mettere a rischio."
+   },
+   {
+    "q": "Come funziona il prelievo?",
+    "a": "La richiesta si invia dall'area personale e viene registrata con data e importo. I tempi dipendono dal metodo scelto e dalla banca, in genere entro pochi giorni lavorativi. Lo stato resta visibile nella cronologia, con una email a ogni passaggio."
+   },
+   {
+    "q": "Cosa succede dopo l'invio del modulo?",
+    "a": "Un consulente ricontatta il numero indicato per confermare i dati e rispondere alle domande. Segue la verifica dell'identità e, solo se decidete di proseguire, l'attivazione dell'area operativa. Non c'è obbligo di versare nulla durante il colloquio."
+   },
+   {
+    "q": "Ci sono costi nascosti o commissioni?",
+    "a": "Le condizioni applicabili sono indicate prima della conferma, senza addebiti sorpresa per la registrazione o l'assistenza. Eventuali spread, commissioni di terzi e costi di rete restano separati e vanno letti nel dettaglio. In caso di dubbio, chiedete un riepilogo scritto al supporto."
+   }
+  ]
+ },
+ "legal": {
+  "terms": "<p>Il presente documento riassume le condizioni d'uso del sito quantezaglia-it.online, gestito da Quantezaglia. L'accesso all'area personale richiede verifica dei dati e primo versamento secondo le coordinate indicate in area.</p><p>I dati di mercato mostrati hanno natura informativa e possono essere differiti; non costituiscono sollecitazione all'investimento. I termini completi sono forniti in fase contrattuale.</p><p>Autorità di vigilanza di riferimento: CONSOB. Foro competente e legge applicabile sono indicati nel contratto.</p>",
+  "privacy": "<p>Titolare del trattamento: Quantezaglia, Roma. Base giuridica: consenso ed esecuzione del contratto. Dati trattati: identificativi, contatti, dati di utilizzo dell'area.</p><p>Conservazione per il tempo necessario agli obblighi contrattuali e di legge. Diritti di accesso, rettifica, cancellazione e portabilità esercitabili scrivendo a info@quantezaglia-it.online.</p><p>Reclami all'autorità di controllo competente; per il settore finanziario: CONSOB.</p>"
+ },
+ "footer": {
+  "tagline": "Dati leggibili, passaggi verificabili.",
+  "risk_line": "Gli investimenti possono salire e scendere; il rendimento passato non è garanzia.",
+  "disclaimer": "Quantezaglia pubblica materiali informativi e non fornisce consulenza personalizzata. Il sito è gestito da Quantezaglia con sede in Roma. Autorità di vigilanza: CONSOB. Condizioni complete nella documentazione contrattuale.",
+  "terms_label": "Termini",
+  "privacy_label": "Privacy",
+  "rights": "Tutti i diritti riservati.",
+  "pay_chips": "VISA · Mastercard · Bonifico"
+ },
+ "thanks": {
+  "eyebrow": "RICEVUTO",
+  "h1": "Richiesta registrata",
+  "lead": "Ti richiamiamo in orario di ufficio, entro 30 minuti lavorativi.",
+  "warn": "Se non rispondiamo, riprova il giorno successivo o scrivi a info@quantezaglia-it.online."
+ }
+}

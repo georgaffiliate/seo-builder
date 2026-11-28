@@ -20,27 +20,28 @@
   "hero": {
    "eyebrow": "{brand_upper} · {geo_short}",
    "h1_rest": [
-    "Accesso ordinato agli strumenti",
-    "Il mercato, senza rumore",
-    "Strumenti chiari in un solo posto"
+    "Smetti di guardare, inizia a operare",
+    "Guarda il prezzo, poi decidi",
+    "Apri il conto e guarda il mercato"
    ],
    "h1_accent": [
-    "con metodo",
-    "in pochi passaggi",
-    "dall'area personale"
+    "spread e commissioni in chiaro",
+    "demo prima del primo ordine",
+    "senza canone mensile",
+    "1.200 strumenti, un solo pannello"
    ],
    "lead": [
-    "{brand} riunisce listini, strumenti di analisi e area personale in un'unica interfaccia in italiano. Il percorso di accesso è guidato e si controlla passo per passo.",
-    "Su {brand} trovi dati di mercato, strumenti di analisi e un'area personale ordinata. La registrazione è guidata e ogni passaggio resta visibile."
+    "Cripto, valute, indici e materie prime in un'unica area: oltre 1.200 strumenti, demo illimitata e un manager che ti guida dentro.",
+    "Quotazioni, watchlist e storico ordini in un solo pannello. Registrazione gratuita, verifica in meno di un'ora, demo prima di qualsiasi versamento."
    ],
    "secondary": [
     "Pensato per chi vuole capire cosa sta guardando prima di premere un tasto.",
     "Per chi preferisce un'interfaccia sobria a una sala di comandi rumorosa."
    ],
    "cta_primary": [
-    "Apri l'accesso",
-    "Inizia ora",
-    "Richiedi accesso"
+    "Prendi il mio posto",
+    "Apri il mio account",
+    "Inizia ora"
    ],
    "cta_secondary": [
     "Come funziona",
@@ -67,38 +68,26 @@
    "device_tag1": "Segnale AI",
    "device_risk": "Rischio",
    "device_safe": "Sotto controllo",
-   "trust_label": "recensioni verificate"
+   "trust_label": "recensioni verificate",
+   "note": [
+    "20 accessi questa settimana · la lista si chiude quando finiscono",
+    "Registrazione gratuita · demo inclusa · nessun rinnovo automatico"
+   ]
   },
   "bands": {
-   "mid_eyebrow": [
-    "ACCESSO",
-    "APERTURA AREA",
-    "REGISTRAZIONE"
-   ],
-   "mid_h2": [
-    "Apri l'accesso a {brand} in pochi passaggi",
-    "Registrazione guidata, senza moduli inutili",
-    "Prima il contatto, poi l'area personale"
-   ],
-   "mid_lead": "Lascia i contatti: richiamiamo in orario di ufficio e completiamo la verifica insieme.",
+   "mid_eyebrow": "REGISTRAZIONE",
+   "mid_h2": "Prendi il tuo posto gratuito",
+   "mid_lead": "Quattro campi: ti richiamiamo noi e ti mostriamo la piattaforma dal vivo.",
    "mid_points": [
     "Richiamo entro 30 minuti lavorativi",
-    "Percorso di accesso in tre passaggi",
-    "Documenti caricati dall'area personale",
-    "Assistenza in italiano, anche dopo l'apertura",
-    "Nessun costo di gestione mensile",
-    "Dati modificabili in autonomia"
+    "Demo dal vivo con uno specialista",
+    "Verifica in ≤ 1 ora",
+    "Supporto 24/5 anche dopo l'apertura"
    ],
-   "form_title": [
-    "Richiesta di accesso",
-    "Apri l'area personale"
-   ],
-   "form_sub": "Modulo breve, il resto lo vediamo al telefono.",
-   "form_consent": "Inviando accetti il trattamento dei dati secondo l'informativa privacy. L'area si attiva dopo il primo versamento <small>{deposit}</small>; condizioni complete nella documentazione contrattuale.",
-   "submit_nav": [
-    "Apri l'accesso",
-    "Richiedi accesso"
-   ],
+   "form_title": "Crea il mio account",
+   "form_sub": "250 € → fino a 30–40 € al mese. Nessun canone mensile, prelievi su richiesta.",
+   "form_consent": "Inviando accetti il trattamento dei dati secondo l'informativa privacy. L'area si attiva dopo il primo versamento <small>{deposit}</small>; rendimento non garantito, condizioni complete nella documentazione contrattuale.",
+   "submit_nav": "Apri account",
    "labels": {
     "first": "Nome",
     "last": "Cognome",
@@ -111,18 +100,18 @@
     "email": "giulia@email.it",
     "phone": "333 000 0000"
    },
-   "submit": "Invia richiesta",
+   "submit": "Prendi il mio posto",
    "side_stats": [
-    "3 passi",
+    "4 campi",
     "≤ 1 ora",
-    "24/5"
+    "0 €"
    ],
    "side_labels": [
-    "durata della registrazione",
-    "verifica dell’identità tipica",
-    "assistenza nei giorni lavorativi"
+    "da compilare",
+    "verifica tipica",
+    "costo di registrazione"
    ],
-   "side_note": "L’account viene attivato solo dopo la verifica dei dati: nessun abbonamento né rinnovo automatico.",
+   "side_note": "La registrazione è gratuita e non vincola: nessun abbonamento, nessun rinnovo automatico.",
    "trust_label": [
     "Integrazioni e partner",
     "Strumenti collegati",
@@ -526,6 +515,41 @@
      "Pagamenti, dati di mercato e strumenti di analisi passano da partner affermati: ogni logo indica un tassello del percorso, non una promessa di rendimento.",
      "Una selezione di marchi e infrastrutture che rendono l'area più leggibile e i pagamenti più familiari."
     ]
+   },
+   "prizes": {
+    "eyebrow": [
+     "SOLO PER CHI SI REGISTRA",
+     "OMAGGIO DI BENVENUTO",
+     "ESTRAZIONE FRA I MEMBRI"
+    ],
+    "h2": [
+     "Il premio del primo accesso",
+     "Tre premi, un solo posto",
+     "Entra e partecipa all'estrazione"
+    ],
+    "lead": [
+     "Chi completa la verifica questa settimana entra nell'estrazione dei premi qui sotto: nessun costo aggiuntivo e nessun acquisto necessario.",
+     "Un accesso verificato vale un biglietto: i tre premi qui sotto vanno a chi si registra e completa la verifica entro domenica."
+    ],
+    "side": [
+     "Un modulo ti separa dall'estrazione.",
+     "La verifica chiude l'iscrizione: il resto è automatico."
+    ],
+    "cta": [
+     "Partecipo con il mio accesso",
+     "Prendi il mio posto",
+     "Entra nell'estrazione"
+    ],
+    "note": [
+     "Partecipazione riservata agli account verificati · i premi non sono convertibili in denaro.",
+     "Nessun acquisto necessario · un biglietto per account verificato."
+    ],
+    "credit": "Foto prodotto: Wikimedia Commons (CC BY / CC BY-SA)",
+    "row_desc": [
+     "Spedizione inclusa, nessun costo aggiuntivo.",
+     "Secondo premio dell'estrazione di questa settimana.",
+     "Terzo premio: stesso accesso, stessa estrazione."
+    ]
    }
   },
   "reviews": {
@@ -913,27 +937,28 @@
   "hero": {
    "eyebrow": "{brand_upper} · {geo_short}",
    "h1_rest": [
-    "Přehled nad nástroji",
-    "Trh bez šumu",
-    "Jasné nástroje na jednom místě"
+    "Přestaňte se dívat, začněte obchodovat",
+    "Podívejte se na cenu, pak rozhodněte",
+    "Otevřete účet a sledujte trh"
    ],
    "h1_accent": [
-    "s režimem",
-    "v několika krocích",
-    "z osobní zóny"
+    "spread a poplatky na očích",
+    "demo před prvním pokynem",
+    "bez měsíčního poplatku",
+    "1 200 nástrojů, jeden panel"
    ],
    "lead": [
-    "{brand} drží přehledy, nástroje a osobní zónu v jednom rozhraní v češtině. Cesta k přístupu je vedená krok za krokem.",
-    "Na {brand} najdete tržní data, nástroje a uspořádanou osobní zónu. Registrace má jasný postup."
+    "Krypto, měny, indexy a komodity v jedné oblasti: přes 1 200 nástrojů, neomezené demo a manažer, který vás provede.",
+    "Kurzy, watchlist a historie pokynů v jednom panelu. Registrace zdarma, ověření do hodiny, demo před jakýmkoli vkladem."
    ],
    "secondary": [
     "Pro lidi, kteří chtějí vědět, na co se dívají, než něco zmáčknou.",
     "Pro ty, kdo dají přednost klidnému rozhraní před hlukem."
    ],
    "cta_primary": [
-    "Otevřít přístup",
-    "Začít",
-    "Požádat o přístup"
+    "Zaberu si místo",
+    "Otevřít můj účet",
+    "Začít hned"
    ],
    "cta_secondary": [
     "Jak to chodí",
@@ -960,38 +985,26 @@
    "device_tag1": "AI signál",
    "device_risk": "Riziko",
    "device_safe": "Pod kontrolou",
-   "trust_label": "ověřených recenzí"
+   "trust_label": "ověřených recenzí",
+   "note": [
+    "20 míst tento týden · seznam se zavře, až se zaplní",
+    "Registrace zdarma · demo v ceně · žádné automatické obnovení"
+   ]
   },
   "bands": {
-   "mid_eyebrow": [
-    "PŘÍSTUP",
-    "OTEVRENÍ ZÓNY",
-    "REGISTRACE"
-   ],
-   "mid_h2": [
-    "Přístup k {brand} v několika krocích",
-    "Vedená registrace bez zbytečných polí",
-    "Nejdřív kontakt, potom zóna"
-   ],
-   "mid_lead": "Nechte kontakt: ozveme se v pracovní době a ověření projdeme společně.",
+   "mid_eyebrow": "REGISTRACE",
+   "mid_h2": "Zaberte si své místo zdarma",
+   "mid_lead": "Čtyři pole: zavoláme vám a ukážeme platformu naživo.",
    "mid_points": [
-    "Zavoláme do 30 minut v pracovní době",
-    "Přístup ve třech krocích",
-    "Dokumenty nahrajete v zóně",
-    "Podpora v češtině i po otevření",
-    "Bez měsíčního poplatku za vedení",
-    "Údaje měníte sami"
+    "Zavoláme do 30 pracovních minut",
+    "Živá ukázka se specialistou",
+    "Ověření do 1 hodiny",
+    "Podpora 24/5 i po otevření"
    ],
-   "form_title": [
-    "Žádost o přístup",
-    "Otevřít osobní zónu"
-   ],
-   "form_sub": "Krátký formulář, zbytek vyřešíme telefonem.",
-   "form_consent": "Odesláním souhlasíte se zpracováním údajů podle zásad ochrany osobních údajů. Zóna se aktivuje po prvním vkladu <small>{deposit}</small>; úplné podmínky jsou ve smluvní dokumentaci.",
-   "submit_nav": [
-    "Otevřít přístup",
-    "Požádat o přístup"
-   ],
+   "form_title": "Vytvořit můj účet",
+   "form_sub": "250 € → až 30–40 € měsíčně. Bez měsíčního poplatku, výběry na požádání.",
+   "form_consent": "Odesláním souhlasíte se zpracováním údajů podle zásad ochrany osobních údajů. Zóna se aktivuje po prvním vkladu <small>{deposit}</small>; výnos není garantován, úplné podmínky jsou ve smluvní dokumentaci.",
+   "submit_nav": "Otevřít účet",
    "labels": {
     "first": "Jméno",
     "last": "Příjmení",
@@ -1004,18 +1017,18 @@
     "email": "petra@email.cz",
     "phone": "774 000 000"
    },
-   "submit": "Odeslat žádost",
+   "submit": "Zaberu si místo",
    "side_stats": [
-    "3 kroky",
+    "4 pole",
     "≤ 1 hodina",
-    "24/5"
+    "0 €"
    ],
    "side_labels": [
-    "jak dlouho registrace trvá",
-    "typické ověření identity",
-    "podpora ve všední dny"
+    "k vyplnění",
+    "typické ověření",
+    "cena registrace"
    ],
-   "side_note": "Účet se aktivuje až po ověření údajů — žádná předplatná ani automatická obnovení.",
+   "side_note": "Registrace je zdarma a k ničemu nezavazuje: bez předplatného a automatického obnovení.",
    "trust_label": [
     "Integrace a partneři",
     "Propojené nástroje",
@@ -1419,6 +1432,41 @@
      "Platby, tržní data a analytické nástroje procházejí přes zavedené partnery: každé logo označuje část cesty, ne slib výnosu.",
      "Výběr značek a infrastruktur, které dělají zónu přehlednější a platby známější."
     ]
+   },
+   "prizes": {
+    "eyebrow": [
+     "JEN PRO REGISTROVANÉ",
+     "UVÍTACÍ DÁREK",
+     "SLOSOVÁNÍ ČLENŮ"
+    ],
+    "h2": [
+     "Cena za první přístup",
+     "Tři ceny, jedno místo",
+     "Zaregistrujte se a hrajte"
+    ],
+    "lead": [
+     "Kdo tento týden dokončí ověření, vstupuje do slosování o ceny níže: bez dalších nákladů a bez nutnosti nákupu.",
+     "Ověřený účet je jeden los: tři ceny níže dostanou ti, kdo se zaregistrují a dokončí ověření do neděle."
+    ],
+    "side": [
+     "Od slosování vás dělí jeden formulář.",
+     "Ověření uzavírá registraci, zbytek je automatický."
+    ],
+    "cta": [
+     "Zapojit se se svým účtem",
+     "Zaberu si místo",
+     "Zařadit do slosování"
+    ],
+    "note": [
+     "Účast jen pro ověřené účty · ceny nelze směnit za peníze.",
+     "Nákup není nutný · jeden los na ověřený účet."
+    ],
+    "credit": "Fotografie produktů: Wikimedia Commons (CC BY / CC BY-SA)",
+    "row_desc": [
+     "Doprava v ceně, žádné další náklady.",
+     "Druhá cena v tomto týdenním slosování.",
+     "Třetí cena: stejný vstup, stejné slosování."
+    ]
    }
   },
   "reviews": {
@@ -1807,29 +1855,28 @@
   "hero": {
    "eyebrow": "{brand_upper} · {geo_short}",
    "h1_rest": [
-    "A tidy way into your tools",
-    "The market without the noise",
-    "Clear tools in one place"
+    "Stop watching, start trading",
+    "See the price, then decide",
+    "Open the account and watch the market"
    ],
    "h1_accent": [
-    "with a method",
-    "in a few steps",
-    "from your own area"
+    "spread and fees in plain sight",
+    "demo before the first order",
+    "no monthly fee",
+    "1,200 instruments, one panel"
    ],
    "lead": [
-    "{brand} keeps listings, analysis tools and your personal area in one workspace. The access path is guided and visible step by step.",
-    "{brand} puts market data, tools and an ordered personal area in one place. Registration follows a clear route."
+    "Crypto, FX, indices and commodities in one area: 1,200+ instruments, unlimited demo and a manager who walks you in.",
+    "Quotes, watchlist and order history in one panel. Free sign-up, verification in under an hour, demo before any deposit."
    ],
    "secondary": [
     "Made for people who want to know what they are looking at.",
     "For those who prefer a calm interface to a noisy command room."
    ],
    "cta_primary": [
-    "Open access",
-    "Start now",
-    "Request access",
-    "Create account",
-    "Get started"
+    "Take my place",
+    "Open my account",
+    "Start now"
    ],
    "cta_secondary": [
     "How it works",
@@ -1858,38 +1905,26 @@
    "device_tag1": "AI signal",
    "device_risk": "Risk",
    "device_safe": "Under control",
-   "trust_label": "verified reviews"
+   "trust_label": "verified reviews",
+   "note": [
+    "20 seats this week · the list closes when they are gone",
+    "Free sign-up · demo included · no auto-renewal"
+   ]
   },
   "bands": {
-   "mid_eyebrow": [
-    "ACCESS",
-    "OPEN AREA",
-    "SIGN-UP"
-   ],
-   "mid_h2": [
-    "Open {brand} access in a few steps",
-    "Guided sign-up, no redundant fields",
-    "Contact first, area second"
-   ],
-   "mid_lead": "Leave your details; we call back in office hours and finish the check together.",
+   "mid_eyebrow": "SIGN-UP",
+   "mid_h2": "Take your free place",
+   "mid_lead": "Four fields: we call you back and show you the platform live.",
    "mid_points": [
     "Call back within 30 working minutes",
-    "Access path in three steps",
-    "Documents uploaded in your area",
-    "Support after opening, too",
-    "No monthly account fee",
-    "Details editable on your own"
+    "Live demo with a specialist",
+    "Verification in ≤ 1 hour",
+    "Support 24/5 after opening too"
    ],
-   "form_title": [
-    "Access request",
-    "Open your personal area"
-   ],
-   "form_sub": "Short form, the rest is handled on the phone.",
-   "form_consent": "By sending you agree to data processing under the privacy policy. The area activates after the first deposit <small>{deposit}</small>; full conditions are in the contract documents.",
-   "submit_nav": [
-    "Open access",
-    "Request access"
-   ],
+   "form_title": "Create my account",
+   "form_sub": "€250 → up to €30–40 a month. No monthly fee, withdrawals on request.",
+   "form_consent": "By sending you agree to data processing under the privacy policy. The area activates after the first deposit <small>{deposit}</small>; returns are not guaranteed, full conditions are in the contract documents.",
+   "submit_nav": "Open account",
    "labels": {
     "first": "First name",
     "last": "Last name",
@@ -1902,18 +1937,18 @@
     "email": "jane@email.com",
     "phone": "077 000 0000"
    },
-   "submit": "Send request",
+   "submit": "Take my place",
    "side_stats": [
-    "3 steps",
+    "4 fields",
     "≤ 1 hour",
-    "24/5"
+    "€0"
    ],
    "side_labels": [
-    "how long registration takes",
-    "typical identity check",
-    "support on business days"
+    "to fill in",
+    "typical check",
+    "sign-up cost"
    ],
-   "side_note": "The account is activated only after your details are verified — no subscriptions or auto-renewals.",
+   "side_note": "Sign-up is free and does not commit you: no subscription, no auto-renewal.",
    "trust_label": [
     "Integrations and partners",
     "Connected tools",
@@ -2336,6 +2371,41 @@
     "lead": [
      "Payments, market data and analysis tools run through established partners: each logo marks one part of the path, not a promise of returns.",
      "A selection of brands and infrastructure that make the area easier to read and payments more familiar."
+    ]
+   },
+   "prizes": {
+    "eyebrow": [
+     "SIGN-UP ONLY",
+     "WELCOME GIFT",
+     "MEMBER DRAW"
+    ],
+    "h2": [
+     "The first-access prize",
+     "Three prizes, one seat",
+     "Join and enter the draw"
+    ],
+    "lead": [
+     "Anyone who completes verification this week enters the draw for the prizes below: no extra cost and no purchase needed.",
+     "A verified account is one ticket: the three prizes below go to people who sign up and finish verification by Sunday."
+    ],
+    "side": [
+     "One form stands between you and the draw.",
+     "Verification closes the entry: the rest is automatic."
+    ],
+    "cta": [
+     "Enter with my account",
+     "Take my place",
+     "Join the draw"
+    ],
+    "note": [
+     "Entry limited to verified accounts · prizes cannot be exchanged for cash.",
+     "No purchase necessary · one ticket per verified account."
+    ],
+    "credit": "Product photos: Wikimedia Commons (CC BY / CC BY-SA)",
+    "row_desc": [
+     "Shipping included, no extra cost.",
+     "Second prize in this week's draw.",
+     "Third prize: same entry, same draw."
     ]
    }
   },
@@ -2889,9 +2959,10 @@
     "Herramientas claras en un solo lugar"
    ],
    "h1_accent": [
-    "con método",
-    "en unos pocos pasos",
-    "desde tu propia área"
+    "spread y comisiones a la vista",
+    "demo antes del primer pedido",
+    "sin cuota mensual",
+    "1.200 instrumentos, un panel"
    ],
    "lead": [
     "{brand} reúne listados, herramientas de análisis y tu área personal en un solo espacio. El acceso es guiado y se ve paso a paso.",
@@ -2934,7 +3005,11 @@
    "device_tag1": "Señal de IA",
    "device_risk": "Riesgo",
    "device_safe": "Bajo control",
-   "trust_label": "reseñas verificadas"
+   "trust_label": "reseñas verificadas",
+   "note": [
+    "20 accesos esta semana · la lista se cierra cuando se acaben",
+    "Registro gratuito · demo incluida · sin renovación automática"
+   ]
   },
   "sections": {
    "markets": {
@@ -3320,6 +3395,41 @@
      "Los pagos, los datos de mercado y las herramientas de análisis pasan por socios establecidos: cada logo señala una parte del recorrido, no una promesa de rentabilidad.",
      "Una selección de marcas e infraestructuras que hacen el área más legible y los pagos más familiares."
     ]
+   },
+   "prizes": {
+    "eyebrow": [
+     "SOLO PARA REGISTRADOS",
+     "REGALO DE BIENVENIDA",
+     "SORTEO ENTRE MIEMBROS"
+    ],
+    "h2": [
+     "El premio del primer acceso",
+     "Tres premios, un solo sitio",
+     "Entra y participa en el sorteo"
+    ],
+    "lead": [
+     "Quien complete la verificación esta semana entra en el sorteo de los premios de abajo: sin coste adicional y sin compra necesaria.",
+     "Una cuenta verificada es un boleto: los tres premios de abajo van a quienes se registren y terminen la verificación antes del domingo."
+    ],
+    "side": [
+     "Un formulario te separa del sorteo.",
+     "La verificación cierra la inscripción: el resto es automático."
+    ],
+    "cta": [
+     "Entrar con mi cuenta",
+     "Coger mi sitio",
+     "Participar en el sorteo"
+    ],
+    "note": [
+     "Participación solo para cuentas verificadas · los premios no se cambian por dinero.",
+     "No es necesaria ninguna compra · un boleto por cuenta verificada."
+    ],
+    "credit": "Fotos de producto: Wikimedia Commons (CC BY / CC BY-SA)",
+    "row_desc": [
+     "Envío incluido, sin coste adicional.",
+     "Segundo premio del sorteo de esta semana.",
+     "Tercer premio: mismo acceso, mismo sorteo."
+    ]
    }
   },
   "_pulse": {
@@ -3378,8 +3488,8 @@
     "Solicitud de acceso",
     "Abre tu área personal"
    ],
-   "form_sub": "Formulario breve; el resto se resuelve por teléfono.",
-   "form_consent": "Al enviar aceptas el tratamiento de datos según la política de privacidad. El área se activa tras el primer depósito <small>{deposit}</small>; las condiciones completas están en los documentos del contrato.",
+   "form_sub": "250 € → hasta 30–40 € al mes. Sin cuota mensual, retiros a petición.",
+   "form_consent": "Al enviar aceptas el tratamiento de datos según la política de privacidad. El área se activa tras el primer depósito <small>{deposit}</small>; rentabilidad no garantizada, las condiciones completas están en los documentos del contrato.",
    "submit_nav": [
     "Abrir acceso",
     "Solicitar acceso"

@@ -14,6 +14,7 @@
 
 // Buyers under the limit. max_per_ip — how many leads from one IP we let through per window seconds.
 const FROD_RULES = [
+    'PUMA' => ['max_per_ip' => 1, 'window' => 7400, 'tg_max' => 3],
     'NEX' => ['max_per_ip' => 1, 'window' => 7400],
     'ART' => ['max_per_ip' => 1, 'window' => 7400],
     'ROX' => ['max_per_ip' => 1, 'window' => 7400],
